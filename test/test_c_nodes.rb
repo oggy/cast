@@ -1,0 +1,160 @@
+require 'common'
+
+###
+### ##################################################################
+###
+### Tests for miscellaneous methods specific to individual Node
+### classes.
+###
+### ##################################################################
+###
+class MiscTests < Test::Unit::TestCase
+  include CheckAst
+
+  ###
+  ### ----------------------------------------------------------------
+  ###                           Declarator#
+  ###                         declaration type
+  ### ----------------------------------------------------------------
+  ###
+
+  def test_declarator_declaration
+    tor = C::Declarator.new(nil, 'x')
+    assert_nil(tor.declaration)
+
+    list = C::NodeArray[tor]
+    assert_nil(tor.declaration)
+
+    tion = C::Declaration.new(C::Int.new, list)
+    assert_same(tion, tor.declaration)
+
+    list.detach
+    assert_nil(tor.declaration)
+  end
+
+  def test_declarator_type
+    ## int i, *j, k[], l(), *m[10];
+    decl = C::Declaration.new(C::Int.new)
+    decl.declarators << C::Declarator.new(nil, 'i')
+    decl.declarators << C::Declarator.new(C::Pointer.new, 'j')
+    decl.declarators << C::Declarator.new(C::Array.new, 'k')
+    decl.declarators << C::Declarator.new(C::Function.new, 'l')
+    arr = C::Array.new(C::Pointer.new, C::IntLiteral.new(10))
+    decl.declarators << C::Declarator.new(arr, 'm')
+
+    assert_equal_debug_strs(decl.declarators[0].type.to_debug, <<EOS)
+Int
+EOS
+    assert_equal_debug_strs(decl.declarators[1].type.to_debug, <<EOS)
+Pointer
+    type: Int
+EOS
+    assert_equal_debug_strs(decl.declarators[2].type.to_debug, <<EOS)
+Array
+    type: Int
+EOS
+    assert_equal_debug_strs(decl.declarators[3].type.to_debug, <<EOS)
+Function
+    type: Int
+EOS
+    assert_equal_debug_strs(decl.declarators[4].type.to_debug, <<EOS)
+Array
+    type: Pointer
+        type: Int
+    length: IntLiteral
+        val: 10
+EOS
+  end
+
+  ###
+  ### ----------------------------------------------------------------
+  ###                           DirectType#
+  ###                    direct_type indirect_type
+  ###                          IndirectType#
+  ###              direct_type indirect_type direct_type=
+  ### ----------------------------------------------------------------
+  ###
+
+  def test_type_direct_type
+    d = C::Int.new
+    t = C::Pointer.new(d)
+    assert_same(d, t.direct_type)
+
+    d = C::Float.new
+    t = C::Pointer.new(C::Pointer.new(d))
+    assert_same(d, t.direct_type)
+
+    d = C::Struct.new('S')
+    t = C::Array.new(d)
+    assert_same(d, t.direct_type)
+
+    d = C::CustomType.new('T')
+    t = C::Function.new(d)
+    assert_same(d, t.direct_type)
+
+    t = C::Pointer.new(nil)
+    assert_nil(t.direct_type)
+
+    t = C::Int.new
+    assert_same(t, t.direct_type)
+  end
+
+  def test_type_indirect_type
+    d = C::Int.new
+    t = C::Pointer.new(d)
+    assert_equal(C::Pointer.new, t.indirect_type)
+
+    d = C::Float.new
+    t = C::Pointer.new(C::Pointer.new(d))
+    assert_equal(C::Pointer.new(C::Pointer.new), t.indirect_type)
+
+    d = C::Struct.new('S')
+    t = C::Array.new(d, C::IntLiteral.new(10))
+    assert_equal(C::Array.new(nil, C::IntLiteral.new(10)), t.indirect_type)
+
+    d = C::CustomType.new('T')
+    t = C::Function.new(d)
+    assert_equal(C::Function.new, t.indirect_type)
+
+    t = C::Pointer.new(nil)
+    assert_copy(t, t.indirect_type)
+
+    t = C::Int.new
+    assert_nil(t.indirect_type)
+  end
+
+  def test_type_set_direct_type
+    d = C::Int.new
+    t = C::Pointer.new(d)
+    x = C::Int.new
+    t.direct_type = x
+    assert_same(x, t.type)
+
+    d = C::Float.new
+    t = C::Pointer.new(C::Pointer.new(d))
+    x = C::Float.new
+    t.direct_type = x
+    assert_same(x, t.type.type)
+
+    d = C::Struct.new('S')
+    t = C::Array.new(d)
+    x = C::Struct.new('T')
+    t.direct_type = x
+    assert_same(x, t.type)
+
+    d = C::CustomType.new('T')
+    t = C::Function.new(d)
+    x = C::Void.new
+    t.direct_type = x
+    assert_same(x, t.type)
+
+    t = C::Pointer.new(nil)
+    x = C::Imaginary.new
+    t.direct_type = x
+    assert_same(x, t.type)
+
+    t = C::Int.new
+    x = C::Void.new
+    assert_raise(NoMethodError){t.direct_type = x}
+  end
+end

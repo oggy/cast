@@ -1,0 +1,2477 @@
+<!-- Whoa, hand-written HTML?  How 1995! -->
+<html>
+<head>
+  <title>CAST -- Ruby's C parsing dog.  Woof.</title>
+</head>
+<body>
+<style>
+  body {
+  }
+  ul { 
+      line-height: 1.5em;
+      list-style-type: square;
+      margin: 0.3em 0 0 1.5em;
+      padding:0;
+      list-style-image: url("bullet.gif");
+  }
+  li { margin-bottom: 0.1em; }
+  li.node_classes {
+    color: #447744;
+  }
+  span.node_classes_abstract {
+    color: #447744;
+    font-weight: bolder;
+  }
+  span.node_classes_concrete {
+    color: #447744;
+  }
+  tt {
+  }
+  h1 {
+    color: #447744;
+    text-align: center;
+  }
+  h2 {
+    color: #447744;
+    border-bottom-style: solid;
+    border-bottom-width: 1;
+    border-bottom-color: #447744;
+  }
+  h3 {
+    color: #447744;
+  }
+  pre.code_snippet {
+    border-style: solid;
+    border-color: #000000;
+    border-width: 2;
+    padding: 4;
+    background-color: #ffffcc;
+  }
+  span.code_comment {
+    color: #447744;
+    font-style: oblique;
+  }
+  span.code_highlight {
+    color: #ff0000;
+  }
+  div.node_classes {
+    border-style: solid;
+    border-color: #000000;
+    border-width: 2;
+    background-color: #ffffcc;
+    color: #447744;
+  }
+  table.node_desc {
+    border-style: solid;
+    border-color: #000000;
+    border-width: 2;
+  }
+  thead {
+    font-weight: bolder;
+  }
+  tr.node_desc_header {
+  }
+  tr.node_desc_oddrow {
+    background-color: #ddffdd;
+  }
+  tr.node_desc_evenrow {
+    background-color: #ffffcc;
+  }
+  a.links {
+    color: #885500;
+  }
+  td.links {
+    padding: 5;
+    background-color: #bbddff;
+    vertical-align: top;
+    border-right-style: solid;
+    border-color: #000000;
+    border-width: 5;
+    color: #ffffff;
+  }
+  td.nd_class {
+    vertical-align: center;
+  }
+  td.nd_field {
+    vertical-align: top;
+  }
+  td.nd_child {
+    vertical-align: top;
+    text-align: center;
+  }
+  td.nd_values {
+    vertical-align: top;
+  }
+  td.nd_default {
+    vertical-align: top;
+  }
+  td.nd_comments {
+    vertical-align: top;
+  }
+</style>
+
+<table><tr><td class="links">  <!-- frame table -->
+
+<ul>
+  <li><a class="links" href="http://rubyforge.org/projects/cast/">Home</a></li>
+  <li><a class="links" href="http://rubyforge.org/frs/?group_id=561">Download</a></li>
+</ul>
+
+</td><td>  <!-- frame table -->
+
+<h1>CAST</h1>
+
+<h2>What Is</h2>
+<p>
+  CAST parses C code into an abstract syntax tree (AST), lets you
+  break it, then vomit it out as code.  The parser does C99.
+</p>
+
+<h2>Library Overview</h2>
+
+<p>Everything is in the module <tt>C</tt>.</p>
+<ul>
+  <li>There's the parser (<tt>Parser</tt>).</li>
+  <li>There's the tree (<tt>Node</tt> and its subclasses).</li>
+  <li>That's it.</li>
+</ul>
+
+<h3>Usage</h3>
+
+<p>
+  You call <tt>Parser#parse</tt>, and it gives you a tree of
+  <tt>Node</tt> objects.  Watch:
+</p>
+
+<pre class="code_snippet">
+require 'cast/cast'
+
+<span class="code_comment">## create a parser</span>
+parser = C::Parser.new
+
+<span class="code_comment">## (optional) set some settings...</span>
+parser.pos.filename = "toy.c"      <span class="code_comment"># used for error messages</span>
+parser.type_names << 'LinkedList'  <span class="code_comment"># treat these words as types</span>
+
+<span class="code_comment">## gimme a tree</span>
+ugly_c_code = open("toy.c"){|f| f.read}
+tree = parser.parse(ugly_c_code)
+
+<span class="code_comment">## what's the tree look like?</span>
+puts tree.to_debug
+</pre>
+
+<p>
+  If there's a parse error, <tt>#parse</tt> raises a
+  <tt>ParseError</tt> (which has a nice error message in
+  <tt>#message</tt>).
+</p>
+
+<a name="the_parser"></a><h2>The Parser</h2>
+
+<p>
+  Here's a quiz:  what does "<tt>a * b;</tt>" do?
+</p>
+<p>
+  I bet you said "why you l4m3r n00b, that's a statement that
+  multiplies <tt>a</tt> by <tt>b</tt> and throws away the answer --
+  now go take your meaningless snippetage to your computing 101 class
+  and let me finish hurting this Java<sup>TM</sup> programmer."  Well,
+  you'd be both mean and wrong.  It was, of course, a trick question.
+  I didn't say if any of <tt>a</tt> and <tt>b</tt> are types!  If only
+  <tt>a</tt> is a type, it's actually a declaration.  And if
+  <tt>b</tt> is a type, it's a syntax error.
+</p>
+<p>
+  So, the parser's gonna need to know what identifiers are type names.
+  This is one of the bits of state that a <tt>Parser</tt> keeps.
+  Here's the complete list (um, of two):
+</p>
+<ul>
+  <li>
+    <tt>#type_names</tt> -- a <tt>Set</tt> of <tt>String</tt>s.
+  </li>
+  <li>
+    <tt>#pos</tt> -- the <tt>Node::Pos</tt> this parser will start
+    parsing at.  Used for error messages.
+  </li>
+</ul>
+
+<p>
+  A <tt>Node::Pos</tt> has three read-write atts: <tt>#filename</tt>,
+  <tt>#line_num</tt>, <tt>#col_num</tt>.
+</p>
+
+<a name="the_nodes"></a><h2>The Nodes</h2>
+
+<p>There are a couple of Node classes:</p>
+
+<div class="node_classes"><table><tr>
+  <td>
+    <ul>
+      <li class="node_classes"><span class="node_classes_abstract">Node</span><ul>
+        <li class="node_classes"><span class="node_classes_concrete">TranslationUnit</span></li>
+        <li class="node_classes"><span class="node_classes_concrete">Declaration</span></li>
+        <li class="node_classes"><span class="node_classes_concrete">Declarator</span></li>
+        <li class="node_classes"><span class="node_classes_concrete">FunctionDef</span></li>
+        <li class="node_classes"><span class="node_classes_concrete">Parameter</span></li>
+        <li class="node_classes"><span class="node_classes_concrete">Enumerator</span></li>
+        <li class="node_classes"><span class="node_classes_concrete">MemberInit</span></li>
+        <li class="node_classes"><span class="node_classes_concrete">Member</span></li>
+        <li class="node_classes"><span class="node_classes_abstract">Statement</span><ul>
+          <li class="node_classes"><span class="node_classes_concrete">Block</span></li>
+          <li class="node_classes"><span class="node_classes_concrete">If</span></li>
+          <li class="node_classes"><span class="node_classes_concrete">Switch</span></li>
+          <li class="node_classes"><span class="node_classes_concrete">While</span></li>
+          <li class="node_classes"><span class="node_classes_concrete">For</span></li>
+          <li class="node_classes"><span class="node_classes_concrete">Goto</span></li>
+          <li class="node_classes"><span class="node_classes_concrete">Continue</span></li>
+          <li class="node_classes"><span class="node_classes_concrete">Break</span></li>
+          <li class="node_classes"><span class="node_classes_concrete">Return</span></li>
+          <li class="node_classes"><span class="node_classes_concrete">ExpressionStatement</span></li>
+        </ul></li>
+        <li class="node_classes"><span class="node_classes_abstract">Label</span><ul>
+          <li class="node_classes"><span class="node_classes_concrete">PlainLabel</span></li>
+          <li class="node_classes"><span class="node_classes_concrete">Default</span></li>
+          <li class="node_classes"><span class="node_classes_concrete">Case</span></li>
+        </ul></li>
+      </ul></li>
+    </ul>
+  </td><td>
+    <ul>
+      <li class="node_classes"><span class="node_classes_abstract">Node</span><ul>
+        <li class="node_classes"><span class="node_classes_abstract">Expression</span><ul>
+          <li class="node_classes"><span class="node_classes_concrete">Comma</span></li>
+          <li class="node_classes"><span class="node_classes_concrete">Conditional</span></li>
+          <li class="node_classes"><span class="node_classes_concrete">Variable</span></li>
+          <li class="node_classes"><span class="node_classes_abstract">UnaryExpression</span><ul>
+            <li class="node_classes"><span class="node_classes_abstract">PostfixExpression</span><ul>
+              <li class="node_classes"><span class="node_classes_concrete">Index</span></li>
+              <li class="node_classes"><span class="node_classes_concrete">Call</span></li>
+              <li class="node_classes"><span class="node_classes_concrete">Dot</span></li>
+              <li class="node_classes"><span class="node_classes_concrete">Arrow</span></li>
+              <li class="node_classes"><span class="node_classes_concrete">PostInc</span></li>
+              <li class="node_classes"><span class="node_classes_concrete">PostDec</span></li>
+            </ul></li>
+            <li class="node_classes"><span class="node_classes_abstract">PrefixExpression</span><ul>
+              <li class="node_classes"><span class="node_classes_concrete">Cast</span></li>
+              <li class="node_classes"><span class="node_classes_concrete">Address</span></li>
+              <li class="node_classes"><span class="node_classes_concrete">Dereference</span></li>
+              <li class="node_classes"><span class="node_classes_concrete">Sizeof</span></li>
+              <li class="node_classes"><span class="node_classes_concrete">Plus</span></li>
+              <li class="node_classes"><span class="node_classes_concrete">Minus</span></li>
+              <li class="node_classes"><span class="node_classes_concrete">PreInc</span></li>
+              <li class="node_classes"><span class="node_classes_concrete">PreDec</span></li>
+              <li class="node_classes"><span class="node_classes_concrete">BitNot</span></li>
+              <li class="node_classes"><span class="node_classes_concrete">Not</span></li>
+            </ul></li>
+          </ul></li>
+        </ul></li>
+      </ul></li>
+    </ul>
+  </td><td>
+    <ul>
+      <li class="node_classes"><span class="node_classes_abstract">Node</span><ul>
+        <li class="node_classes"><span class="node_classes_abstract">Expression</span><ul>
+          <li class="node_classes"><span class="node_classes_abstract">BinaryExpression</span><ul>
+            <li class="node_classes"><span class="node_classes_concrete">Add</span></li>
+            <li class="node_classes"><span class="node_classes_concrete">Subtract</span></li>
+            <li class="node_classes"><span class="node_classes_concrete">Multiply</span></li>
+            <li class="node_classes"><span class="node_classes_concrete">Divide</span></li>
+            <li class="node_classes"><span class="node_classes_concrete">Mod</span></li>
+            <li class="node_classes"><span class="node_classes_concrete">Equal</span></li>
+            <li class="node_classes"><span class="node_classes_concrete">NotEqual</span></li>
+            <li class="node_classes"><span class="node_classes_concrete">Less</span></li>
+            <li class="node_classes"><span class="node_classes_concrete">More</span></li>
+            <li class="node_classes"><span class="node_classes_concrete">LessOrEqual</span></li>
+            <li class="node_classes"><span class="node_classes_concrete">MoreOrEqual</span></li>
+            <li class="node_classes"><span class="node_classes_concrete">BitAnd</span></li>
+            <li class="node_classes"><span class="node_classes_concrete">BitOr</span></li>
+            <li class="node_classes"><span class="node_classes_concrete">BitXor</span></li>
+            <li class="node_classes"><span class="node_classes_concrete">ShiftLeft</span></li>
+            <li class="node_classes"><span class="node_classes_concrete">ShiftRight</span></li>
+            <li class="node_classes"><span class="node_classes_concrete">And</span></li>
+            <li class="node_classes"><span class="node_classes_concrete">Or</span></li>
+          </ul></li>
+        </ul></li>
+      </ul></li>
+    </ul>
+  </td><td>
+    <ul>
+      <li class="node_classes"><span class="node_classes_abstract">Node</span><ul>
+        <li class="node_classes"><span class="node_classes_abstract">Expression</span><ul>
+          <li class="node_classes"><span class="node_classes_abstract">AssignmentExpression</span><ul>
+            <li class="node_classes"><span class="node_classes_concrete">Assign</span></li>
+            <li class="node_classes"><span class="node_classes_concrete">MultiplyAssign</span></li>
+            <li class="node_classes"><span class="node_classes_concrete">DivideAssign</span></li>
+            <li class="node_classes"><span class="node_classes_concrete">ModAssign</span></li>
+            <li class="node_classes"><span class="node_classes_concrete">AddAssign</span></li>
+            <li class="node_classes"><span class="node_classes_concrete">SubtractAssign</span></li>
+            <li class="node_classes"><span class="node_classes_concrete">ShiftLeftAssign</span></li>
+            <li class="node_classes"><span class="node_classes_concrete">ShiftRightAssign</span></li>
+            <li class="node_classes"><span class="node_classes_concrete">BitAndAssign</span></li>
+            <li class="node_classes"><span class="node_classes_concrete">BitXorAssign</span></li>
+            <li class="node_classes"><span class="node_classes_concrete">BitOrAssign</span></li>
+          </ul></li>
+          <li class="node_classes"><span class="node_classes_abstract">Literal</span><ul>
+            <li class="node_classes"><span class="node_classes_concrete">StringLiteral</span></li>
+            <li class="node_classes"><span class="node_classes_concrete">CharLiteral</span></li>
+            <li class="node_classes"><span class="node_classes_concrete">CompoundLiteral</span></li>
+            <li class="node_classes"><span class="node_classes_concrete">IntLiteral</span></li>
+            <li class="node_classes"><span class="node_classes_concrete">FloatLiteral</span></li>
+          </ul></li>
+        </ul></li>
+      </ul></li>
+    </ul>
+  </td><td>
+    <ul>
+      <li class="node_classes"><span class="node_classes_abstract">Node</span><ul>
+        <li class="node_classes"><span class="node_classes_abstract">Type</span><ul>
+          <li class="node_classes"><span class="node_classes_abstract">IndirectType</span><ul>
+            <li class="node_classes"><span class="node_classes_concrete">Pointer</span></li>
+            <li class="node_classes"><span class="node_classes_concrete">Array</span></li>
+            <li class="node_classes"><span class="node_classes_concrete">Function</span></li>
+          </ul></li>
+          <li class="node_classes"><span class="node_classes_abstract">DirectType</span><ul>
+            <li class="node_classes"><span class="node_classes_concrete">Struct</span></li>
+            <li class="node_classes"><span class="node_classes_concrete">Union</span></li>
+            <li class="node_classes"><span class="node_classes_concrete">Enum</span></li>
+            <li class="node_classes"><span class="node_classes_concrete">CustomType</span></li>
+            <li class="node_classes"><span class="node_classes_abstract">PrimitiveType</span><ul>
+              <li class="node_classes"><span class="node_classes_concrete">Void</span></li>
+              <li class="node_classes"><span class="node_classes_concrete">Int</span></li>
+              <li class="node_classes"><span class="node_classes_concrete">Float</span></li>
+              <li class="node_classes"><span class="node_classes_concrete">Char</span></li>
+              <li class="node_classes"><span class="node_classes_concrete">Bool</span></li>
+              <li class="node_classes"><span class="node_classes_concrete">Complex</span></li>
+              <li class="node_classes"><span class="node_classes_concrete">Imaginary</span></li>
+            </ul></li>
+          </ul></li>
+        </ul></li>
+        <li class="node_classes"><span class="node_classes_abstract">NodeList</span><ul>
+          <li class="node_classes"><span class="node_classes_concrete">NodeArray</span></li>
+          <li class="node_classes"><span class="node_classes_concrete">NodeChain</span></li>
+        </ul></li>
+      </ul></li>
+    </ul>
+  </td></tr>
+</table></div>
+
+<p>
+  The <b>bold</b> ones are abstract.
+</p>
+<p>
+  The last 2 (the <tt>NodeList</tt>s) represent lists of nodes.
+  Methodwise, they try to behave like normal ruby <tt>::Array</tt>s.
+  Implementationwise, a <tt>NodeChain</tt> is a doubly linked list,
+  whereas a <tt>NodeArray</tt> is an array.  <tt>NodeChain</tt>s may
+  be more efficient when adding things at the beginning of a LARGE
+  list.
+</p>
+
+<h3>Attributes</h3>
+
+<p>Each <tt>Node</tt> object has:</p>
+
+<ul>
+  <li>
+    <tt>#parent</tt> -- return the parent in the tree (a <tt>Node</tt>
+    or <tt>nil</tt>).
+  </li>
+  <li>
+    <tt>#pos</tt>, <tt>#pos=</tt> -- the position in the source file
+    (a <tt>Node::Pos</tt>).
+  </li>
+  <li>
+    <tt>#to_s</tt> -- return the code for the tree (a
+    <tt>String</tt>).
+  </li>
+  <li>
+    <tt>#to_debug</tt> -- return a pretty string for inspection.
+    <b>Try it</b>.
+  </li>
+  <li>
+    <tt>#match?(str)</tt>, <tt>#=~(str)</tt> -- return true iff
+    <tt>str</tt> parses as a <tt>Node</tt> equal to this one.
+  </li>
+  <li>
+    <tt>#detach</tt> -- remove this node from the tree (parent becomes
+    nil) and return it.
+  </li>
+  <li>
+    <tt>#detached?</tt>, <tt>#attached?</tt> -- return true if parent
+    is nil or non-nil respectively.
+  </li>
+  <li>
+    <tt>#replace_with(node)</tt> -- replace this node with
+    <tt>node</tt> in the tree.
+  </li>
+  <li>
+    <tt>#swap_with(node)</tt> -- exchange this node with <tt>node</tt>
+    in their trees.
+  </li>
+  <li>
+    <tt>#insert_prev(*<tt>nodes</tt>)</tt>,
+    <tt>#insert_next(*nodes)</tt> -- insert <tt>nodes</tt> before this
+    node in the parent list.  Parent must be a <tt>NodeList</tt>!
+    Useful for adding statements before a node in a block, for
+    example.
+  </li>
+  <li>
+    <tt>#<i>Foo</i>?</tt> -- (where <tt><i>Foo</i></tt> is a module
+    name) return <tt>self.is_a?(<em>Foo</em>)</tt>.
+  </li>
+</ul>
+
+<p>
+  Now the <tt>Foo?</tt> method above probably gave all the duck typing
+  purists heart attacks, so I should prepare my defence.  CAST pays
+  close attention to the classes of <tt>Node</tt>s.  That means if you
+  dress up a <tt>Thingy</tt> as a <tt>FunctionDef</tt> and smuggle it
+  into the tree, don't expect the pacemaker you're using this for to
+  function correctly.  Basic methods like <tt>Node#==</tt> check that
+  the classes match.  This is the cleanest way to distinguish, e.g.,
+  an <tt>Add</tt> from a <tt>Subtract</tt> (which both have the same
+  methods but represent very different things).  It just seems
+  impractical to allow duck typing in this situation.
+</p>
+
+<p>
+  The <tt>#<i>Foo</i>?</tt> method was created because it's a common
+  need.  Example:
+</p>
+<pre class="code_snippet">
+<span class="code_comment">## make a tree</span>
+ast = C::Parser.new.parse(code_string)
+
+<span class="code_comment">## print all global variables</span>
+ast.entities.each do |node|
+  node.<span class="code_highlight">Declaration?</span> or next
+  node.declarators.each do |decl|
+    unless decl.type.<span class="code_highlight">Function?</span>
+      puts "#{decl.name}: #{decl.type}"
+    end
+  end
+end
+</pre>
+
+If you're walking the tree looking for nodes to move around, don't
+forget that modifying the tree during traversal is a criminal offence.
+
+<h3>Fields and children</h3>
+
+<p>
+  Each concrete <tt>Node</tt> class has a member for each bit of
+  important C stuff it pertains to.  I know you peeked at the big list
+  below, so you know the kind of thing I mean.
+</p>
+
+<p>
+  But these aren't defined as <tt>attr</tt>s as you normally do in
+  Ruby -- they're <strong>field</strong>s.  If a node has a field
+  <tt>foo</tt>, it means there's a setter <tt>#foo=</tt> and getter
+  <tt>#foo</tt>.  (A field <tt>foo?</tt> means the setter is
+  <tt>#foo=</tt> and the getter is <tt>#foo?</tt>.)  Some fields are
+  even more special: <strong>child</strong> fields.  These form the
+  tree structure, and are always valued <tt>Node</tt> or <tt>nil</tt>.
+</p>
+
+<p>
+  Why divulge these bizarre internal secrets?  Because these
+  <tt>Node</tt> methods are defined in terms of fields and children:
+</p>
+<ul>
+  <li>
+    <tt>#==</tt>, <tt>#eql?</tt> -- Equality is checked recursively.
+    That is, all fields (including children) must be equal.
+  </li>
+  <li>
+    <tt>#dup</tt>, <tt>#clone</tt> -- Children are copied recursively
+    (other fields and attrs as normal).
+  </li>
+  <li>
+    <tt>#each</tt>, <tt>#reverse_each</tt> -- Yield all (non-nil)
+    children.  Node includes <tt>Enumerable</tt>, so you get the free
+    chocolates too.
+  </li>
+</ul>
+
+<p>
+  Then there's the tree-twiddling methods, which only ever
+  yield/return/affect (non-nil) children.
+</p>
+<ul>
+  <li>
+    <tt>#next, #prev </tt> -- return the next/prev sibling.
+  </li>
+  <li>
+    <tt>#list_next</tt>, <tt>#list_prev </tt> -- like
+    <tt>#next</tt>/<tt>#prev</tt>, but also requires the parent to be
+    <tt>NodeList</tt>.  I'll be honest; I don't remember why I added
+    these methods.  They may well suddenly disappear.
+  </li>
+  <li>
+    <tt>#depth_first</tt>, <tt>#reverse_depth_first </tt> -- Walk the
+    tree in that order, yielding two args (<tt>event, node</tt>) at
+    each node.  <tt>event</tt> is <tt>:down</tt> on the way down,
+    <tt>:up</tt> on the way up.  If the block <tt>throw</tt>s
+    <tt>:prune</tt>, it won't descend any further.
+  </li>
+  <li>
+    <tt>#preorder</tt>, <tt>#reverse_preorder</tt>,
+    <tt>#postorder</tt>, <tt>#reverse_postorder</tt> -- Walk the tree
+    depth first, yielding nodes in the given order.  For the
+    preorders, if the block throws <tt>:prune</tt>, it won't descend
+    any further.
+  </li>
+  <li>
+    <tt>#node_after(child)</tt>, <tt>#node_before(child) </tt> --
+    return the node before/after <tt>child</tt> (same as
+    <tt>child.next</tt>).
+  </li>
+  <li>
+    <tt>#remove_node(child)</tt> -- remove <tt>child</tt> from this
+    node (same as <tt>child.detach</tt>).
+  </li>
+  <li>
+    <tt>#replace_node(child, new_child) </tt> -- replace
+    <tt>child</tt> with yeah you guessed it (same as
+    <tt>child.replace_with(newchild)</tt>).
+  </li>
+</ul>
+
+<p>
+  And now, the episode you've been waiting for: THE FIELD LIST!  (Cue
+  music and dim lights.)
+</p>
+
+<p>Notes about the table:
+  <ul>
+    <li>
+      If no default is listed, it is <tt>false</tt> if the field name
+      ends in a '?', <tt>nil</tt> otherwise.
+    </li>
+    <li>
+      There are some conventions we follow religiously:
+      <ul>
+        <li>
+          Field names that end in '?' are <b>always</b> true-or-false.
+        </li>
+        <li>
+          <tt>NodeList</tt>-valued fields <b>always</b> default to an
+          empty <tt>NodeArray</tt> or <tt>NodeChain</tt>, so you can
+          tack things on there with <tt>&lt;&lt;</tt>, without worrying
+          about needing to create the list first.
+        </li>
+        <li>
+          A field is <tt>Node</tt>-valued <b>if and only if</b> it is a
+          child field.
+        </li>
+        <li>
+           The rows go yellow, green, yellow, green, ... .
+        </li>
+      </ul>
+    </li>
+  </ul>
+</p>
+
+<table class="node_desc">
+  <thead><tr>
+  </tr></thead>
+
+  <thead><tr class="node_desc_header">
+    <td align="center">Class</td>
+    <td align="center">Field</td>
+    <td align="center">Child?</td>
+    <td align="center">Type or possible values</td>
+    <td align="center">Default</td>
+    <td align="center">Comments</td>
+  </tr></thead>
+
+  <tbody>
+  <tr class="node_desc_evenrow">
+    <td class="nd_class" rowspan="1"><tt>TranslationUnit</tt></td>
+    <td class="nd_field"><tt>entities</tt></td>
+    <td class="nd_child">Y</td>
+    <td class="nd_values"><tt>NodeList</tt></td>
+    <td class="nd_default"><tt>NodeChain[]</tt></td>
+    <td class="nd_comments" rowspan="1">
+      He lives at the root of a parsed file.
+    </td>
+  </tr>
+
+  <tr class="node_desc_oddrow">
+    <td class="nd_class" rowspan="4"><tt>Declaration</tt></td>
+    <td class="nd_field"><tt>storage</tt></td>
+    <td class="nd_child"></td>
+    <td class="nd_values"><tt>:typedef</tt>, <tt>:extern</tt>, <tt>:static</tt>, <tt>:auto</tt>, <tt>:register</tt></td>
+    <td class="nd_default"></td>
+    <td class="nd_comments" rowspan="4">
+      There are also methods to query the storage more humanely:
+      <ul>
+        <li><tt>#typedef? </tt> -- true iff <tt>storage == :typedef </tt></li>
+        <li><tt>#extern?  </tt> -- true iff <tt>storage == :extern  </tt></li>
+        <li><tt>#static?  </tt> -- true iff <tt>storage == :static  </tt></li>
+        <li><tt>#auto?    </tt> -- true iff <tt>storage == :auto    </tt></li>
+        <li><tt>#register?</tt> -- true iff <tt>storage == :register</tt></li>
+      </ul>
+    </td>
+  </tr>
+  <tr class="node_desc_oddrow">
+    <td class="nd_field"><tt>type</tt></td>
+    <td class="nd_child">Y</td>
+    <td class="nd_values"><tt>DirectType</tt></td>
+    <td class="nd_default"></td>
+  </tr>
+  <tr class="node_desc_oddrow">
+    <td class="nd_field"><tt>declarators</tt></td>
+    <td class="nd_child">Y</td>
+    <td class="nd_values"><tt>NodeList</tt></td>
+    <td class="nd_default"><tt>NodeArray[]</tt></td>
+  </tr>
+  <tr class="node_desc_oddrow">
+    <td class="nd_field"><tt>inline?</tt></td>
+    <td class="nd_child"></td>
+    <td class="nd_values"><tt>true</tt>, <tt>false</tt></td>
+    <td class="nd_default"></td>
+  </tr>
+
+  <tr class="node_desc_evenrow">
+    <td class="nd_class" rowspan="4"><tt>Declarator</tt></td>
+    <td class="nd_field"><tt>indirect_type</tt></td>
+    <td class="nd_child">Y</td>
+    <td class="nd_values"><tt>IndirectType</tt></td>
+    <td class="nd_default"></td>
+    <td class="nd_comments" rowspan="4">
+      What on earth is a "declarator", you ask?  Consider "<tt>int i,
+      *ip;</tt>".  This is a <tt>Declaration</tt> with two
+      <tt>Declarator</tt>s:
+<pre>
+    Declaration
+        type: Int
+        declarators: 
+            - Declarator
+                name: "i"
+            - Declarator
+                indirect_type: Pointer
+                name: "ip"
+</pre>
+      The <tt>indirect_type</tt> of the <tt>ip</tt>
+      <tt>Declarator</tt> is a <tt>Pointer</tt> to <tt>nil</tt>.
+      "'Pointer to nil' my foot -- I want the type of the stupid
+      variable!"  Here:
+      <ul>
+        <li>
+          <tt>#type</tt> -- return the type, the whole type, and
+          nothing but the type.  This is a clone; modifying it won't
+          modify the tree.
+        </li>
+      </ul>
+      So calling <tt>#type</tt> on the <tt>ip</tt> <tt>Declarator</tt>
+      gives:
+<pre>
+    Pointer
+        type: Int
+</pre>
+    </td>
+  </tr>
+  <tr class="node_desc_evenrow">
+    <td class="nd_field"><tt>name</tt></td>
+    <td class="nd_child"></td>
+    <td class="nd_values"><tt>String</tt></td>
+    <td class="nd_default"></td>
+  </tr>
+  <tr class="node_desc_evenrow">
+    <td class="nd_field"><tt>init</tt></td>
+    <td class="nd_child">Y</td>
+    <td class="nd_values"><tt>Expression</tt></td>
+    <td class="nd_default"></td>
+  </tr>
+  <tr class="node_desc_evenrow">
+    <td class="nd_field"><tt>num_bits</tt></td>
+    <td class="nd_child">Y</td>
+    <td class="nd_values"><tt>Integer</tt></td>
+    <td class="nd_default"></td>
+  </tr>
+
+  <tr class="node_desc_oddrow">
+    <td class="nd_class" rowspan="6"><tt>FunctionDef</tt></td>
+    <td class="nd_field"><tt>storage</tt></td>
+    <td class="nd_child"></td>
+    <td class="nd_values"><tt>:extern</tt>, <tt>:static</tt></td>
+    <td class="nd_default"></td>
+    <td class="nd_comments" rowspan="6">
+      Just like <tt>Declaration</tt>, there's also:
+      <ul>
+        <li><tt>#extern?</tt> -- return true iff <tt>storage == :extern</tt></li>
+        <li><tt>#static?</tt> -- return true iff <tt>storage == :static</tt></li>
+      </ul>
+      There's also a pseudo-field:
+      <ul>
+        <li><tt>#prototype?</tt> -- same as !no_prototype?</li>
+        <li><tt>#prototype=(val)</tt> -- same as no_prototype = !val</li>
+      </ul>
+      <tt>no_prototype?</tt> means that no prototype was given.  That means parameter types weren't given in the parens, but in the "old-style" declaration list.  Example:
+      <table cellpadding="5" width="100%">
+        <tr><td>
+<pre>
+int main(argc, argv)
+    int argc;
+    char **argv;
+{
+    return 0;
+}
+</pre>
+        </td><td>
+<pre>
+int main(int argc, char **argv) {
+    return 0;
+}
+</pre>
+        </td></tr><tr><td>
+          <b>No prototype.</b>
+        </td><td>
+          <b>Prototype.</b>
+        </td></tr>
+      </table>
+      Everyone tells you to use prototypes.  That's because no type
+      checking is done when calling a function declared without a
+      prototype.
+</pre>
+    </td>
+  </tr>
+  <tr class="node_desc_oddrow">
+    <td class="nd_field"><tt>inline?</tt></td>
+    <td class="nd_child"></td>
+    <td class="nd_values"><tt>true</tt>, <tt>false</tt></td>
+    <td class="nd_default"></td>
+  </tr>
+  <tr class="node_desc_oddrow">
+    <td class="nd_field"><tt>type</tt></td>
+    <td class="nd_child">Y</td>
+    <td class="nd_values"><tt>Type</tt></td>
+    <td class="nd_default"></td>
+  </tr>
+  <tr class="node_desc_oddrow">
+    <td class="nd_field"><tt>name</tt></td>
+    <td class="nd_child"></td>
+    <td class="nd_values"><tt>String</tt></td>
+    <td class="nd_default"></td>
+  </tr>
+  <tr class="node_desc_oddrow">
+    <td class="nd_field"><tt>def</tt></td>
+    <td class="nd_child">Y</td>
+    <td class="nd_values"><tt>Block</tt></td>
+    <td class="nd_default"><tt>Block.new</tt></td>
+  </tr>
+  <tr class="node_desc_oddrow">
+    <td class="nd_field"><tt>no_prototype?</tt></td>
+    <td class="nd_child"></td>
+    <td class="nd_values"><tt>true</tt>, <tt>false</tt></td>
+    <td class="nd_default"></td>
+  </tr>
+
+  <tr class="node_desc_evenrow">
+    <td class="nd_class" rowspan="3"><tt>Parameter</tt></td>
+    <td class="nd_field"><tt>register?</tt></td>
+    <td class="nd_child"></td>
+    <td class="nd_values"><tt>true</tt>, <tt>false</tt></td>
+    <td class="nd_default"></td>
+    <td class="nd_comments" rowspan="3">
+      Used in <tt>Function</tt>s.
+    </td>
+  </tr>
+  <tr class="node_desc_evenrow">
+    <td class="nd_field"><tt>type</tt></td>
+    <td class="nd_child">Y</td>
+    <td class="nd_values"><tt>Type</tt></td>
+    <td class="nd_default"></td>
+  </tr>
+  <tr class="node_desc_evenrow">
+    <td class="nd_field"><tt>name</tt></td>
+    <td class="nd_child"></td>
+    <td class="nd_values"><tt>String</tt></td>
+    <td class="nd_default"></td>
+  </tr>
+
+  <tr class="node_desc_oddrow">
+    <td class="nd_class" rowspan="2"><tt>Enumerator</tt></td>
+    <td class="nd_field"><tt>name</tt></td>
+    <td class="nd_child"></td>
+    <td class="nd_values"><tt>String</tt></td>
+    <td class="nd_default"></td>
+    <td class="nd_comments" rowspan="2">
+      Used in <tt>Enum</tt>s.
+    </td>
+  </tr>
+  <tr class="node_desc_oddrow">
+    <td class="nd_field"><tt>val</tt></td>
+    <td class="nd_child">Y</td>
+    <td class="nd_values"><tt>Expression</tt></td>
+    <td class="nd_default"></td>
+  </tr>
+
+  <tr class="node_desc_evenrow">
+    <td class="nd_class" rowspan="2"><tt>MemberInit</tt></td>
+    <td class="nd_field"><tt>member</tt></td>
+    <td class="nd_child">Y</td>
+    <td class="nd_values"><tt>NodeList</tt> of <tt>Member</tt>-or-<tt>Expression</tt></td>
+    <td class="nd_default"></td>
+    <td class="nd_comments" rowspan="2">
+      Used in <tt>CompoundLiteral</tt>s.
+    </td>
+  </tr>
+  <tr class="node_desc_evenrow">
+    <td class="nd_field"><tt>init</tt></td>
+    <td class="nd_child">Y</td>
+    <td class="nd_values"><tt>Expression</tt></td>
+    <td class="nd_default"></td>
+  </tr>
+
+  <tr class="node_desc_oddrow">
+    <td class="nd_class" rowspan="1"><tt>Member</tt></td>
+    <td class="nd_field"><tt>name</tt></td>
+    <td class="nd_child"></td>
+    <td class="nd_values"><tt>String</tt></td>
+    <td class="nd_default"></td>
+    <td class="nd_comments" rowspan="1">
+      Used in <tt>MemberInit</tt>s.
+    </td>
+  </tr>
+
+  <tr class="node_desc_evenrow">
+    <td class="nd_class" rowspan="2"><tt>Block</tt></td>
+    <td class="nd_field"><tt>labels</tt></td>
+    <td class="nd_child">Y</td>
+    <td class="nd_values"><tt>NodeList</tt> of <tt>Label</tt></td>
+    <td class="nd_default"><tt>NodeArray[]</tt></td>
+    <td class="nd_comments" rowspan="2">
+    </td>
+  </tr>
+  <tr class="node_desc_evenrow">
+    <td class="nd_field"><tt>stmts</tt></td>
+    <td class="nd_child">Y</td>
+    <td class="nd_values"><tt>NodeList</tt> of <tt>Statement</tt></td>
+    <td class="nd_default"><tt>NodeArray[]</tt></td>
+  </tr>
+
+  <tr class="node_desc_oddrow">
+    <td class="nd_class" rowspan="4"><tt>If</tt></td>
+    <td class="nd_field"><tt>labels</tt></td>
+    <td class="nd_child">Y</td>
+    <td class="nd_values"><tt>NodeList</tt> of <tt>Label</tt></td>
+    <td class="nd_default"><tt>NodeArray[]</tt></td>
+    <td class="nd_comments" rowspan="4">
+    </td>
+  </tr>
+  <tr class="node_desc_oddrow">
+    <td class="nd_field"><tt>cond</tt></td>
+    <td class="nd_child">Y</td>
+    <td class="nd_values"><tt>Expression</tt></td>
+    <td class="nd_default"></td>
+  </tr>
+  <tr class="node_desc_oddrow">
+    <td class="nd_field"><tt>then</tt></td>
+    <td class="nd_child">Y</td>
+    <td class="nd_values"><tt>Statement</tt></td>
+    <td class="nd_default"></td>
+  </tr>
+  <tr class="node_desc_oddrow">
+    <td class="nd_field"><tt>else</tt></td>
+    <td class="nd_child">Y</td>
+    <td class="nd_values"><tt>Statement</tt></td>
+    <td class="nd_default"></td>
+  </tr>
+
+  <tr class="node_desc_evenrow">
+    <td class="nd_class" rowspan="3"><tt>Switch</tt></td>
+    <td class="nd_field"><tt>labels</tt></td>
+    <td class="nd_child">Y</td>
+    <td class="nd_values"><tt>NodeList</tt> of <tt>Label</tt></td>
+    <td class="nd_default"><tt>NodeArray[]</tt></td>
+    <td class="nd_comments" rowspan="3">
+    </td>
+  </tr>
+  <tr class="node_desc_evenrow">
+    <td class="nd_field"><tt>cond</tt></td>
+    <td class="nd_child">Y</td>
+    <td class="nd_values"><tt>Expression</tt></td>
+    <td class="nd_default"></td>
+  </tr>
+  <tr class="node_desc_evenrow">
+    <td class="nd_field"><tt>stmt</tt></td>
+    <td class="nd_child">Y</td>
+    <td class="nd_values"><tt>Statement</tt></td>
+    <td class="nd_default"></td>
+  </tr>
+
+  <tr class="node_desc_oddrow">
+    <td class="nd_class" rowspan="4"><tt>While</tt></td>
+    <td class="nd_field"><tt>labels</tt></td>
+    <td class="nd_child">Y</td>
+    <td class="nd_values"><tt>NodeList</tt> of <tt>Label</tt></td>
+    <td class="nd_default"><tt>NodeArray[]</tt></td>
+    <td class="nd_comments" rowspan="4">
+      <tt>do?</tt> means it's a do-while loop.
+    </td>
+  </tr>
+  <tr class="node_desc_oddrow">
+    <td class="nd_field"><tt>do?</tt></td>
+    <td class="nd_child"></td>
+    <td class="nd_values"><tt>true</tt>, <tt>false</tt></td>
+    <td class="nd_default"></td>
+  </tr>
+  <tr class="node_desc_oddrow">
+    <td class="nd_field"><tt>cond</tt></td>
+    <td class="nd_child">Y</td>
+    <td class="nd_values"><tt>Expression</tt></td>
+    <td class="nd_default"></td>
+  </tr>
+  <tr class="node_desc_oddrow">
+    <td class="nd_field"><tt>stmt</tt></td>
+    <td class="nd_child">Y</td>
+    <td class="nd_values"><tt>Statement</tt></td>
+    <td class="nd_default"></td>
+  </tr>
+
+  <tr class="node_desc_evenrow">
+    <td class="nd_class" rowspan="5"><tt>For</tt></td>
+    <td class="nd_field"><tt>labels</tt></td>
+    <td class="nd_child">Y</td>
+    <td class="nd_values"><tt>NodeList</tt> of <tt>Label</tt></td>
+    <td class="nd_default"><tt>NodeArray[]</tt></td>
+    <td class="nd_comments" rowspan="5">
+    </td>
+  </tr>
+  <tr class="node_desc_evenrow">
+    <td class="nd_field"><tt>init</tt></td>
+    <td class="nd_child">Y</td>
+    <td class="nd_values"><tt>Expression</tt> or <tt>Declaration</tt></td>
+    <td class="nd_default"></td>
+  </tr>
+  <tr class="node_desc_evenrow">
+    <td class="nd_field"><tt>cond</tt></td>
+    <td class="nd_child">Y</td>
+    <td class="nd_values"><tt>Expression</tt></td>
+    <td class="nd_default"></td>
+  </tr>
+  <tr class="node_desc_evenrow">
+    <td class="nd_field"><tt>iter</tt></td>
+    <td class="nd_child">Y</td>
+    <td class="nd_values"><tt>Expression</tt></td>
+    <td class="nd_default"></td>
+  </tr>
+  <tr class="node_desc_evenrow">
+    <td class="nd_field"><tt>stmt</tt></td>
+    <td class="nd_child">Y</td>
+    <td class="nd_values"><tt>Statement</tt></td>
+    <td class="nd_default"></td>
+  </tr>
+
+  <tr class="node_desc_oddrow">
+    <td class="nd_class" rowspan="2"><tt>Goto</tt></td>
+    <td class="nd_field"><tt>labels</tt></td>
+    <td class="nd_child">Y</td>
+    <td class="nd_values"><tt>NodeList</tt> of <tt>Label</tt></td>
+    <td class="nd_default"><tt>NodeArray[]</tt></td>
+    <td class="nd_comments" rowspan="2">
+    </td>
+  </tr>
+  <tr class="node_desc_oddrow">
+    <td class="nd_field"><tt>target</tt></td>
+    <td class="nd_child"></td>
+    <td class="nd_values"><tt>String</tt></td>
+    <td class="nd_default"></td>
+  </tr>
+
+  <tr class="node_desc_evenrow">
+    <td class="nd_class" rowspan="1"><tt>Continue</tt></td>
+    <td class="nd_field"><tt>labels</tt></td>
+    <td class="nd_child">Y</td>
+    <td class="nd_values"><tt>NodeList</tt> of <tt>Label</tt></td>
+    <td class="nd_default"><tt>NodeArray[]</tt></td>
+    <td class="nd_comments" rowspan="1">
+    </td>
+  </tr>
+
+  <tr class="node_desc_oddrow">
+    <td class="nd_class" rowspan="1"><tt>Break</tt></td>
+    <td class="nd_field"><tt>labels</tt></td>
+    <td class="nd_child">Y</td>
+    <td class="nd_values"><tt>NodeList</tt> of <tt>Label</tt></td>
+    <td class="nd_default"><tt>NodeArray[]</tt></td>
+    <td class="nd_comments" rowspan="1">
+    </td>
+  </tr>
+
+  <tr class="node_desc_evenrow">
+    <td class="nd_class" rowspan="2"><tt>Return</tt></td>
+    <td class="nd_field"><tt>labels</tt></td>
+    <td class="nd_child">Y</td>
+    <td class="nd_values"><tt>NodeList</tt> of <tt>Label</tt></td>
+    <td class="nd_default"><tt>NodeArray[]</tt></td>
+    <td class="nd_comments" rowspan="2">
+    </td>
+  </tr>
+  <tr class="node_desc_evenrow">
+    <td class="nd_field"><tt>expr</tt></td>
+    <td class="nd_child">Y</td>
+    <td class="nd_values"><tt>Expression</tt></td>
+    <td class="nd_default"></td>
+  </tr>
+
+  <tr class="node_desc_oddrow">
+    <td class="nd_class" rowspan="2"><tt>ExpressionStatement</tt></td>
+    <td class="nd_field"><tt>labels</tt></td>
+    <td class="nd_child">Y</td>
+    <td class="nd_values"><tt>NodeList</tt> of <tt>Label</tt></td>
+    <td class="nd_default"><tt>NodeArray[]</tt></td>
+    <td class="nd_comments" rowspan="2">
+    </td>
+  </tr>
+  <tr class="node_desc_oddrow">
+    <td class="nd_field"><tt>expr</tt></td>
+    <td class="nd_child">Y</td>
+    <td class="nd_values"><tt>Expression</tt></td>
+    <td class="nd_default"></td>
+  </tr>
+
+  <tr class="node_desc_evenrow">
+    <td class="nd_class" rowspan="1"><tt>PlainLabel</tt></td>
+    <td class="nd_field"><tt>name</tt></td>
+    <td class="nd_child"></td>
+    <td class="nd_values"><tt>String</tt></td>
+    <td class="nd_default"></td>
+    <td class="nd_comments" rowspan="1">
+    </td>
+  </tr>
+
+  <tr class="node_desc_oddrow">
+    <td class="nd_class" rowspan="1"><tt>Default</tt></td>
+    <td class="nd_field"></td>
+    <td class="nd_child"></td>
+    <td class="nd_values"></td>
+    <td class="nd_default"></td>
+    <td class="nd_comments" rowspan="1">
+    </td>
+  </tr>
+
+  <tr class="node_desc_evenrow">
+    <td class="nd_class" rowspan="1"><tt>Case</tt></td>
+    <td class="nd_field"><tt>expr</tt></td>
+    <td class="nd_child">Y</td>
+    <td class="nd_values"><tt>Expression</tt></td>
+    <td class="nd_default"></td>
+    <td class="nd_comments" rowspan="1">
+    </td>
+  </tr>
+
+  <tr class="node_desc_oddrow">
+    <td class="nd_class" rowspan="1"><tt>Comma</tt></td>
+    <td class="nd_field"><tt>exprs</tt></td>
+    <td class="nd_child">Y</td>
+    <td class="nd_values"><tt>NodeList</tt> of <tt>Expression</tt></td>
+    <td class="nd_default"></td>
+    <td class="nd_comments" rowspan="1">
+    </td>
+  </tr>
+
+  <tr class="node_desc_evenrow">
+    <td class="nd_class" rowspan="3"><tt>Conditional</tt></td>
+    <td class="nd_field"><tt>cond</tt></td>
+    <td class="nd_child">Y</td>
+    <td class="nd_values"><tt>Expression</tt></td>
+    <td class="nd_default"></td>
+    <td class="nd_comments" rowspan="3">
+    </td>
+  </tr>
+  <tr class="node_desc_evenrow">
+    <td class="nd_field"><tt>then</tt></td>
+    <td class="nd_child">Y</td>
+    <td class="nd_values"><tt>Expression</tt></td>
+    <td class="nd_default"></td>
+  </tr>
+  <tr class="node_desc_evenrow">
+    <td class="nd_field"><tt>else</tt></td>
+    <td class="nd_child">Y</td>
+    <td class="nd_values"><tt>Expression</tt></td>
+    <td class="nd_default"></td>
+  </tr>
+
+  <tr class="node_desc_oddrow">
+    <td class="nd_class" rowspan="1"><tt>Variable</tt></td>
+    <td class="nd_field"><tt>name</tt></td>
+    <td class="nd_child"></td>
+    <td class="nd_values"><tt>String</tt></td>
+    <td class="nd_default"></td>
+    <td class="nd_comments" rowspan="1">
+    </td>
+  </tr>
+
+  <tr class="node_desc_evenrow">
+    <td class="nd_class" rowspan="2"><tt>Index</tt></td>
+    <td class="nd_field"><tt>expr</tt></td>
+    <td class="nd_child">Y</td>
+    <td class="nd_values"><tt>Expression</tt></td>
+    <td class="nd_default"></td>
+    <td class="nd_comments" rowspan="2">
+    </td>
+  </tr>
+  <tr class="node_desc_evenrow">
+    <td class="nd_field"><tt>index</tt></td>
+    <td class="nd_child">Y</td>
+    <td class="nd_values"><tt>Expression</tt></td>
+    <td class="nd_default"></td>
+  </tr>
+
+  <tr class="node_desc_oddrow">
+    <td class="nd_class" rowspan="2"><tt>Call</tt></td>
+    <td class="nd_field"><tt>expr</tt></td>
+    <td class="nd_child">Y</td>
+    <td class="nd_values"><tt>Expression</tt></td>
+    <td class="nd_default"></td>
+    <td class="nd_comments" rowspan="2">
+    </td>
+  </tr>
+  <tr class="node_desc_oddrow">
+    <td class="nd_field"><tt>args</tt></td>
+    <td class="nd_child">Y</td>
+    <td class="nd_values"><tt>NodeList</tt> of <tt>Expression</tt></td>
+    <td class="nd_default"></td>
+  </tr>
+
+  <tr class="node_desc_evenrow">
+    <td class="nd_class" rowspan="2"><tt>Dot</tt></td>
+    <td class="nd_field"><tt>expr</tt></td>
+    <td class="nd_child">Y</td>
+    <td class="nd_values"><tt>Expression</tt></td>
+    <td class="nd_default"></td>
+    <td class="nd_comments" rowspan="2">
+    </td>
+  </tr>
+  <tr class="node_desc_evenrow">
+    <td class="nd_field"><tt>member</tt></td>
+    <td class="nd_child">Y</td>
+    <td class="nd_values"><tt>String</tt></td>
+    <td class="nd_default"></td>
+  </tr>
+
+  <tr class="node_desc_oddrow">
+    <td class="nd_class" rowspan="2"><tt>Arrow</tt></td>
+    <td class="nd_field"><tt>expr</tt></td>
+    <td class="nd_child">Y</td>
+    <td class="nd_values"><tt>Expression</tt></td>
+    <td class="nd_default"></td>
+    <td class="nd_comments" rowspan="2">
+    </td>
+  </tr>
+  <tr class="node_desc_oddrow">
+    <td class="nd_field"><tt>member</tt></td>
+    <td class="nd_child">Y</td>
+    <td class="nd_values"><tt>String</tt></td>
+    <td class="nd_default"></td>
+  </tr>
+
+  <tr class="node_desc_evenrow">
+    <td class="nd_class" rowspan="1"><tt>PostInc</tt></td>
+    <td class="nd_field"><tt>expr</tt></td>
+    <td class="nd_child">Y</td>
+    <td class="nd_values"><tt>Expression</tt></td>
+    <td class="nd_default"></td>
+    <td class="nd_comments" rowspan="1">
+    </td>
+  </tr>
+
+  <tr class="node_desc_oddrow">
+    <td class="nd_class" rowspan="1"><tt>PostDec</tt></td>
+    <td class="nd_field"><tt>expr</tt></td>
+    <td class="nd_child">Y</td>
+    <td class="nd_values"><tt>Expression</tt></td>
+    <td class="nd_default"></td>
+    <td class="nd_comments" rowspan="1">
+    </td>
+  </tr>
+
+  <tr class="node_desc_evenrow">
+    <td class="nd_class" rowspan="2"><tt>Cast</tt></td>
+    <td class="nd_field"><tt>type</tt></td>
+    <td class="nd_child">Y</td>
+    <td class="nd_values"><tt>Type</tt></td>
+    <td class="nd_default"></td>
+    <td class="nd_comments" rowspan="2">
+    </td>
+  </tr>
+  <tr class="node_desc_evenrow">
+    <td class="nd_field"><tt>expr</tt></td>
+    <td class="nd_child">Y</td>
+    <td class="nd_values"><tt>Expression</tt></td>
+    <td class="nd_default"></td>
+  </tr>
+
+  <tr class="node_desc_oddrow">
+    <td class="nd_class" rowspan="1"><tt>Address</tt></td>
+    <td class="nd_field"><tt>expr</tt></td>
+    <td class="nd_child">Y</td>
+    <td class="nd_values"><tt>Expression</tt></td>
+    <td class="nd_default"></td>
+    <td class="nd_comments" rowspan="1">
+    </td>
+  </tr>
+
+  <tr class="node_desc_evenrow">
+    <td class="nd_class" rowspan="1"><tt>Dereference</tt></td>
+    <td class="nd_field"><tt>expr</tt></td>
+    <td class="nd_child">Y</td>
+    <td class="nd_values"><tt>Expression</tt></td>
+    <td class="nd_default"></td>
+    <td class="nd_comments" rowspan="1">
+    </td>
+  </tr>
+
+  <tr class="node_desc_oddrow">
+    <td class="nd_class" rowspan="1"><tt>Sizeof</tt></td>
+    <td class="nd_field"><tt>expr</tt></td>
+    <td class="nd_child">Y</td>
+    <td class="nd_values"><tt>Type</tt> or <tt>Expression</tt></td>
+    <td class="nd_default"></td>
+    <td class="nd_comments" rowspan="1">
+    </td>
+  </tr>
+
+  <tr class="node_desc_evenrow">
+    <td class="nd_class" rowspan="1"><tt>Positive</tt></td>
+    <td class="nd_field"><tt>expr</tt></td>
+    <td class="nd_child">Y</td>
+    <td class="nd_values"><tt>Expression</tt></td>
+    <td class="nd_default"></td>
+    <td class="nd_comments" rowspan="1">
+    </td>
+  </tr>
+
+  <tr class="node_desc_oddrow">
+    <td class="nd_class" rowspan="1"><tt>Negative</tt></td>
+    <td class="nd_field"><tt>expr</tt></td>
+    <td class="nd_child">Y</td>
+    <td class="nd_values"><tt>Expression</tt></td>
+    <td class="nd_default"></td>
+    <td class="nd_comments" rowspan="1">
+    </td>
+  </tr>
+
+  <tr class="node_desc_evenrow">
+    <td class="nd_class" rowspan="1"><tt>PreInc</tt></td>
+    <td class="nd_field"><tt>expr</tt></td>
+    <td class="nd_child">Y</td>
+    <td class="nd_values"><tt>Expression</tt></td>
+    <td class="nd_default"></td>
+    <td class="nd_comments" rowspan="1">
+    </td>
+  </tr>
+
+  <tr class="node_desc_oddrow">
+    <td class="nd_class" rowspan="1"><tt>PreDec</tt></td>
+    <td class="nd_field"><tt>expr</tt></td>
+    <td class="nd_child">Y</td>
+    <td class="nd_values"><tt>Expression</tt></td>
+    <td class="nd_default"></td>
+    <td class="nd_comments" rowspan="1">
+    </td>
+  </tr>
+
+  <tr class="node_desc_evenrow">
+    <td class="nd_class" rowspan="1"><tt>BitNot</tt></td>
+    <td class="nd_field"><tt>expr</tt></td>
+    <td class="nd_child">Y</td>
+    <td class="nd_values"><tt>Expression</tt></td>
+    <td class="nd_default"></td>
+    <td class="nd_comments" rowspan="1">
+    </td>
+  </tr>
+
+  <tr class="node_desc_oddrow">
+    <td class="nd_class" rowspan="1"><tt>Not</tt></td>
+    <td class="nd_field"><tt>expr</tt></td>
+    <td class="nd_child">Y</td>
+    <td class="nd_values"><tt>Expression</tt></td>
+    <td class="nd_default"></td>
+    <td class="nd_comments" rowspan="1">
+    </td>
+  </tr>
+
+  <tr class="node_desc_evenrow">
+    <td class="nd_class" rowspan="2"><tt>Add</tt></td>
+    <td class="nd_field"><tt>expr1</tt></td>
+    <td class="nd_child">Y</td>
+    <td class="nd_values"><tt>Expression</tt></td>
+    <td class="nd_default"></td>
+    <td class="nd_comments" rowspan="2">
+    </td>
+  </tr>
+  <tr class="node_desc_evenrow">
+    <td class="nd_field"><tt>expr2</tt></td>
+    <td class="nd_child">Y</td>
+    <td class="nd_values"><tt>Expression</tt></td>
+    <td class="nd_default"></td>
+  </tr>
+
+  <tr class="node_desc_oddrow">
+    <td class="nd_class" rowspan="2"><tt>Subtract</tt></td>
+    <td class="nd_field"><tt>expr1</tt></td>
+    <td class="nd_child">Y</td>
+    <td class="nd_values"><tt>Expression</tt></td>
+    <td class="nd_default"></td>
+    <td class="nd_comments" rowspan="2">
+    </td>
+  </tr>
+  <tr class="node_desc_oddrow">
+    <td class="nd_field"><tt>expr2</tt></td>
+    <td class="nd_child">Y</td>
+    <td class="nd_values"><tt>Expression</tt></td>
+    <td class="nd_default"></td>
+  </tr>
+
+  <tr class="node_desc_evenrow">
+    <td class="nd_class" rowspan="2"><tt>Multiply</tt></td>
+    <td class="nd_field"><tt>expr1</tt></td>
+    <td class="nd_child">Y</td>
+    <td class="nd_values"><tt>Expression</tt></td>
+    <td class="nd_default"></td>
+    <td class="nd_comments" rowspan="2">
+    </td>
+  </tr>
+  <tr class="node_desc_evenrow">
+    <td class="nd_field"><tt>expr2</tt></td>
+    <td class="nd_child">Y</td>
+    <td class="nd_values"><tt>Expression</tt></td>
+    <td class="nd_default"></td>
+  </tr>
+
+  <tr class="node_desc_oddrow">
+    <td class="nd_class" rowspan="2"><tt>Divide</tt></td>
+    <td class="nd_field"><tt>expr1</tt></td>
+    <td class="nd_child">Y</td>
+    <td class="nd_values"><tt>Expression</tt></td>
+    <td class="nd_default"></td>
+    <td class="nd_comments" rowspan="2">
+    </td>
+  </tr>
+  <tr class="node_desc_oddrow">
+    <td class="nd_field"><tt>expr2</tt></td>
+    <td class="nd_child">Y</td>
+    <td class="nd_values"><tt>Expression</tt></td>
+    <td class="nd_default"></td>
+  </tr>
+
+  <tr class="node_desc_evenrow">
+    <td class="nd_class" rowspan="2"><tt>Mod</tt></td>
+    <td class="nd_field"><tt>expr1</tt></td>
+    <td class="nd_child">Y</td>
+    <td class="nd_values"><tt>Expression</tt></td>
+    <td class="nd_default"></td>
+    <td class="nd_comments" rowspan="2">
+    </td>
+  </tr>
+  <tr class="node_desc_evenrow">
+    <td class="nd_field"><tt>expr2</tt></td>
+    <td class="nd_child">Y</td>
+    <td class="nd_values"><tt>Expression</tt></td>
+    <td class="nd_default"></td>
+  </tr>
+
+  <tr class="node_desc_oddrow">
+    <td class="nd_class" rowspan="2"><tt>Equal</tt></td>
+    <td class="nd_field"><tt>expr1</tt></td>
+    <td class="nd_child">Y</td>
+    <td class="nd_values"><tt>Expression</tt></td>
+    <td class="nd_default"></td>
+    <td class="nd_comments" rowspan="2">
+    </td>
+  </tr>
+  <tr class="node_desc_oddrow">
+    <td class="nd_field"><tt>expr2</tt></td>
+    <td class="nd_child">Y</td>
+    <td class="nd_values"><tt>Expression</tt></td>
+    <td class="nd_default"></td>
+  </tr>
+
+  <tr class="node_desc_evenrow">
+    <td class="nd_class" rowspan="2"><tt>NotEqual</tt></td>
+    <td class="nd_field"><tt>expr1</tt></td>
+    <td class="nd_child">Y</td>
+    <td class="nd_values"><tt>Expression</tt></td>
+    <td class="nd_default"></td>
+    <td class="nd_comments" rowspan="2">
+    </td>
+  </tr>
+  <tr class="node_desc_evenrow">
+    <td class="nd_field"><tt>expr2</tt></td>
+    <td class="nd_child">Y</td>
+    <td class="nd_values"><tt>Expression</tt></td>
+    <td class="nd_default"></td>
+  </tr>
+
+  <tr class="node_desc_oddrow">
+    <td class="nd_class" rowspan="2"><tt>Less</tt></td>
+    <td class="nd_field"><tt>expr1</tt></td>
+    <td class="nd_child">Y</td>
+    <td class="nd_values"><tt>Expression</tt></td>
+    <td class="nd_default"></td>
+    <td class="nd_comments" rowspan="2">
+    </td>
+  </tr>
+  <tr class="node_desc_oddrow">
+    <td class="nd_field"><tt>expr2</tt></td>
+    <td class="nd_child">Y</td>
+    <td class="nd_values"><tt>Expression</tt></td>
+    <td class="nd_default"></td>
+  </tr>
+
+  <tr class="node_desc_evenrow">
+    <td class="nd_class" rowspan="2"><tt>More</tt></td>
+    <td class="nd_field"><tt>expr1</tt></td>
+    <td class="nd_child">Y</td>
+    <td class="nd_values"><tt>Expression</tt></td>
+    <td class="nd_default"></td>
+    <td class="nd_comments" rowspan="2">
+    </td>
+  </tr>
+  <tr class="node_desc_evenrow">
+    <td class="nd_field"><tt>expr2</tt></td>
+    <td class="nd_child">Y</td>
+    <td class="nd_values"><tt>Expression</tt></td>
+    <td class="nd_default"></td>
+  </tr>
+
+  <tr class="node_desc_oddrow">
+    <td class="nd_class" rowspan="2"><tt>LessOrEqual</tt></td>
+    <td class="nd_field"><tt>expr1</tt></td>
+    <td class="nd_child">Y</td>
+    <td class="nd_values"><tt>Expression</tt></td>
+    <td class="nd_default"></td>
+    <td class="nd_comments" rowspan="2">
+    </td>
+  </tr>
+  <tr class="node_desc_oddrow">
+    <td class="nd_field"><tt>expr2</tt></td>
+    <td class="nd_child">Y</td>
+    <td class="nd_values"><tt>Expression</tt></td>
+    <td class="nd_default"></td>
+  </tr>
+
+  <tr class="node_desc_evenrow">
+    <td class="nd_class" rowspan="2"><tt>MoreOrEqual</tt></td>
+    <td class="nd_field"><tt>expr1</tt></td>
+    <td class="nd_child">Y</td>
+    <td class="nd_values"><tt>Expression</tt></td>
+    <td class="nd_default"></td>
+    <td class="nd_comments" rowspan="2">
+    </td>
+  </tr>
+  <tr class="node_desc_evenrow">
+    <td class="nd_field"><tt>expr2</tt></td>
+    <td class="nd_child">Y</td>
+    <td class="nd_values"><tt>Expression</tt></td>
+    <td class="nd_default"></td>
+  </tr>
+
+  <tr class="node_desc_oddrow">
+    <td class="nd_class" rowspan="2"><tt>BitAnd</tt></td>
+    <td class="nd_field"><tt>expr1</tt></td>
+    <td class="nd_child">Y</td>
+    <td class="nd_values"><tt>Expression</tt></td>
+    <td class="nd_default"></td>
+    <td class="nd_comments" rowspan="2">
+    </td>
+  </tr>
+  <tr class="node_desc_oddrow">
+    <td class="nd_field"><tt>expr2</tt></td>
+    <td class="nd_child">Y</td>
+    <td class="nd_values"><tt>Expression</tt></td>
+    <td class="nd_default"></td>
+  </tr>
+
+  <tr class="node_desc_evenrow">
+    <td class="nd_class" rowspan="2"><tt>BitOr</tt></td>
+    <td class="nd_field"><tt>expr1</tt></td>
+    <td class="nd_child">Y</td>
+    <td class="nd_values"><tt>Expression</tt></td>
+    <td class="nd_default"></td>
+    <td class="nd_comments" rowspan="2">
+    </td>
+  </tr>
+  <tr class="node_desc_evenrow">
+    <td class="nd_field"><tt>expr2</tt></td>
+    <td class="nd_child">Y</td>
+    <td class="nd_values"><tt>Expression</tt></td>
+    <td class="nd_default"></td>
+  </tr>
+
+  <tr class="node_desc_oddrow">
+    <td class="nd_class" rowspan="2"><tt>BitXor</tt></td>
+    <td class="nd_field"><tt>expr1</tt></td>
+    <td class="nd_child">Y</td>
+    <td class="nd_values"><tt>Expression</tt></td>
+    <td class="nd_default"></td>
+    <td class="nd_comments" rowspan="2">
+    </td>
+  </tr>
+  <tr class="node_desc_oddrow">
+    <td class="nd_field"><tt>expr2</tt></td>
+    <td class="nd_child">Y</td>
+    <td class="nd_values"><tt>Expression</tt></td>
+    <td class="nd_default"></td>
+  </tr>
+
+  <tr class="node_desc_evenrow">
+    <td class="nd_class" rowspan="2"><tt>ShiftLeft</tt></td>
+    <td class="nd_field"><tt>expr1</tt></td>
+    <td class="nd_child">Y</td>
+    <td class="nd_values"><tt>Expression</tt></td>
+    <td class="nd_default"></td>
+    <td class="nd_comments" rowspan="2">
+    </td>
+  </tr>
+  <tr class="node_desc_evenrow">
+    <td class="nd_field"><tt>expr2</tt></td>
+    <td class="nd_child">Y</td>
+    <td class="nd_values"><tt>Expression</tt></td>
+    <td class="nd_default"></td>
+  </tr>
+
+  <tr class="node_desc_oddrow">
+    <td class="nd_class" rowspan="2"><tt>ShiftRight</tt></td>
+    <td class="nd_field"><tt>expr1</tt></td>
+    <td class="nd_child">Y</td>
+    <td class="nd_values"><tt>Expression</tt></td>
+    <td class="nd_default"></td>
+    <td class="nd_comments" rowspan="2">
+    </td>
+  </tr>
+  <tr class="node_desc_oddrow">
+    <td class="nd_field"><tt>expr2</tt></td>
+    <td class="nd_child">Y</td>
+    <td class="nd_values"><tt>Expression</tt></td>
+    <td class="nd_default"></td>
+  </tr>
+
+  <tr class="node_desc_evenrow">
+    <td class="nd_class" rowspan="2"><tt>And</tt></td>
+    <td class="nd_field"><tt>expr1</tt></td>
+    <td class="nd_child">Y</td>
+    <td class="nd_values"><tt>Expression</tt></td>
+    <td class="nd_default"></td>
+    <td class="nd_comments" rowspan="2">
+    </td>
+  </tr>
+  <tr class="node_desc_evenrow">
+    <td class="nd_field"><tt>expr2</tt></td>
+    <td class="nd_child">Y</td>
+    <td class="nd_values"><tt>Expression</tt></td>
+    <td class="nd_default"></td>
+  </tr>
+
+  <tr class="node_desc_oddrow">
+    <td class="nd_class" rowspan="2"><tt>Or</tt></td>
+    <td class="nd_field"><tt>expr1</tt></td>
+    <td class="nd_child">Y</td>
+    <td class="nd_values"><tt>Expression</tt></td>
+    <td class="nd_default"></td>
+    <td class="nd_comments" rowspan="2">
+    </td>
+  </tr>
+  <tr class="node_desc_oddrow">
+    <td class="nd_field"><tt>expr2</tt></td>
+    <td class="nd_child">Y</td>
+    <td class="nd_values"><tt>Expression</tt></td>
+    <td class="nd_default"></td>
+  </tr>
+
+  <tr class="node_desc_evenrow">
+    <td class="nd_class" rowspan="2"><tt>Assign</tt></td>
+    <td class="nd_field"><tt>lval</tt></td>
+    <td class="nd_child">Y</td>
+    <td class="nd_values"><tt>Expression</tt></td>
+    <td class="nd_default"></td>
+    <td class="nd_comments" rowspan="2">
+    </td>
+  </tr>
+  <tr class="node_desc_evenrow">
+    <td class="nd_field"><tt>rval</tt></td>
+    <td class="nd_child">Y</td>
+    <td class="nd_values"><tt>Expression</tt></td>
+    <td class="nd_default"></td>
+  </tr>
+
+  <tr class="node_desc_oddrow">
+    <td class="nd_class" rowspan="2"><tt>MultiplyAssign</tt></td>
+    <td class="nd_field"><tt>lval</tt></td>
+    <td class="nd_child">Y</td>
+    <td class="nd_values"><tt>Expression</tt></td>
+    <td class="nd_default"></td>
+    <td class="nd_comments" rowspan="2">
+    </td>
+  </tr>
+  <tr class="node_desc_oddrow">
+    <td class="nd_field"><tt>rval</tt></td>
+    <td class="nd_child">Y</td>
+    <td class="nd_values"><tt>Expression</tt></td>
+    <td class="nd_default"></td>
+  </tr>
+
+  <tr class="node_desc_evenrow">
+    <td class="nd_class" rowspan="2"><tt>DivideAssign</tt></td>
+    <td class="nd_field"><tt>lval</tt></td>
+    <td class="nd_child">Y</td>
+    <td class="nd_values"><tt>Expression</tt></td>
+    <td class="nd_default"></td>
+    <td class="nd_comments" rowspan="2">
+    </td>
+  </tr>
+  <tr class="node_desc_evenrow">
+    <td class="nd_field"><tt>rval</tt></td>
+    <td class="nd_child">Y</td>
+    <td class="nd_values"><tt>Expression</tt></td>
+    <td class="nd_default"></td>
+  </tr>
+
+  <tr class="node_desc_oddrow">
+    <td class="nd_class" rowspan="2"><tt>ModAssign</tt></td>
+    <td class="nd_field"><tt>lval</tt></td>
+    <td class="nd_child">Y</td>
+    <td class="nd_values"><tt>Expression</tt></td>
+    <td class="nd_default"></td>
+    <td class="nd_comments" rowspan="2">
+    </td>
+  </tr>
+  <tr class="node_desc_oddrow">
+    <td class="nd_field"><tt>rval</tt></td>
+    <td class="nd_child">Y</td>
+    <td class="nd_values"><tt>Expression</tt></td>
+    <td class="nd_default"></td>
+  </tr>
+
+  <tr class="node_desc_evenrow">
+    <td class="nd_class" rowspan="2"><tt>AddAssign</tt></td>
+    <td class="nd_field"><tt>lval</tt></td>
+    <td class="nd_child">Y</td>
+    <td class="nd_values"><tt>Expression</tt></td>
+    <td class="nd_default"></td>
+    <td class="nd_comments" rowspan="2">
+    </td>
+  </tr>
+  <tr class="node_desc_evenrow">
+    <td class="nd_field"><tt>rval</tt></td>
+    <td class="nd_child">Y</td>
+    <td class="nd_values"><tt>Expression</tt></td>
+    <td class="nd_default"></td>
+  </tr>
+
+  <tr class="node_desc_oddrow">
+    <td class="nd_class" rowspan="2"><tt>SubtractAssign</tt></td>
+    <td class="nd_field"><tt>lval</tt></td>
+    <td class="nd_child">Y</td>
+    <td class="nd_values"><tt>Expression</tt></td>
+    <td class="nd_default"></td>
+    <td class="nd_comments" rowspan="2">
+    </td>
+  </tr>
+  <tr class="node_desc_oddrow">
+    <td class="nd_field"><tt>rval</tt></td>
+    <td class="nd_child">Y</td>
+    <td class="nd_values"><tt>Expression</tt></td>
+    <td class="nd_default"></td>
+  </tr>
+
+  <tr class="node_desc_evenrow">
+    <td class="nd_class" rowspan="2"><tt>ShiftLeftAssign</tt></td>
+    <td class="nd_field"><tt>lval</tt></td>
+    <td class="nd_child">Y</td>
+    <td class="nd_values"><tt>Expression</tt></td>
+    <td class="nd_default"></td>
+    <td class="nd_comments" rowspan="2">
+    </td>
+  </tr>
+  <tr class="node_desc_evenrow">
+    <td class="nd_field"><tt>rval</tt></td>
+    <td class="nd_child">Y</td>
+    <td class="nd_values"><tt>Expression</tt></td>
+    <td class="nd_default"></td>
+  </tr>
+
+  <tr class="node_desc_oddrow">
+    <td class="nd_class" rowspan="2"><tt>ShiftRightAssign</tt></td>
+    <td class="nd_field"><tt>lval</tt></td>
+    <td class="nd_child">Y</td>
+    <td class="nd_values"><tt>Expression</tt></td>
+    <td class="nd_default"></td>
+    <td class="nd_comments" rowspan="2">
+    </td>
+  </tr>
+  <tr class="node_desc_oddrow">
+    <td class="nd_field"><tt>rval</tt></td>
+    <td class="nd_child">Y</td>
+    <td class="nd_values"><tt>Expression</tt></td>
+    <td class="nd_default"></td>
+  </tr>
+
+  <tr class="node_desc_evenrow">
+    <td class="nd_class" rowspan="2"><tt>BitAndAssign</tt></td>
+    <td class="nd_field"><tt>lval</tt></td>
+    <td class="nd_child">Y</td>
+    <td class="nd_values"><tt>Expression</tt></td>
+    <td class="nd_default"></td>
+    <td class="nd_comments" rowspan="2">
+    </td>
+  </tr>
+  <tr class="node_desc_evenrow">
+    <td class="nd_field"><tt>rval</tt></td>
+    <td class="nd_child">Y</td>
+    <td class="nd_values"><tt>Expression</tt></td>
+    <td class="nd_default"></td>
+  </tr>
+
+  <tr class="node_desc_oddrow">
+    <td class="nd_class" rowspan="2"><tt>BitXorAssign</tt></td>
+    <td class="nd_field"><tt>lval</tt></td>
+    <td class="nd_child">Y</td>
+    <td class="nd_values"><tt>Expression</tt></td>
+    <td class="nd_default"></td>
+    <td class="nd_comments" rowspan="2">
+    </td>
+  </tr>
+  <tr class="node_desc_oddrow">
+    <td class="nd_field"><tt>rval</tt></td>
+    <td class="nd_child">Y</td>
+    <td class="nd_values"><tt>Expression</tt></td>
+    <td class="nd_default"></td>
+  </tr>
+
+  <tr class="node_desc_evenrow">
+    <td class="nd_class" rowspan="2"><tt>BitOrAssign</tt></td>
+    <td class="nd_field"><tt>lval</tt></td>
+    <td class="nd_child">Y</td>
+    <td class="nd_values"><tt>Expression</tt></td>
+    <td class="nd_default"></td>
+    <td class="nd_comments" rowspan="2">
+    </td>
+  </tr>
+  <tr class="node_desc_evenrow">
+    <td class="nd_field"><tt>rval</tt></td>
+    <td class="nd_child">Y</td>
+    <td class="nd_values"><tt>Expression</tt></td>
+    <td class="nd_default"></td>
+  </tr>
+
+  <tr class="node_desc_oddrow">
+    <td class="nd_class" rowspan="1"><tt>StringLiteral</tt></td>
+    <td class="nd_field"><tt>val</tt></td>
+    <td class="nd_child"></td>
+    <td class="nd_values"><tt>String</tt></td>
+    <td class="nd_default"></td>
+    <td class="nd_comments" rowspan="1">
+      The <tt>String</tt> in <tt>val</tt> is the literal string entered.  <tt>"\n"</tt>
+      isn't converted to a newline, for instance.
+    </td>
+  </tr>
+
+  <tr class="node_desc_evenrow">
+    <td class="nd_class" rowspan="1"><tt>CharLiteral</tt></td>
+    <td class="nd_field"><tt>val</tt></td>
+    <td class="nd_child"></td>
+    <td class="nd_values"><tt>String</tt></td>
+    <td class="nd_default"></td>
+    <td class="nd_comments" rowspan="1">
+      The <tt>String</tt> in <tt>val</tt> is the literal string entered.  <tt>'\n'</tt>
+      isn't converted to a newline, for instance.
+    </td>
+  </tr>
+
+  <tr class="node_desc_oddrow">
+    <td class="nd_class" rowspan="2"><tt>CompoundLiteral</tt></td>
+    <td class="nd_field"><tt>type</tt></td>
+    <td class="nd_child">Y</td>
+    <td class="nd_values"><tt>Type</tt></td>
+    <td class="nd_default"></td>
+    <td class="nd_comments" rowspan="2">
+      <p>
+        Here's an example.  <tt>(struct S){1, .x = 2, .y [3] .z =
+        4}</tt> parses as:</p>
+<pre>
+CompoundLiteral
+    type: Struct
+        name: "S"
+    member_inits: 
+        - MemberInit
+            init: IntLiteral
+                val: 1
+        - MemberInit
+            member: 
+                - Member
+                    name: "x"
+            init: IntLiteral
+                val: 2
+        - MemberInit
+            member: 
+                - Member
+                    name: "y"
+                - IntLiteral
+                    val: 3
+                - Member
+                    name: "z"
+            init: IntLiteral
+                val: 4
+</pre>
+      "That's legal syntax!?"  Yep.  Look it up.
+    </td>
+  </tr>
+  <tr class="node_desc_oddrow">
+    <td class="nd_field"><tt>member_inits</tt></td>
+    <td class="nd_child">Y</td>
+    <td class="nd_values"><tt>NodeList</tt> of <tt>MemberInit</tt></td>
+    <td class="nd_default"><tt>NodeArray[]</tt></td>
+  </tr>
+
+  <tr class="node_desc_evenrow">
+    <td class="nd_class" rowspan="2"><tt>IntLiteral</tt></td>
+    <td class="nd_field"><tt>val</tt></td>
+    <td class="nd_child"></td>
+    <td class="nd_values"><tt>Integer</tt></td>
+    <td class="nd_default"></td>
+    <td class="nd_comments" rowspan="2">
+      <p>Also:</p>
+      <ul>
+        <li><tt>#dec?</tt> -- return true iff <tt>format == :dec</tt></li>
+        <li><tt>#hex?</tt> -- return true iff <tt>format == :hex</tt></li>
+        <li><tt>#oct?</tt> -- return true iff <tt>format == :oct</tt></li>
+      </ul>
+    </td>
+  </tr>
+  <tr class="node_desc_evenrow">
+    <td class="nd_field"><tt>format</tt></td>
+    <td class="nd_child"></td>
+    <td class="nd_values"><tt>:dec</tt>, <tt>:hex</tt>, <tt>:oct</tt></td>
+    <td class="nd_default"><tt>:dec</tt></td>
+  </tr>
+
+  <tr class="node_desc_oddrow">
+    <td class="nd_class" rowspan="1"><tt>FloatLiteral</tt></td>
+    <td class="nd_field"><tt>val</tt></td>
+    <td class="nd_child"></td>
+    <td class="nd_values"><tt>Float</tt></td>
+    <td class="nd_default"></td>
+    <td class="nd_comments" rowspan="1">
+    </td>
+  </tr>
+
+  <tr class="node_desc_evenrow">
+    <td class="nd_class" rowspan="4"><tt>Pointer</tt></td>
+    <td class="nd_field"><tt>const?</tt></td>
+    <td class="nd_child"></td>
+    <td class="nd_values"><tt>true</tt>, <tt>false</tt></td>
+    <td class="nd_default"></td>
+    <td class="nd_comments" rowspan="4">
+    </td>
+  </tr>
+  <tr class="node_desc_evenrow">
+    <td class="nd_field"><tt>restrict?</tt></td>
+    <td class="nd_child"></td>
+    <td class="nd_values"><tt>true</tt>, <tt>false</tt></td>
+    <td class="nd_default"></td>
+  </tr>
+  <tr class="node_desc_evenrow">
+    <td class="nd_field"><tt>volatile?</tt></td>
+    <td class="nd_child"></td>
+    <td class="nd_values"><tt>true</tt>, <tt>false</tt></td>
+    <td class="nd_default"></td>
+  </tr>
+  <tr class="node_desc_evenrow">
+    <td class="nd_field"><tt>type</tt></td>
+    <td class="nd_child">Y</td>
+    <td class="nd_values"><tt>Type</tt></td>
+    <td class="nd_default"></td>
+  </tr>
+
+  <tr class="node_desc_oddrow">
+    <td class="nd_class" rowspan="5"><tt>Array</tt></td>
+    <td class="nd_field"><tt>const?</tt></td>
+    <td class="nd_child"></td>
+    <td class="nd_values"><tt>true</tt>, <tt>false</tt></td>
+    <td class="nd_default"></td>
+    <td class="nd_comments" rowspan="5">
+    </td>
+  </tr>
+  <tr class="node_desc_oddrow">
+    <td class="nd_field"><tt>restrict?</tt></td>
+    <td class="nd_child"></td>
+    <td class="nd_values"><tt>true</tt>, <tt>false</tt></td>
+    <td class="nd_default"></td>
+  </tr>
+  <tr class="node_desc_oddrow">
+    <td class="nd_field"><tt>volatile?</tt></td>
+    <td class="nd_child"></td>
+    <td class="nd_values"><tt>true</tt>, <tt>false</tt></td>
+    <td class="nd_default"></td>
+  </tr>
+  <tr class="node_desc_oddrow">
+    <td class="nd_field"><tt>type</tt></td>
+    <td class="nd_child">Y</td>
+    <td class="nd_values"><tt>Type</tt></td>
+    <td class="nd_default"></td>
+  </tr>
+  <tr class="node_desc_oddrow">
+    <td class="nd_field"><tt>length</tt></td>
+    <td class="nd_child">Y</td>
+    <td class="nd_values"><tt>Expression</tt></td>
+    <td class="nd_default"></td>
+  </tr>
+
+  <tr class="node_desc_evenrow">
+    <td class="nd_class" rowspan="6"><tt>Function</tt></td>
+    <td class="nd_field"><tt>const?</tt></td>
+    <td class="nd_child"></td>
+    <td class="nd_values"><tt>true</tt>, <tt>false</tt></td>
+    <td class="nd_default"></td>
+    <td class="nd_comments" rowspan="6">
+    </td>
+  </tr>
+  <tr class="node_desc_evenrow">
+    <td class="nd_field"><tt>restrict?</tt></td>
+    <td class="nd_child"></td>
+    <td class="nd_values"><tt>true</tt>, <tt>false</tt></td>
+    <td class="nd_default"></td>
+  </tr>
+  <tr class="node_desc_evenrow">
+    <td class="nd_field"><tt>volatile?</tt></td>
+    <td class="nd_child"></td>
+    <td class="nd_values"><tt>true</tt>, <tt>false</tt></td>
+    <td class="nd_default"></td>
+  </tr>
+  <tr class="node_desc_evenrow">
+    <td class="nd_field"><tt>type</tt></td>
+    <td class="nd_child">Y</td>
+    <td class="nd_values"><tt>Type</tt></td>
+    <td class="nd_default"></td>
+  </tr>
+  <tr class="node_desc_evenrow">
+    <td class="nd_field"><tt>params</tt></td>
+    <td class="nd_child">Y</td>
+    <td class="nd_values"><tt>NodeList</tt> of <tt>Parameter</tt></td>
+    <td class="nd_default"><tt>NodeArray[]</tt></td>
+  </tr>
+  <tr class="node_desc_evenrow">
+    <td class="nd_field"><tt>var_args?</tt></td>
+    <td class="nd_child"></td>
+    <td class="nd_values"><tt>true</tt>, <tt>false</tt></td>
+    <td class="nd_default"></td>
+  </tr>
+
+  <tr class="node_desc_oddrow">
+    <td class="nd_class" rowspan="5"><tt>Struct</tt></td>
+    <td class="nd_field"><tt>const?</tt></td>
+    <td class="nd_child"></td>
+    <td class="nd_values"><tt>true</tt>, <tt>false</tt></td>
+    <td class="nd_default"></td>
+    <td class="nd_comments" rowspan="5">
+    </td>
+  </tr>
+  <tr class="node_desc_oddrow">
+    <td class="nd_field"><tt>restrict?</tt></td>
+    <td class="nd_child"></td>
+    <td class="nd_values"><tt>true</tt>, <tt>false</tt></td>
+    <td class="nd_default"></td>
+  </tr>
+  <tr class="node_desc_oddrow">
+    <td class="nd_field"><tt>volatile?</tt></td>
+    <td class="nd_child"></td>
+    <td class="nd_values"><tt>true</tt>, <tt>false</tt></td>
+    <td class="nd_default"></td>
+  </tr>
+  <tr class="node_desc_oddrow">
+    <td class="nd_field"><tt>name</tt></td>
+    <td class="nd_child"></td>
+    <td class="nd_values"><tt>String</tt></td>
+    <td class="nd_default"></td>
+  </tr>
+  <tr class="node_desc_oddrow">
+    <td class="nd_field"><tt>members</tt></td>
+    <td class="nd_child">Y</td>
+    <td class="nd_values"><tt>NodeList</tt> of <tt>Member</tt></td>
+    <td class="nd_default"><tt>NodeArray[]</tt></td>
+  </tr>
+
+  <tr class="node_desc_evenrow">
+    <td class="nd_class" rowspan="5"><tt>Union</tt></td>
+    <td class="nd_field"><tt>const?</tt></td>
+    <td class="nd_child"></td>
+    <td class="nd_values"><tt>true</tt>, <tt>false</tt></td>
+    <td class="nd_default"></td>
+    <td class="nd_comments" rowspan="5">
+    </td>
+  </tr>
+  <tr class="node_desc_evenrow">
+    <td class="nd_field"><tt>restrict?</tt></td>
+    <td class="nd_child"></td>
+    <td class="nd_values"><tt>true</tt>, <tt>false</tt></td>
+    <td class="nd_default"></td>
+  </tr>
+  <tr class="node_desc_evenrow">
+    <td class="nd_field"><tt>volatile?</tt></td>
+    <td class="nd_child"></td>
+    <td class="nd_values"><tt>true</tt>, <tt>false</tt></td>
+    <td class="nd_default"></td>
+  </tr>
+  <tr class="node_desc_evenrow">
+    <td class="nd_field"><tt>name</tt></td>
+    <td class="nd_child"></td>
+    <td class="nd_values"><tt>String</tt></td>
+    <td class="nd_default"></td>
+  </tr>
+  <tr class="node_desc_evenrow">
+    <td class="nd_field"><tt>members</tt></td>
+    <td class="nd_child">Y</td>
+    <td class="nd_values"><tt>NodeList</tt> of <tt>Member</tt></td>
+    <td class="nd_default"><tt>NodeArray[]</tt></td>
+  </tr>
+
+  <tr class="node_desc_oddrow">
+    <td class="nd_class" rowspan="5"><tt>Enum</tt></td>
+    <td class="nd_field"><tt>const?</tt></td>
+    <td class="nd_child"></td>
+    <td class="nd_values"><tt>true</tt>, <tt>false</tt></td>
+    <td class="nd_default"></td>
+    <td class="nd_comments" rowspan="5">
+    </td>
+  </tr>
+  <tr class="node_desc_oddrow">
+    <td class="nd_field"><tt>restrict?</tt></td>
+    <td class="nd_child"></td>
+    <td class="nd_values"><tt>true</tt>, <tt>false</tt></td>
+    <td class="nd_default"></td>
+  </tr>
+  <tr class="node_desc_oddrow">
+    <td class="nd_field"><tt>volatile?</tt></td>
+    <td class="nd_child"></td>
+    <td class="nd_values"><tt>true</tt>, <tt>false</tt></td>
+    <td class="nd_default"></td>
+  </tr>
+  <tr class="node_desc_oddrow">
+    <td class="nd_field"><tt>name</tt></td>
+    <td class="nd_child"></td>
+    <td class="nd_values"><tt>String</tt></td>
+    <td class="nd_default"></td>
+  </tr>
+  <tr class="node_desc_oddrow">
+    <td class="nd_field"><tt>members</tt></td>
+    <td class="nd_child">Y</td>
+    <td class="nd_values"><tt>NodeList</tt> of <tt>Enumerator</tt></td>
+    <td class="nd_default"></td>
+  </tr>
+
+  <tr class="node_desc_evenrow">
+    <td class="nd_class" rowspan="4"><tt>CustomType</tt></td>
+    <td class="nd_field"><tt>const?</tt></td>
+    <td class="nd_child"></td>
+    <td class="nd_values"><tt>true</tt>, <tt>false</tt></td>
+    <td class="nd_default"></td>
+    <td class="nd_comments" rowspan="4">
+      This is for <tt>typedef</tt>'d names.
+    </td>
+  </tr>
+  <tr class="node_desc_evenrow">
+    <td class="nd_field"><tt>restrict?</tt></td>
+    <td class="nd_child"></td>
+    <td class="nd_values"><tt>true</tt>, <tt>false</tt></td>
+    <td class="nd_default"></td>
+  </tr>
+  <tr class="node_desc_evenrow">
+    <td class="nd_field"><tt>volatile?</tt></td>
+    <td class="nd_child"></td>
+    <td class="nd_values"><tt>true</tt>, <tt>false</tt></td>
+    <td class="nd_default"></td>
+  </tr>
+  <tr class="node_desc_evenrow">
+    <td class="nd_field"><tt>name</tt></td>
+    <td class="nd_child"></td>
+    <td class="nd_values"><tt>String</tt></td>
+    <td class="nd_default"></td>
+  </tr>
+
+  <tr class="node_desc_oddrow">
+    <td class="nd_class" rowspan="3"><tt>Void</tt></td>
+    <td class="nd_field"><tt>const?</tt></td>
+    <td class="nd_child"></td>
+    <td class="nd_values"><tt>true</tt>, <tt>false</tt></td>
+    <td class="nd_default"></td>
+    <td class="nd_comments" rowspan="3">
+      <tt>const void</tt>!?  Yes, think about: <tt>const void *</tt>.
+    </td>
+  </tr>
+  <tr class="node_desc_oddrow">
+    <td class="nd_field"><tt>restrict?</tt></td>
+    <td class="nd_child"></td>
+    <td class="nd_values"><tt>true</tt>, <tt>false</tt></td>
+    <td class="nd_default"></td>
+  </tr>
+  <tr class="node_desc_oddrow">
+    <td class="nd_field"><tt>volatile?</tt></td>
+    <td class="nd_child"></td>
+    <td class="nd_values"><tt>true</tt>, <tt>false</tt></td>
+    <td class="nd_default"></td>
+  </tr>
+
+  <tr class="node_desc_evenrow">
+    <td class="nd_class" rowspan="5"><tt>Int</tt></td>
+    <td class="nd_field"><tt>const?</tt></td>
+    <td class="nd_child"></td>
+    <td class="nd_values"><tt>true</tt>, <tt>false</tt></td>
+    <td class="nd_default"></td>
+    <td class="nd_comments" rowspan="5">
+          <tt>longness</tt> sounds silly, so here are some less silly
+          methods:
+      <ul>
+        <li><tt>#short?</tt> -- return true iff <tt>longness == -1</tt></li>
+        <li><tt>#plain?</tt> -- return true iff <tt>longness == 0</tt></li>
+        <li><tt>#long?</tt> -- return true iff <tt>longness == 1</tt></li>
+        <li><tt>#long_long?</tt> -- return true iff <tt>longness == 2</tt></li>
+      </ul>
+      Oh, and look, a pseudo-field:
+      <ul>
+        <li><tt>#signed?</tt> -- same as <tt>!unsigned?</tt></li>
+        <li><tt>#signed=(val)</tt> -- same as <tt>unsigned = !val</tt></li>
+      </ul>
+    </td>
+  </tr>
+  <tr class="node_desc_evenrow">
+    <td class="nd_field"><tt>restrict?</tt></td>
+    <td class="nd_child"></td>
+    <td class="nd_values"><tt>true</tt>, <tt>false</tt></td>
+    <td class="nd_default"></td>
+  </tr>
+  <tr class="node_desc_evenrow">
+    <td class="nd_field"><tt>volatile?</tt></td>
+    <td class="nd_child"></td>
+    <td class="nd_values"><tt>true</tt>, <tt>false</tt></td>
+    <td class="nd_default"></td>
+  </tr>
+  <tr class="node_desc_evenrow">
+    <td class="nd_field"><tt>longness</tt></td>
+    <td class="nd_child"></td>
+    <td class="nd_values"><tt>-1</tt>, <tt>0</tt>, <tt>1</tt>, <tt>2</tt></td>
+    <td class="nd_default"><tt>0</tt></td>
+  </tr>
+  <tr class="node_desc_evenrow">
+    <td class="nd_field"><tt>unsigned?</tt></td>
+    <td class="nd_child"></td>
+    <td class="nd_values"><tt>true</tt>, <tt>false</tt></td>
+    <td class="nd_default"></td>
+  </tr>
+
+  <tr class="node_desc_oddrow">
+    <td class="nd_class" rowspan="4"><tt>Float</tt></td>
+    <td class="nd_field"><tt>const?</tt></td>
+    <td class="nd_child"></td>
+    <td class="nd_values"><tt>true</tt>, <tt>false</tt></td>
+    <td class="nd_default"></td>
+    <td class="nd_comments" rowspan="4">
+      Less silly-sounding <tt>longness</tt> substitutes:
+      <ul>
+        <li><tt>#plain?</tt> -- return true iff <tt>longness == 0</tt></li>
+        <li><tt>#double?</tt> -- return true iff <tt>longness == 1</tt></li>
+        <li><tt>#long_double?</tt> -- return true iff <tt>longness == 2</tt></li>
+      </ul>
+    </td>
+  </tr>
+  <tr class="node_desc_oddrow">
+    <td class="nd_field"><tt>restrict?</tt></td>
+    <td class="nd_child"></td>
+    <td class="nd_values"><tt>true</tt>, <tt>false</tt></td>
+    <td class="nd_default"></td>
+  </tr>
+  <tr class="node_desc_oddrow">
+    <td class="nd_field"><tt>volatile?</tt></td>
+    <td class="nd_child"></td>
+    <td class="nd_values"><tt>true</tt>, <tt>false</tt></td>
+    <td class="nd_default"></td>
+  </tr>
+  <tr class="node_desc_oddrow">
+    <td class="nd_field"><tt>longness</tt></td>
+    <td class="nd_child"></td>
+    <td class="nd_values"><tt>0</tt>, <tt>1</tt>, <tt>2</tt></td>
+    <td class="nd_default"><tt>0</tt></td>
+  </tr>
+
+  <tr class="node_desc_evenrow">
+    <td class="nd_class" rowspan="4"><tt>Char</tt></td>
+    <td class="nd_field"><tt>const?</tt></td>
+    <td class="nd_child"></td>
+    <td class="nd_values"><tt>true</tt>, <tt>false</tt></td>
+    <td class="nd_default"></td>
+    <td class="nd_comments" rowspan="4">
+      Also:
+      <ul>
+        <li><tt>#signed?</tt> -- return true iff <tt>signed == true</tt></li>
+        <li><tt>#unsigned?</tt> -- return true iff <tt>signed == false</tt></li>
+        <li><tt>#plain?</tt> -- return true iff <tt>signed == nil</tt></li>
+      </ul>
+      Yes, C99 says that <tt>char</tt>, <tt>signed char</tt>, and
+      <tt>unsigned char</tt> are 3 distinct types (unlike with
+      <tt>int</tt> -- go figure).  Like Martian chalk and Venusian
+      cheese: completely different, but you can fit 'em each in one
+      byte.  Mmm, Martian chalk...
+    </td>
+  </tr>
+  <tr class="node_desc_evenrow">
+    <td class="nd_field"><tt>restrict?</tt></td>
+    <td class="nd_child"></td>
+    <td class="nd_values"><tt>true</tt>, <tt>false</tt></td>
+    <td class="nd_default"></td>
+  </tr>
+  <tr class="node_desc_evenrow">
+    <td class="nd_field"><tt>volatile?</tt></td>
+    <td class="nd_child"></td>
+    <td class="nd_values"><tt>true</tt>, <tt>false</tt></td>
+    <td class="nd_default"></td>
+  </tr>
+  <tr class="node_desc_evenrow">
+    <td class="nd_field"><tt>signed</tt></td>
+    <td class="nd_child"></td>
+    <td class="nd_values"><tt>true</tt>, <tt>false</tt>, <tt>nil</tt></td>
+    <td class="nd_default"></td>
+  </tr>
+
+  <tr class="node_desc_oddrow">
+    <td class="nd_class" rowspan="3"><tt>Bool</tt></td>
+    <td class="nd_field"><tt>const?</tt></td>
+    <td class="nd_child"></td>
+    <td class="nd_values"><tt>true</tt>, <tt>false</tt></td>
+    <td class="nd_default"></td>
+    <td class="nd_comments" rowspan="3">
+      This is the rarely seen <tt>_Bool</tt> type.
+    </td>
+  </tr>
+  <tr class="node_desc_oddrow">
+    <td class="nd_field"><tt>restrict?</tt></td>
+    <td class="nd_child"></td>
+    <td class="nd_values"><tt>true</tt>, <tt>false</tt></td>
+    <td class="nd_default"></td>
+  </tr>
+  <tr class="node_desc_oddrow">
+    <td class="nd_field"><tt>volatile?</tt></td>
+    <td class="nd_child"></td>
+    <td class="nd_values"><tt>true</tt>, <tt>false</tt></td>
+    <td class="nd_default"></td>
+  </tr>
+
+  <tr class="node_desc_evenrow">
+    <td class="nd_class" rowspan="4"><tt>Complex</tt></td>
+    <td class="nd_field"><tt>const?</tt></td>
+    <td class="nd_child"></td>
+    <td class="nd_values"><tt>true</tt>, <tt>false</tt></td>
+    <td class="nd_default"></td>
+    <td class="nd_comments" rowspan="4">
+      <p>This is the rarely seen <tt>_Complex</tt> type.</p>
+      <ul>
+        <li><tt>#plain?</tt> -- return true iff <tt>longness == 0</tt></li>
+        <li><tt>#double?</tt> -- return true iff <tt>longness == 1</tt></li>
+        <li><tt>#long_double?</tt> -- return true iff <tt>longness == 2</tt></li>
+      </ul>
+    </td>
+  </tr>
+  <tr class="node_desc_evenrow">
+    <td class="nd_field"><tt>restrict?</tt></td>
+    <td class="nd_child"></td>
+    <td class="nd_values"><tt>true</tt>, <tt>false</tt></td>
+    <td class="nd_default"></td>
+  </tr>
+  <tr class="node_desc_evenrow">
+    <td class="nd_field"><tt>volatile?</tt></td>
+    <td class="nd_child"></td>
+    <td class="nd_values"><tt>true</tt>, <tt>false</tt></td>
+    <td class="nd_default"></td>
+  </tr>
+  <tr class="node_desc_evenrow">
+    <td class="nd_field"><tt>longness</tt></td>
+    <td class="nd_child"></td>
+    <td class="nd_values"><tt>0</tt>, <tt>1</tt>, <tt>2</tt></td>
+    <td class="nd_default"><tt>0</tt></td>
+  </tr>
+
+  <tr class="node_desc_oddrow">
+    <td class="nd_class" rowspan="4"><tt>Imaginary</tt></td>
+    <td class="nd_field"><tt>const?</tt></td>
+    <td class="nd_child"></td>
+    <td class="nd_values"><tt>true</tt>, <tt>false</tt></td>
+    <td class="nd_default"></td>
+    <td class="nd_comments" rowspan="4">
+      <p>This is the rarely seen <tt>_Imaginary</tt> type.</p>
+      <ul>
+        <li><tt>#plain?</tt> -- return true iff <tt>longness == 0</tt></li>
+        <li><tt>#double?</tt> -- return true iff <tt>longness == 1</tt></li>
+        <li><tt>#long_double?</tt> -- return true iff <tt>longness == 2</tt></li>
+      </ul>
+    </td>
+  </tr>
+  <tr class="node_desc_oddrow">
+    <td class="nd_field"><tt>restrict?</tt></td>
+    <td class="nd_child"></td>
+    <td class="nd_values"><tt>true</tt>, <tt>false</tt></td>
+    <td class="nd_default"></td>
+  </tr>
+  <tr class="node_desc_oddrow">
+    <td class="nd_field"><tt>volatile?</tt></td>
+    <td class="nd_child"></td>
+    <td class="nd_values"><tt>true</tt>, <tt>false</tt></td>
+    <td class="nd_default"></td>
+  </tr>
+  <tr class="node_desc_oddrow">
+    <td class="nd_field"><tt>longness</tt></td>
+    <td class="nd_child"></td>
+    <td class="nd_values"><tt>0</tt>, <tt>1</tt>, <tt>2</tt></td>
+    <td class="nd_default"><tt>0</tt></td>
+  </tr>
+</tbody></table>
+
+<h3>Node Construction</h3>
+
+<p>
+  Wanna make a <tt>Node</tt>?  Take your pick:
+</p>
+<ul>
+  <li>
+    <tt>#new(field1, field2, ...)</tt> -- fields are in the order
+    listed above.
+  </li>
+  <li>
+    <tt>#new(:field1 => val, :field2 => val, ...)</tt> -- field order
+    doesn't matter this way.
+  </li>
+  <li>
+    <tt>#new_at(pos, *args)</tt> -- set the <tt>pos</tt> to that
+    given, and pass <tt>args</tt> to <tt>#new</tt>.
+  </li>
+</ul>
+
+<p>
+  They're for losers, though.  What you really want to do is make
+  <tt>Node</tt>s by parsing C code.  Each class -- even the abstract
+  classes like <tt>Statement</tt> -- has a <tt>.parse</tt> method:
+<pre class="code_snippet">
+funcdef = C::FunctionDef.parse &lt;&lt;EOS
+void frobnicate(int karma) {
+  use_waffle_iron();
+}
+
+stmt = C::Statement.parse('while (not_looking) paint_car();')
+</pre>
+</p>
+<p>
+  Need to tell it to treat <tt>WaffleIron</tt> as a type name?  All
+  those <tt>parse</tt> methods use <tt>C.default_parser</tt>:
+<pre class="code_snippet">
+C.default_parser.type_names << 'WaffleIron'
+type = C::Type.parse('WaffleIron')
+</pre>
+
+<p>Alternatively, you could've given <tt>parse</tt> your own
+parser:</p>
+
+<pre class="code_snippet">
+parser = C::Parser.new
+parser.type_names << 'WaffleIron'
+type = C::Type.parse('WaffleIron', parser)
+</pre>
+</p>
+<p>
+  In fact, there's also <tt>C.parse(str, parser=nil)</tt>, which is an
+  alias for <tt>C::TranslationUnit.parse(str, parser)</tt>.
+</p>
+<pre class="code_snippet">
+ast = C.parse(STDIN)
+</pre>
+<p>
+  Yes, all that talk in the intro about doing <tt>parser =
+  C::Parser.new; parser.parse(...)</tt> was actually all a charade to
+  make you type more.  I so own you.
+</p>
+
+<a name="open_issues"></a><h2>Open Issues</h2>
+<ul>
+  <li>
+    Is it not right to bastardize the <tt>=~</tt> operator like that?
+  </li>
+  <li>
+    Should binary operators have a list of expressions rather than
+    just 2?  That'd allow to_s to format the strings better in some
+    cases and make it consistent with Comma.
+  </li>
+  <li>
+    At the moment CAST chokes on preprocessor #-lines.  Ruby makes it
+    trivial to filter these out before passing the string to
+    <tt>Parser#parse</tt>, and this makes it obvious when you forget
+    to run a file through the preprocessor (which you need to do to
+    get type names at least once).  Is this stupid?  Ideally we should
+    probably have a builtin preprocessor and use that.
+  </li>
+  <li>
+    Should a <tt>Member</tt> be allowed in <tt>MemberInit#member</tt>?
+    It'd be the common case, but special cases make uniform treatment
+    more arduous.  Is "uniform treatment" an issue?
+  </li>
+  <li>
+    Should <tt>to_debug</tt> have a better name?  What?
+  </li>
+</ul>
+
+<a href="mailto:g_ogata@optushome.com.au">Vote now</a>.
+
+<a name="to_do"></a><h2>To Do</h2>
+<ul>
+  <li>
+    Stop embarrasing yourself and write the parser in C.
+  </li>
+  <li>
+    Make it <tt>-wd</tt> friendly.
+  </li>
+  <li>
+    Fix the "TODO" bits in <tt>c.y</tt>.  These are for rarely used C
+    constructs, like the declaration <tt>int arr[*];</tt>.
+  </li>
+  <li>
+    Add a comment node.  Might make it useful for doc extraction.
+    Anyone want this?  Not all comments will be caught, though.
+    Comments can appear between any two tokens, and I don't really
+    want to add comment fields to every node.  They'd probably just
+    appear between toplevel entities (in
+    <tt>TranslationUnit#entities</tt>) and between statements (in
+    <tt>Block#stmts</tt>).
+  </li>
+  <li>
+    Make it rdoc-able.
+  </li>
+  <li>
+    Make a gem.
+  </li>
+  <li>
+    Make a starmonkey.
+  </li>
+</ul>
+
+<a name="to_do"></a><h2>Contact</h2>
+
+I'm not really sure what people are going to try to use this for.  If
+there's some functionality you think would make a good addition, or
+think I've made a mess of this poor puppy, give me a yell.
+
+<p>I read <a href="mailto:ruby-talk@ruby-lang.org">ruby-talk</a> (a.k.a. <a href="news:comp.lang.ruby">comp.lang.ruby</a>).</p>
+
+<p>
+  You can also spam me at <a
+  href="mailto:g_ogata@optushome.com.au">g_ogata@optushome.com.au</a>.
+  Please prefix the subject with "[CAST]" so I can easily distinguish
+  CAST spam from fake Rolex spam.
+</p>
+
+</td></tr></table>  <!-- frame table -->
+
+</body>
+</html>
