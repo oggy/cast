@@ -1,33 +1,33 @@
 ###
 ### ##################################################################
 ###
-### Node#to_debug.
+### Node#inspect.
 ###
 ### ##################################################################
 ###
 
 module C
   class Node
-    TO_DEBUG_TAB = '    '
-    def to_debug
-      return Node.to_debug1(self)
+    INSPECT_TAB = '    '
+    def inspect
+      return Node.inspect1(self)
     end
 
-    def Node.to_debug1 x, prefix='', indent=0, is_child=true
+    def Node.inspect1 x, prefix='', indent=0, is_child=true
       case x
       when NodeList
         if x.empty?
-          return "#{TO_DEBUG_TAB*indent}#{prefix}[]\n"
+          return "#{INSPECT_TAB*indent}#{prefix}[]\n"
         else
-          str = "#{TO_DEBUG_TAB*indent}#{prefix}\n"
+          str = "#{INSPECT_TAB*indent}#{prefix}\n"
           x.each do |el|
-            str << to_debug1(el, "- ", indent+1)
+            str << inspect1(el, "- ", indent+1)
           end
           return str
         end
       when Node
         classname = x.class.name.gsub(/^C::/, '')
-        str = "#{TO_DEBUG_TAB*indent}#{prefix}#{classname}"
+        str = "#{INSPECT_TAB*indent}#{prefix}#{classname}"
 
         fields = x.fields
         bools, others = fields.partition{|field| field.reader.to_s[-1] == ??}
@@ -45,13 +45,13 @@ module C
             ## don't bother with non-child Nodes, since they may cause
             ## loops in the tree
             (val.is_a?(Node) && !field.child?)
-          str << to_debug1(val, "#{field.reader}: ", indent+1, field.child?)
+          str << inspect1(val, "#{field.reader}: ", indent+1, field.child?)
         end
         return str
       when Symbol
-        return "#{TO_DEBUG_TAB*indent}#{prefix}#{x}\n"
+        return "#{INSPECT_TAB*indent}#{prefix}#{x}\n"
       else
-        return "#{TO_DEBUG_TAB*indent}#{prefix}#{x.inspect}\n"
+        return "#{INSPECT_TAB*indent}#{prefix}#{x.inspect}\n"
       end
       return s.string
     end

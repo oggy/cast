@@ -9,13 +9,6 @@
 require 'common'
 require 'stringio'
 
-require 'pp'
-class C::Node
-  def pretty_print q
-    q.text self.to_debug
-  end
-end
-
 Chain = C::NodeChain
 
 ###

@@ -158,7 +158,7 @@ ugly_c_code = open("toy.c"){|f| f.read}
 tree = parser.parse(ugly_c_code)
 
 <span class="code_comment">## what's the tree look like?</span>
-puts tree.to_debug
+p tree
 </pre>
 
 <p>
@@ -388,7 +388,7 @@ puts tree.to_debug
     <tt>String</tt>).
   </li>
   <li>
-    <tt>#to_debug</tt> -- return a pretty string for inspection.
+    <tt>#inspect</tt> -- return a pretty string for inspection.
     <b>Try it</b>.
   </li>
   <li>
@@ -2447,9 +2447,6 @@ ast = C.parse(STDIN)
     Should a <tt>Member</tt> be allowed in <tt>MemberInit#member</tt>?
     It'd be the common case, but special cases make uniform treatment
     more arduous.  Is "uniform treatment" an issue?
-  </li>
-  <li>
-    Should <tt>to_debug</tt> have a better name?  What?
   </li>
 </ul>
 

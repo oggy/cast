@@ -1,3 +1,19 @@
+2005-03-07  George Ogata  <g_ogata@optushome.com.au>
+
+	* lib/to_s.rb (CompoundLiteral::to_s): Made it work.
+
+2005-02-26  George Ogata  <g_ogata@optushome.com.au>
+
+	* lib/to_s.rb (AssignmentExpression::to_s): Fixed for when #lval
+	is a Comma.
+
+2005-02-23  George Ogata  <g_ogata@optushome.com.au>
+
+	* lib/inspect.rb: Renamed Node#to_debug to Node#inspect.
+	Renamed to_debug.rb to inspect.rb.
+
+	* lib/to_s.rb (Parameter::to_s): Fixed for when #type is nil.
+
 2005-02-19  George Ogata  <g_ogata@optushome.com.au>
 
 	* Hello, world!

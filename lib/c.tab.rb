@@ -23,7 +23,7 @@ module C
 
   class Parser < Racc::Parser
 
-module_eval <<'..end c.y modeval..iddc00389379', 'c.y', 531
+module_eval <<'..end c.y modeval..idd9b9708292', 'c.y', 531
   ## A.1.9 -- Preprocessing numbers -- skip
   ## A.1.8 -- Header names -- skip
 
@@ -417,7 +417,7 @@ restrict return short signed sizeof static struct switch typedef union
     raise ParseError, "#{pos}: #{str}"
   end
 
-..end c.y modeval..iddc00389379
+..end c.y modeval..idd9b9708292
 
 ##### racc 1.4.4 generates ###
 

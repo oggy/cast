@@ -5,7 +5,7 @@ require 'test/unit'
 if true
   class C::Node
     def pretty_print q
-      q.text self.to_debug
+      q.text self.inspect
     end
   end
 end
@@ -134,7 +134,7 @@ module CheckAst
     ast = yield(inp)
     assert_tree(ast)
     assert ast.is_a?(C::Node)
-    out = ast.to_debug
+    out = ast.inspect
     assert_equal_debug_strs(exp, out)
   end
 
@@ -146,7 +146,7 @@ module CheckAst
     ## normalize BOL space
     exp.gsub!(%r'^#{INDENT}*') do |s|
       levels = s.length / INDENT.length
-      C::Node::TO_DEBUG_TAB*levels
+      C::Node::INSPECT_TAB*levels
     end
 
     ## compare

@@ -301,7 +301,12 @@ module C
       else
         rvalstr = "#{rval}"
       end
-      "#{lval} #{op}= #{rvalstr}"
+      if lval.to_s_precedence < self.to_s_precedence
+        lvalstr = "(#{lval})"
+      else
+        lvalstr = "#{lval}"
+      end
+      "#{lvalstr} #{op}= #{rvalstr}"
     end
   end
   ## Other Expressions
@@ -470,7 +475,11 @@ module C
   class Parameter
     def to_s
       str = register? ? 'register ' : ''
-      str << type.to_s(name)
+      if type
+        str << type.to_s(name)
+      else
+        str << name.to_s
+      end
     end
   end
 
@@ -490,7 +499,7 @@ module C
       str = ''
       type and
         str << "(#{type}) "
-      str << "{\n" << indent(inits.join(",\n")) << "\n}"
+      str << "{\n" << indent(member_inits.join(",\n")) << "\n}"
     end
   end
   class MemberInit
