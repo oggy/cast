@@ -360,10 +360,15 @@ postfix_expression
   | '(' type_name ')' '{' initializer_list '}'          {result = CompoundLiteral.new_at(val[0].pos, val[1], val[4])}
   | '(' type_name ')' '{' initializer_list ',' '}'      {result = CompoundLiteral.new_at(val[0].pos, val[1], val[4])}
 
-## Returns [Expression]
+## Returns [Expression|Type] -- allow type names here too -- TODO: add an option to disallow this
 argument_expression_list
-  : assignment_expression                              {result = NodeArray[val[0]]}
-  | argument_expression_list ',' assignment_expression {result = val[0] << val[2]}
+  : argument_expression                              {result = NodeArray[val[0]]}
+  | argument_expression_list ',' argument_expression {result = val[0] << val[2]}
+
+## Returns Expression|Type
+argument_expression
+  : assignment_expression {result = val[0]}
+  | type_name             {result = val[0]}
 
 ## Returns Expression
 unary_expression

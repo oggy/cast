@@ -2152,11 +2152,12 @@ TranslationUnit
 EOS
   end
 
-  def test_argument_comma
+  def test_argument_expression_list
     check <<EOS
 void f() {
     x(1);
-    x(1, 2);
+    x(int);
+    x(1, int);
 }
 ----
 TranslationUnit
@@ -2179,10 +2180,59 @@ TranslationUnit
                             expr: Variable
                                 name: "x"
                             args:
+                                - Int
+                    - ExpressionStatement
+                        expr: Call
+                            expr: Variable
+                                name: "x"
+                            args:
                                 - IntLiteral
                                     val: 1
-                                - IntLiteral
-                                    val: 2
+                                - Int
+EOS
+  end
+
+  def test_argument_expression
+    check <<EOS
+void f() {
+    x(a = 1);
+    x(int*);
+    x(const struct s[]);
+}
+----
+TranslationUnit
+    entities:
+        - FunctionDef
+            type: Function
+                type: Void
+            name: "f"
+            def: Block
+                stmts:
+                    - ExpressionStatement
+                        expr: Call
+                            expr: Variable
+                                name: "x"
+                            args:
+                                - Assign
+                                    lval: Variable
+                                        name: "a"
+                                    rval: IntLiteral
+                                        val: 1
+                    - ExpressionStatement
+                        expr: Call
+                            expr: Variable
+                                name: "x"
+                            args:
+                                - Pointer
+                                    type: Int
+                    - ExpressionStatement
+                        expr: Call
+                            expr: Variable
+                                name: "x"
+                            args:
+                                - Array
+                                    type: Struct (const)
+                                        name: "s"
 EOS
   end
 

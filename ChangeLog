@@ -1,3 +1,8 @@
+2005-03-14  George Ogata  <g_ogata@optushome.com.au>
+
+	* lib/c.y (C): Allow type names in Call#args.  (Not C99, but
+	useful for macros.)
+
 2005-03-07  George Ogata  <g_ogata@optushome.com.au>
 
 	* lib/to_s.rb (CompoundLiteral::to_s): Made it work.
