@@ -1,0 +1,6 @@
+Installation:   ruby install.rb
+Uninstallation: ruby install.rb remove
+Gem install:    gem install cast
+Documentation:  See doc/index.html.  Latest version at
+                http://cast.rubyforge.org.
+Licence:        Ruby's.

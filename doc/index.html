@@ -113,7 +113,7 @@
 <table><tr><td class="links">  <!-- frame table -->
 
 <ul>
-  <li><a class="links" href="http://rubyforge.org/projects/cast/">Home</a></li>
+  <li><a class="links" href="http://rubyforge.org/projects/cast/">RubyForge</a></li>
   <li><a class="links" href="http://rubyforge.org/frs/?group_id=561">Download</a></li>
 </ul>
 
@@ -183,9 +183,9 @@ puts tree.to_debug
   <tt>b</tt> is a type, it's a syntax error.
 </p>
 <p>
-  So, the parser's gonna need to know what identifiers are type names.
-  This is one of the bits of state that a <tt>Parser</tt> keeps.
-  Here's the complete list (um, of two):
+  So, the parser's gonna need to know which identifiers are type
+  names.  This is one of the bits of state that a <tt>Parser</tt>
+  keeps.  Here's the complete list (um, of two):
 </p>
 <ul>
   <li>
@@ -193,13 +193,14 @@ puts tree.to_debug
   </li>
   <li>
     <tt>#pos</tt> -- the <tt>Node::Pos</tt> this parser will start
-    parsing at.  Used for error messages.
+    parsing at.
   </li>
 </ul>
 
 <p>
   A <tt>Node::Pos</tt> has three read-write atts: <tt>#filename</tt>,
-  <tt>#line_num</tt>, <tt>#col_num</tt>.
+  <tt>#line_num</tt>, <tt>#col_num</tt>.  Default is <tt>nil</tt>, 1,
+  0.
 </p>
 
 <a name="the_nodes"></a><h2>The Nodes</h2>
@@ -423,21 +424,18 @@ puts tree.to_debug
   </li>
 </ul>
 
-<p>
+<!--<p>
   Now the <tt>Foo?</tt> method above probably gave all the duck typing
   purists heart attacks, so I should prepare my defence.  CAST pays
   close attention to the classes of <tt>Node</tt>s.  That means if you
   dress up a <tt>Thingy</tt> as a <tt>FunctionDef</tt> and smuggle it
   into the tree, don't expect the pacemaker you're using this for to
   function correctly.  Basic methods like <tt>Node#==</tt> check that
-  the classes match.  This is the cleanest way to distinguish, e.g.,
-  an <tt>Add</tt> from a <tt>Subtract</tt> (which both have the same
-  methods but represent very different things).  It just seems
-  impractical to allow duck typing in this situation.
-</p>
+  the classes match.  
+</p>-->
 
 <p>
-  The <tt>#<i>Foo</i>?</tt> method was created because it's a common
+  The <tt>#<i>Foo</i>?</tt> method is a convienience for a common
   need.  Example:
 </p>
 <pre class="code_snippet">
@@ -455,8 +453,31 @@ ast.entities.each do |node|
 end
 </pre>
 
-If you're walking the tree looking for nodes to move around, don't
-forget that modifying the tree during traversal is a criminal offence.
+<p>
+  If you're a duck-typing purist, then sorry for the cardiac arrest
+  you're now experiencing.  CAST <b>does</b> pay attention to the
+  class of <tt>Node</tt> objects for quite a few things.  This is the
+  cleanest way to distinguish, e.g., an <tt>Add</tt> from a
+  <tt>Subtract</tt> (which both have the same methods but represent
+  very different things).  It just seems impractical (and unnecessary)
+  to allow duck typing in this situation.
+</p>
+
+<p>
+  The <tt>#=~</tt> method lets you do:
+</p>
+
+<pre class="code_snippet">
+if declarator.type <span class="code_highlight">=~</span> 'const int *'
+  puts "Ooh, a const int pointer!"
+end
+</pre>
+
+<p>
+  This is <b>not</b> the same as "<tt>declarator.type.to_s == 'const
+  int *'</tt>"; that'd require you to guess how to_s formats its
+  strings (most notably, the whitespace).
+</p>
 
 <h3>Fields and children</h3>
 
@@ -473,7 +494,8 @@ forget that modifying the tree during traversal is a criminal offence.
   <tt>#foo</tt>.  (A field <tt>foo?</tt> means the setter is
   <tt>#foo=</tt> and the getter is <tt>#foo?</tt>.)  Some fields are
   even more special: <strong>child</strong> fields.  These form the
-  tree structure, and are always valued <tt>Node</tt> or <tt>nil</tt>.
+  tree structure, and always have a <tt>Node</tt> or <tt>nil</tt>
+  value.
 </p>
 
 <p>
@@ -488,11 +510,6 @@ forget that modifying the tree during traversal is a criminal offence.
   <li>
     <tt>#dup</tt>, <tt>#clone</tt> -- Children are copied recursively
     (other fields and attrs as normal).
-  </li>
-  <li>
-    <tt>#each</tt>, <tt>#reverse_each</tt> -- Yield all (non-nil)
-    children.  Node includes <tt>Enumerable</tt>, so you get the free
-    chocolates too.
   </li>
 </ul>
 
@@ -509,6 +526,11 @@ forget that modifying the tree during traversal is a criminal offence.
     <tt>#next</tt>/<tt>#prev</tt>, but also requires the parent to be
     <tt>NodeList</tt>.  I'll be honest; I don't remember why I added
     these methods.  They may well suddenly disappear.
+  </li>
+  <li>
+    <tt>#each</tt>, <tt>#reverse_each</tt> -- Yield all (non-nil)
+    children.  Node includes <tt>Enumerable</tt>, so you get the free
+    chocolates too.
   </li>
   <li>
     <tt>#depth_first</tt>, <tt>#reverse_depth_first </tt> -- Walk the
@@ -541,6 +563,12 @@ forget that modifying the tree during traversal is a criminal offence.
 </ul>
 
 <p>
+  If you're walking the tree looking for nodes to move around, don't
+  forget that modifying the tree during traversal is a criminal
+  offence.
+</p>
+
+<p>
   And now, the episode you've been waiting for: THE FIELD LIST!  (Cue
   music and dim lights.)
 </p>
@@ -552,7 +580,10 @@ forget that modifying the tree during traversal is a criminal offence.
       ends in a '?', <tt>nil</tt> otherwise.
     </li>
     <li>
-      There are some conventions we follow religiously:
+      <tt>nil</tt> is <b>always</b> allowed for a child field.
+    </li>
+    <li>
+      There are some conventions we follow religiously to help you:
       <ul>
         <li>
           Field names that end in '?' are <b>always</b> true-or-false.
@@ -564,8 +595,8 @@ forget that modifying the tree during traversal is a criminal offence.
           about needing to create the list first.
         </li>
         <li>
-          A field is <tt>Node</tt>-valued <b>if and only if</b> it is a
-          child field.
+          A field is <tt>Node</tt>-valued <b>if and only if</b> it is
+          a child field.
         </li>
         <li>
            The rows go yellow, green, yellow, green, ... .
@@ -2397,7 +2428,7 @@ ast = C.parse(STDIN)
 <a name="open_issues"></a><h2>Open Issues</h2>
 <ul>
   <li>
-    Is it not right to bastardize the <tt>=~</tt> operator like that?
+    Is it okay to bastardize the <tt>=~</tt> operator like that?
   </li>
   <li>
     Should binary operators have a list of expressions rather than
@@ -2422,7 +2453,9 @@ ast = C.parse(STDIN)
   </li>
 </ul>
 
-<a href="mailto:g_ogata@optushome.com.au">Vote now</a>.
+<p>
+  <a href="mailto:g_ogata@optushome.com.au">Vote now</a>.
+</p>
 
 <a name="to_do"></a><h2>To Do</h2>
 <ul>
@@ -2449,12 +2482,15 @@ ast = C.parse(STDIN)
     Make it rdoc-able.
   </li>
   <li>
-    Make a gem.
-  </li>
-  <li>
     Make a starmonkey.
   </li>
 </ul>
+
+<p>
+  If any of these affect you greatly, <a
+  href="mailto:g_ogata@optushome.com.au">kick me</a> to make it happen
+  faster.
+</p>
 
 <a name="to_do"></a><h2>Contact</h2>
 
@@ -2467,8 +2503,8 @@ think I've made a mess of this poor puppy, give me a yell.
 <p>
   You can also spam me at <a
   href="mailto:g_ogata@optushome.com.au">g_ogata@optushome.com.au</a>.
-  Please prefix the subject with "[CAST]" so I can easily distinguish
-  CAST spam from fake Rolex spam.
+  It'd help if you prefixed the subject with "[cast] " so I can easily
+  distinguish CAST spam from fake Rolex spam.
 </p>
 
 </td></tr></table>  <!-- frame table -->
