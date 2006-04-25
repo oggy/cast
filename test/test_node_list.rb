@@ -1,6 +1,3 @@
-require 'common'
-require 'stringio'
-
 ###
 ### ##################################################################
 ###
@@ -1810,6 +1807,16 @@ module NodeListModifierTests
     assert_nil(c.parent)
   end
 
+  def test_pop_bad
+    ## too many args
+    a, b = 2.of{C::Int.new}
+    list = _List[a, b]
+    assert_raise(ArgumentError){list.pop(1, 2)}
+    assert_same_list([a, b], list)
+    assert_same(list, a.parent)
+    assert_same(list, b.parent)
+  end
+
   def test_shift
     ## empty
     list = _List[]
@@ -1935,6 +1942,16 @@ module NodeListModifierTests
     assert_same_list([c], list)
     assert_nil(a.parent)
     assert_nil(b.parent)
+  end
+
+  def test_shift_bad
+    ## too many args
+    a, b = 2.of{C::Int.new}
+    list = _List[a, b]
+    assert_raise(ArgumentError){list.shift(1, 2)}
+    assert_same_list([a, b], list)
+    assert_same(list, a.parent)
+    assert_same(list, b.parent)
   end
 
   ###

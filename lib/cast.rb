@@ -1,9 +1,16 @@
-dir = File.dirname(File.expand_path(__FILE__))
+## these env vars are to facilitate testing -- see test/run.rb in the
+## cast source
+extdir = ENV['CAST_EXTDIR'] || ''
+libdir = ENV['CAST_LIBDIR'] || 'cast'
 
-require "#{dir}/node.rb"
-require "#{dir}/node_list.rb"
-require "#{dir}/c_nodes.rb"
-require "#{dir}/c.tab.rb"
-require "#{dir}/parse.rb"
-require "#{dir}/to_s.rb"
-require "#{dir}/inspect.rb"
+extdir += '/' unless extdir.empty?
+libdir += '/' unless libdir.empty?
+
+require "#{extdir}cast_ext.so"
+require "#{libdir}node.rb"
+require "#{libdir}node_list.rb"
+require "#{libdir}c_nodes.rb"
+require "#{libdir}c.tab.rb"
+require "#{libdir}parse.rb"
+require "#{libdir}to_s.rb"
+require "#{libdir}inspect.rb"

@@ -6,9 +6,6 @@
 ### ##################################################################
 ###
 
-require 'common'
-require 'stringio'
-
 Chain = C::NodeChain
 
 ###

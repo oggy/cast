@@ -1,6 +1,6 @@
-Installation:   ruby install.rb
-Uninstallation: ruby install.rb remove
 Gem install:    gem install cast
-Documentation:  See doc/index.html.  Latest version at
-                http://cast.rubyforge.org.
+Gem uninstall:  gem uninstall cast
+Site install:   rake install
+Site uninstall: rake uninstall
+Documentation:  See doc/index.html.  Latest at http://cast.rubyforge.org .
 Licence:        Ruby's.

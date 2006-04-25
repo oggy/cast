@@ -6,8 +6,6 @@
 ### ##################################################################
 ###
 
-require 'common'
-
 class MatchTest < Test::Unit::TestCase
   def setup
     C.default_parser = C::Parser.new
@@ -79,7 +77,6 @@ class MatchTest < Test::Unit::TestCase
 end
 
 class ParseTests < Test::Unit::TestCase
-  include CheckAst
   def check klass, s
     check_ast(s){|inp| klass.parse(inp)}
   end
@@ -108,7 +105,7 @@ TranslationUnit
                                         type: Void
                     name: "f"
 EOS
-    assert_raise(ParseError){C::TranslationUnit.parse('')}
+    assert_raise(C::ParseError){C::TranslationUnit.parse('')}
   end
 
   def test_declaration
@@ -132,9 +129,9 @@ Declaration
         - Declarator
             name: "j"
 EOS
-    assert_raise(ParseError){C::Declaration.parse('int i; int j;')}
-    assert_raise(ParseError){C::Declaration.parse('int f() {}')}
-    assert_raise(ParseError){C::Declaration.parse('')}
+    assert_raise(C::ParseError){C::Declaration.parse('int i; int j;')}
+    assert_raise(C::ParseError){C::Declaration.parse('int f() {}')}
+    assert_raise(C::ParseError){C::Declaration.parse('')}
   end
 
   def test_parameter
@@ -163,12 +160,12 @@ void
 Parameter
     type: Void
 EOS
-    assert_raise(ParseError){C::Parameter.parse('...')}
-    assert_raise(ParseError){C::Parameter.parse(') {} void (')}
-    assert_raise(ParseError){C::Parameter.parse('); void(')}
-    assert_raise(ParseError){C::Parameter.parse('i,j')}
-    assert_raise(ParseError){C::Parameter.parse('int,float')}
-    assert_raise(ParseError){C::Parameter.parse('')}
+    assert_raise(C::ParseError){C::Parameter.parse('...')}
+    assert_raise(C::ParseError){C::Parameter.parse(') {} void (')}
+    assert_raise(C::ParseError){C::Parameter.parse('); void(')}
+    assert_raise(C::ParseError){C::Parameter.parse('i,j')}
+    assert_raise(C::ParseError){C::Parameter.parse('int,float')}
+    assert_raise(C::ParseError){C::Parameter.parse('')}
   end
 
   def test_declarator
@@ -211,10 +208,10 @@ Declarator
                 name: "argv"
     name: "x"
 EOS
-    assert_raise(ParseError){C::Declarator.parse('f; int f;')}
-    assert_raise(ParseError){C::Declarator.parse('i,j')}
-    assert_raise(ParseError){C::Declarator.parse(';')}
-    assert_raise(ParseError){C::Declarator.parse('')}
+    assert_raise(C::ParseError){C::Declarator.parse('f; int f;')}
+    assert_raise(C::ParseError){C::Declarator.parse('i,j')}
+    assert_raise(C::ParseError){C::Declarator.parse(';')}
+    assert_raise(C::ParseError){C::Declarator.parse('')}
   end
 
   def test_function_def
@@ -239,11 +236,11 @@ FunctionDef
                     type: Void
     name: "f"
 EOS
-    assert_raise(ParseError){C::FunctionDef.parse('void f(); void g();')}
-    assert_raise(ParseError){C::FunctionDef.parse('int i;')}
-    assert_raise(ParseError){C::FunctionDef.parse('void f();')}
-    assert_raise(ParseError){C::FunctionDef.parse(';')}
-    assert_raise(ParseError){C::FunctionDef.parse('')}
+    assert_raise(C::ParseError){C::FunctionDef.parse('void f(); void g();')}
+    assert_raise(C::ParseError){C::FunctionDef.parse('int i;')}
+    assert_raise(C::ParseError){C::FunctionDef.parse('void f();')}
+    assert_raise(C::ParseError){C::FunctionDef.parse(';')}
+    assert_raise(C::ParseError){C::FunctionDef.parse('')}
   end
 
   def test_enumerator
@@ -261,10 +258,10 @@ Enumerator
     val: IntLiteral
         val: 10
 EOS
-    assert_raise(ParseError){C::Enumerator.parse('} enum {')}
-    assert_raise(ParseError){C::Enumerator.parse('} f() {')}
-    assert_raise(ParseError){C::Enumerator.parse('X, Y')}
-    assert_raise(ParseError){C::Enumerator.parse('')}
+    assert_raise(C::ParseError){C::Enumerator.parse('} enum {')}
+    assert_raise(C::ParseError){C::Enumerator.parse('} f() {')}
+    assert_raise(C::ParseError){C::Enumerator.parse('X, Y')}
+    assert_raise(C::ParseError){C::Enumerator.parse('')}
   end
 
   def test_member_initializer
@@ -311,12 +308,12 @@ MemberInit
     init: FloatLiteral
         val: 10.0
 EOS
-    assert_raise(ParseError){C::MemberInit.parse('} int f() {')}
-    assert_raise(ParseError){C::MemberInit.parse('}} f() {{')}
-    assert_raise(ParseError){C::MemberInit.parse('1}; x = {1')}
-    assert_raise(ParseError){C::MemberInit.parse('1}, y')}
-    assert_raise(ParseError){C::MemberInit.parse('1, 2')}
-    assert_raise(ParseError){C::MemberInit.parse('')}
+    assert_raise(C::ParseError){C::MemberInit.parse('} int f() {')}
+    assert_raise(C::ParseError){C::MemberInit.parse('}} f() {{')}
+    assert_raise(C::ParseError){C::MemberInit.parse('1}; x = {1')}
+    assert_raise(C::ParseError){C::MemberInit.parse('1}, y')}
+    assert_raise(C::ParseError){C::MemberInit.parse('1, 2')}
+    assert_raise(C::ParseError){C::MemberInit.parse('')}
   end
 
   def test_block
@@ -332,11 +329,11 @@ Block
     stmts:
         - Block
 EOS
-    assert_raise(ParseError){C::Block.parse('} void f() {')}
-    assert_raise(ParseError){C::Block.parse(';;')}
-    assert_raise(ParseError){C::Block.parse('int i;')}
-    assert_raise(ParseError){C::Block.parse(';')}
-    assert_raise(ParseError){C::Block.parse('')}
+    assert_raise(C::ParseError){C::Block.parse('} void f() {')}
+    assert_raise(C::ParseError){C::Block.parse(';;')}
+    assert_raise(C::ParseError){C::Block.parse('int i;')}
+    assert_raise(C::ParseError){C::Block.parse(';')}
+    assert_raise(C::ParseError){C::Block.parse('')}
   end
 
   def test_if
@@ -363,11 +360,11 @@ If
         expr: IntLiteral
             val: 20
 EOS
-    assert_raise(ParseError){C::If.parse('} void f() {')}
-    assert_raise(ParseError){C::If.parse(';;')}
-    assert_raise(ParseError){C::If.parse('int i;')}
-    assert_raise(ParseError){C::If.parse(';')}
-    assert_raise(ParseError){C::If.parse('')}
+    assert_raise(C::ParseError){C::If.parse('} void f() {')}
+    assert_raise(C::ParseError){C::If.parse(';;')}
+    assert_raise(C::ParseError){C::If.parse('int i;')}
+    assert_raise(C::ParseError){C::If.parse(';')}
+    assert_raise(C::ParseError){C::If.parse('')}
   end
 
   def test_switch
@@ -379,11 +376,11 @@ Switch
         name: "x"
     stmt: ExpressionStatement
 EOS
-    assert_raise(ParseError){C::Switch.parse('} void f() {')}
-    assert_raise(ParseError){C::Switch.parse(';;')}
-    assert_raise(ParseError){C::Switch.parse('int i;')}
-    assert_raise(ParseError){C::Switch.parse(';')}
-    assert_raise(ParseError){C::Switch.parse('')}
+    assert_raise(C::ParseError){C::Switch.parse('} void f() {')}
+    assert_raise(C::ParseError){C::Switch.parse(';;')}
+    assert_raise(C::ParseError){C::Switch.parse('int i;')}
+    assert_raise(C::ParseError){C::Switch.parse(';')}
+    assert_raise(C::ParseError){C::Switch.parse('')}
   end
 
   def test_while
@@ -403,11 +400,11 @@ While (do)
         val: 1
     stmt: ExpressionStatement
 EOS
-    assert_raise(ParseError){C::While.parse('} void f() {')}
-    assert_raise(ParseError){C::While.parse(';;')}
-    assert_raise(ParseError){C::While.parse('int i;')}
-    assert_raise(ParseError){C::While.parse(';')}
-    assert_raise(ParseError){C::While.parse('')}
+    assert_raise(C::ParseError){C::While.parse('} void f() {')}
+    assert_raise(C::ParseError){C::While.parse(';;')}
+    assert_raise(C::ParseError){C::While.parse('int i;')}
+    assert_raise(C::ParseError){C::While.parse(';')}
+    assert_raise(C::ParseError){C::While.parse('')}
   end
 
   def test_for
@@ -428,11 +425,11 @@ For
                 name: "i"
     stmt: ExpressionStatement
 EOS
-    assert_raise(ParseError){C::For.parse('} void f() {')}
-    assert_raise(ParseError){C::For.parse(';;')}
-    assert_raise(ParseError){C::For.parse('int i;')}
-    assert_raise(ParseError){C::For.parse(';')}
-    assert_raise(ParseError){C::For.parse('')}
+    assert_raise(C::ParseError){C::For.parse('} void f() {')}
+    assert_raise(C::ParseError){C::For.parse(';;')}
+    assert_raise(C::ParseError){C::For.parse('int i;')}
+    assert_raise(C::ParseError){C::For.parse(';')}
+    assert_raise(C::ParseError){C::For.parse('')}
   end
 
   def test_goto
@@ -442,11 +439,11 @@ goto x;
 Goto
     target: "x"
 EOS
-    assert_raise(ParseError){C::Goto.parse('} void f() {')}
-    assert_raise(ParseError){C::Goto.parse(';;')}
-    assert_raise(ParseError){C::Goto.parse('int i;')}
-    assert_raise(ParseError){C::Goto.parse(';')}
-    assert_raise(ParseError){C::Goto.parse('')}
+    assert_raise(C::ParseError){C::Goto.parse('} void f() {')}
+    assert_raise(C::ParseError){C::Goto.parse(';;')}
+    assert_raise(C::ParseError){C::Goto.parse('int i;')}
+    assert_raise(C::ParseError){C::Goto.parse(';')}
+    assert_raise(C::ParseError){C::Goto.parse('')}
   end
 
   def test_continue
@@ -455,11 +452,11 @@ continue;
 ----
 Continue
 EOS
-    assert_raise(ParseError){C::Continue.parse('} void f() {')}
-    assert_raise(ParseError){C::Continue.parse(';;')}
-    assert_raise(ParseError){C::Continue.parse('int i;')}
-    assert_raise(ParseError){C::Continue.parse(';')}
-    assert_raise(ParseError){C::Continue.parse('')}
+    assert_raise(C::ParseError){C::Continue.parse('} void f() {')}
+    assert_raise(C::ParseError){C::Continue.parse(';;')}
+    assert_raise(C::ParseError){C::Continue.parse('int i;')}
+    assert_raise(C::ParseError){C::Continue.parse(';')}
+    assert_raise(C::ParseError){C::Continue.parse('')}
   end
 
   def test_break
@@ -468,11 +465,11 @@ break;
 ----
 Break
 EOS
-    assert_raise(ParseError){C::Break.parse('} void f() {')}
-    assert_raise(ParseError){C::Break.parse(';;')}
-    assert_raise(ParseError){C::Break.parse('int i;')}
-    assert_raise(ParseError){C::Break.parse(';')}
-    assert_raise(ParseError){C::Break.parse('')}
+    assert_raise(C::ParseError){C::Break.parse('} void f() {')}
+    assert_raise(C::ParseError){C::Break.parse(';;')}
+    assert_raise(C::ParseError){C::Break.parse('int i;')}
+    assert_raise(C::ParseError){C::Break.parse(';')}
+    assert_raise(C::ParseError){C::Break.parse('')}
   end
 
   def test_return
@@ -488,11 +485,11 @@ Return
     expr: IntLiteral
         val: 10
 EOS
-    assert_raise(ParseError){C::Return.parse('} void f() {')}
-    assert_raise(ParseError){C::Return.parse(';;')}
-    assert_raise(ParseError){C::Return.parse('int i;')}
-    assert_raise(ParseError){C::Return.parse(';')}
-    assert_raise(ParseError){C::Return.parse('')}
+    assert_raise(C::ParseError){C::Return.parse('} void f() {')}
+    assert_raise(C::ParseError){C::Return.parse(';;')}
+    assert_raise(C::ParseError){C::Return.parse('int i;')}
+    assert_raise(C::ParseError){C::Return.parse(';')}
+    assert_raise(C::ParseError){C::Return.parse('')}
   end
 
   def test_expression_statement
@@ -508,11 +505,11 @@ ExpressionStatement
     expr: IntLiteral
         val: 10
 EOS
-    assert_raise(ParseError){C::ExpressionStatement.parse('} void f() {')}
-    assert_raise(ParseError){C::ExpressionStatement.parse(';;')}
-    assert_raise(ParseError){C::ExpressionStatement.parse('int i;')}
-    assert_raise(ParseError){C::ExpressionStatement.parse('return;')}
-    assert_raise(ParseError){C::ExpressionStatement.parse('')}
+    assert_raise(C::ParseError){C::ExpressionStatement.parse('} void f() {')}
+    assert_raise(C::ParseError){C::ExpressionStatement.parse(';;')}
+    assert_raise(C::ParseError){C::ExpressionStatement.parse('int i;')}
+    assert_raise(C::ParseError){C::ExpressionStatement.parse('return;')}
+    assert_raise(C::ParseError){C::ExpressionStatement.parse('')}
   end
 
   def test_statement
@@ -590,10 +587,10 @@ EOS
 ----
 ExpressionStatement
 EOS
-    assert_raise(ParseError){C::Statement.parse('} void f() {')}
-    assert_raise(ParseError){C::Statement.parse(';;')}
-    assert_raise(ParseError){C::Statement.parse('int i;')}
-    assert_raise(ParseError){C::Statement.parse('')}
+    assert_raise(C::ParseError){C::Statement.parse('} void f() {')}
+    assert_raise(C::ParseError){C::Statement.parse(';;')}
+    assert_raise(C::ParseError){C::Statement.parse('int i;')}
+    assert_raise(C::ParseError){C::Statement.parse('')}
   end
 
   def test_plain_label
@@ -603,12 +600,12 @@ x:
 PlainLabel
     name: "x"
 EOS
-    assert_raise(ParseError){C::PlainLabel.parse('} void f() {')}
-    assert_raise(ParseError){C::PlainLabel.parse(';')}
-    assert_raise(ParseError){C::PlainLabel.parse('')}
-    assert_raise(ParseError){C::PlainLabel.parse('x')}
-    assert_raise(ParseError){C::PlainLabel.parse('case 1:')}
-    assert_raise(ParseError){C::PlainLabel.parse('default:')}
+    assert_raise(C::ParseError){C::PlainLabel.parse('} void f() {')}
+    assert_raise(C::ParseError){C::PlainLabel.parse(';')}
+    assert_raise(C::ParseError){C::PlainLabel.parse('')}
+    assert_raise(C::ParseError){C::PlainLabel.parse('x')}
+    assert_raise(C::ParseError){C::PlainLabel.parse('case 1:')}
+    assert_raise(C::ParseError){C::PlainLabel.parse('default:')}
   end
 
   def test_default
@@ -617,12 +614,12 @@ default:
 ----
 Default
 EOS
-    assert_raise(ParseError){C::Default.parse('} void f() {')}
-    assert_raise(ParseError){C::Default.parse(';')}
-    assert_raise(ParseError){C::Default.parse('')}
-    assert_raise(ParseError){C::Default.parse('x')}
-    assert_raise(ParseError){C::Default.parse('x:')}
-    assert_raise(ParseError){C::Default.parse('case 1:')}
+    assert_raise(C::ParseError){C::Default.parse('} void f() {')}
+    assert_raise(C::ParseError){C::Default.parse(';')}
+    assert_raise(C::ParseError){C::Default.parse('')}
+    assert_raise(C::ParseError){C::Default.parse('x')}
+    assert_raise(C::ParseError){C::Default.parse('x:')}
+    assert_raise(C::ParseError){C::Default.parse('case 1:')}
   end
 
   def test_case
@@ -633,11 +630,11 @@ Case
     expr: IntLiteral
         val: 1
 EOS
-    assert_raise(ParseError){C::Case.parse('} void f() {')}
-    assert_raise(ParseError){C::Case.parse(';')}
-    assert_raise(ParseError){C::Case.parse('')}
-    assert_raise(ParseError){C::Case.parse('x:')}
-    assert_raise(ParseError){C::Case.parse('default:')}
+    assert_raise(C::ParseError){C::Case.parse('} void f() {')}
+    assert_raise(C::ParseError){C::Case.parse(';')}
+    assert_raise(C::ParseError){C::Case.parse('')}
+    assert_raise(C::ParseError){C::Case.parse('x:')}
+    assert_raise(C::ParseError){C::Case.parse('default:')}
   end
 
   def test_label
@@ -659,10 +656,10 @@ Case
     expr: IntLiteral
         val: 1
 EOS
-    assert_raise(ParseError){C::Label.parse('} void f() {')}
-    assert_raise(ParseError){C::Label.parse(';')}
-    assert_raise(ParseError){C::Label.parse('')}
-    assert_raise(ParseError){C::Label.parse('x')}
+    assert_raise(C::ParseError){C::Label.parse('} void f() {')}
+    assert_raise(C::ParseError){C::Label.parse(';')}
+    assert_raise(C::ParseError){C::Label.parse('')}
+    assert_raise(C::ParseError){C::Label.parse('x')}
   end
 
   def test_comma
@@ -690,15 +687,15 @@ Comma
             expr: Variable
                 name: "j"
 EOS
-    assert_raise(ParseError){C::Comma.parse('} void f() {')}
-    assert_raise(ParseError){C::Comma.parse(';')}
-    assert_raise(ParseError){C::Comma.parse('int i')}
-    assert_raise(ParseError){C::Comma.parse('int')}
-    assert_raise(ParseError){C::Comma.parse('if (0)')}
-    assert_raise(ParseError){C::Comma.parse('switch (0)')}
-    assert_raise(ParseError){C::Comma.parse('for (;;)')}
-    assert_raise(ParseError){C::Comma.parse('goto')}
-    assert_raise(ParseError){C::Comma.parse('return')}
+    assert_raise(C::ParseError){C::Comma.parse('} void f() {')}
+    assert_raise(C::ParseError){C::Comma.parse(';')}
+    assert_raise(C::ParseError){C::Comma.parse('int i')}
+    assert_raise(C::ParseError){C::Comma.parse('int')}
+    assert_raise(C::ParseError){C::Comma.parse('if (0)')}
+    assert_raise(C::ParseError){C::Comma.parse('switch (0)')}
+    assert_raise(C::ParseError){C::Comma.parse('for (;;)')}
+    assert_raise(C::ParseError){C::Comma.parse('goto')}
+    assert_raise(C::ParseError){C::Comma.parse('return')}
   end
 
   def test_conditional
@@ -713,15 +710,15 @@ Conditional
     else: IntLiteral
         val: 20
 EOS
-    assert_raise(ParseError){C::Conditional.parse('} void f() {')}
-    assert_raise(ParseError){C::Conditional.parse(';')}
-    assert_raise(ParseError){C::Conditional.parse('int i')}
-    assert_raise(ParseError){C::Conditional.parse('int')}
-    assert_raise(ParseError){C::Conditional.parse('if (0)')}
-    assert_raise(ParseError){C::Conditional.parse('switch (0)')}
-    assert_raise(ParseError){C::Conditional.parse('for (;;)')}
-    assert_raise(ParseError){C::Conditional.parse('goto')}
-    assert_raise(ParseError){C::Conditional.parse('return')}
+    assert_raise(C::ParseError){C::Conditional.parse('} void f() {')}
+    assert_raise(C::ParseError){C::Conditional.parse(';')}
+    assert_raise(C::ParseError){C::Conditional.parse('int i')}
+    assert_raise(C::ParseError){C::Conditional.parse('int')}
+    assert_raise(C::ParseError){C::Conditional.parse('if (0)')}
+    assert_raise(C::ParseError){C::Conditional.parse('switch (0)')}
+    assert_raise(C::ParseError){C::Conditional.parse('for (;;)')}
+    assert_raise(C::ParseError){C::Conditional.parse('goto')}
+    assert_raise(C::ParseError){C::Conditional.parse('return')}
   end
 
   def test_cast
@@ -733,15 +730,15 @@ Cast
     expr: FloatLiteral
         val: 10.0
 EOS
-    assert_raise(ParseError){C::Cast.parse('} void f() {')}
-    assert_raise(ParseError){C::Cast.parse(';')}
-    assert_raise(ParseError){C::Cast.parse('int i')}
-    assert_raise(ParseError){C::Cast.parse('int')}
-    assert_raise(ParseError){C::Cast.parse('if (0)')}
-    assert_raise(ParseError){C::Cast.parse('switch (0)')}
-    assert_raise(ParseError){C::Cast.parse('for (;;)')}
-    assert_raise(ParseError){C::Cast.parse('goto')}
-    assert_raise(ParseError){C::Cast.parse('return')}
+    assert_raise(C::ParseError){C::Cast.parse('} void f() {')}
+    assert_raise(C::ParseError){C::Cast.parse(';')}
+    assert_raise(C::ParseError){C::Cast.parse('int i')}
+    assert_raise(C::ParseError){C::Cast.parse('int')}
+    assert_raise(C::ParseError){C::Cast.parse('if (0)')}
+    assert_raise(C::ParseError){C::Cast.parse('switch (0)')}
+    assert_raise(C::ParseError){C::Cast.parse('for (;;)')}
+    assert_raise(C::ParseError){C::Cast.parse('goto')}
+    assert_raise(C::ParseError){C::Cast.parse('return')}
   end
 
   def test_address
@@ -752,15 +749,15 @@ Address
     expr: Variable
         name: "x"
 EOS
-    assert_raise(ParseError){C::Address.parse('} void f() {')}
-    assert_raise(ParseError){C::Address.parse(';')}
-    assert_raise(ParseError){C::Address.parse('int i')}
-    assert_raise(ParseError){C::Address.parse('int')}
-    assert_raise(ParseError){C::Address.parse('if (0)')}
-    assert_raise(ParseError){C::Address.parse('switch (0)')}
-    assert_raise(ParseError){C::Address.parse('for (;;)')}
-    assert_raise(ParseError){C::Address.parse('goto')}
-    assert_raise(ParseError){C::Address.parse('return')}
+    assert_raise(C::ParseError){C::Address.parse('} void f() {')}
+    assert_raise(C::ParseError){C::Address.parse(';')}
+    assert_raise(C::ParseError){C::Address.parse('int i')}
+    assert_raise(C::ParseError){C::Address.parse('int')}
+    assert_raise(C::ParseError){C::Address.parse('if (0)')}
+    assert_raise(C::ParseError){C::Address.parse('switch (0)')}
+    assert_raise(C::ParseError){C::Address.parse('for (;;)')}
+    assert_raise(C::ParseError){C::Address.parse('goto')}
+    assert_raise(C::ParseError){C::Address.parse('return')}
   end
 
   def test_dereference
@@ -771,15 +768,15 @@ Dereference
     expr: Variable
         name: "x"
 EOS
-    assert_raise(ParseError){C::Dereference.parse('} void f() {')}
-    assert_raise(ParseError){C::Dereference.parse(';')}
-    assert_raise(ParseError){C::Dereference.parse('int i')}
-    assert_raise(ParseError){C::Dereference.parse('int')}
-    assert_raise(ParseError){C::Dereference.parse('if (0)')}
-    assert_raise(ParseError){C::Dereference.parse('switch (0)')}
-    assert_raise(ParseError){C::Dereference.parse('for (;;)')}
-    assert_raise(ParseError){C::Dereference.parse('goto')}
-    assert_raise(ParseError){C::Dereference.parse('return')}
+    assert_raise(C::ParseError){C::Dereference.parse('} void f() {')}
+    assert_raise(C::ParseError){C::Dereference.parse(';')}
+    assert_raise(C::ParseError){C::Dereference.parse('int i')}
+    assert_raise(C::ParseError){C::Dereference.parse('int')}
+    assert_raise(C::ParseError){C::Dereference.parse('if (0)')}
+    assert_raise(C::ParseError){C::Dereference.parse('switch (0)')}
+    assert_raise(C::ParseError){C::Dereference.parse('for (;;)')}
+    assert_raise(C::ParseError){C::Dereference.parse('goto')}
+    assert_raise(C::ParseError){C::Dereference.parse('return')}
   end
 
   def test_sizeof
@@ -796,15 +793,15 @@ sizeof(int)
 Sizeof
     expr: Int
 EOS
-    assert_raise(ParseError){C::Sizeof.parse('} void f() {')}
-    assert_raise(ParseError){C::Sizeof.parse(';')}
-    assert_raise(ParseError){C::Sizeof.parse('int i')}
-    assert_raise(ParseError){C::Sizeof.parse('int')}
-    assert_raise(ParseError){C::Sizeof.parse('if (0)')}
-    assert_raise(ParseError){C::Sizeof.parse('switch (0)')}
-    assert_raise(ParseError){C::Sizeof.parse('for (;;)')}
-    assert_raise(ParseError){C::Sizeof.parse('goto')}
-    assert_raise(ParseError){C::Sizeof.parse('return')}
+    assert_raise(C::ParseError){C::Sizeof.parse('} void f() {')}
+    assert_raise(C::ParseError){C::Sizeof.parse(';')}
+    assert_raise(C::ParseError){C::Sizeof.parse('int i')}
+    assert_raise(C::ParseError){C::Sizeof.parse('int')}
+    assert_raise(C::ParseError){C::Sizeof.parse('if (0)')}
+    assert_raise(C::ParseError){C::Sizeof.parse('switch (0)')}
+    assert_raise(C::ParseError){C::Sizeof.parse('for (;;)')}
+    assert_raise(C::ParseError){C::Sizeof.parse('goto')}
+    assert_raise(C::ParseError){C::Sizeof.parse('return')}
   end
 
   def test_index
@@ -820,15 +817,15 @@ Index
     index: IntLiteral
         val: 20
 EOS
-    assert_raise(ParseError){C::Index.parse('} void f() {')}
-    assert_raise(ParseError){C::Index.parse(';')}
-    assert_raise(ParseError){C::Index.parse('int i')}
-    assert_raise(ParseError){C::Index.parse('int')}
-    assert_raise(ParseError){C::Index.parse('if (0)')}
-    assert_raise(ParseError){C::Index.parse('switch (0)')}
-    assert_raise(ParseError){C::Index.parse('for (;;)')}
-    assert_raise(ParseError){C::Index.parse('goto')}
-    assert_raise(ParseError){C::Index.parse('return')}
+    assert_raise(C::ParseError){C::Index.parse('} void f() {')}
+    assert_raise(C::ParseError){C::Index.parse(';')}
+    assert_raise(C::ParseError){C::Index.parse('int i')}
+    assert_raise(C::ParseError){C::Index.parse('int')}
+    assert_raise(C::ParseError){C::Index.parse('if (0)')}
+    assert_raise(C::ParseError){C::Index.parse('switch (0)')}
+    assert_raise(C::ParseError){C::Index.parse('for (;;)')}
+    assert_raise(C::ParseError){C::Index.parse('goto')}
+    assert_raise(C::ParseError){C::Index.parse('return')}
   end
 
   def test_call
@@ -845,15 +842,15 @@ Call
             - IntLiteral
                 val: 20
 EOS
-    assert_raise(ParseError){C::Call.parse('} void f() {')}
-    assert_raise(ParseError){C::Call.parse(';')}
-    assert_raise(ParseError){C::Call.parse('int i')}
-    assert_raise(ParseError){C::Call.parse('int')}
-    assert_raise(ParseError){C::Call.parse('if (0)')}
-    assert_raise(ParseError){C::Call.parse('switch (0)')}
-    assert_raise(ParseError){C::Call.parse('for (;;)')}
-    assert_raise(ParseError){C::Call.parse('goto')}
-    assert_raise(ParseError){C::Call.parse('return')}
+    assert_raise(C::ParseError){C::Call.parse('} void f() {')}
+    assert_raise(C::ParseError){C::Call.parse(';')}
+    assert_raise(C::ParseError){C::Call.parse('int i')}
+    assert_raise(C::ParseError){C::Call.parse('int')}
+    assert_raise(C::ParseError){C::Call.parse('if (0)')}
+    assert_raise(C::ParseError){C::Call.parse('switch (0)')}
+    assert_raise(C::ParseError){C::Call.parse('for (;;)')}
+    assert_raise(C::ParseError){C::Call.parse('goto')}
+    assert_raise(C::ParseError){C::Call.parse('return')}
   end
 
   def test_arrow
@@ -866,15 +863,15 @@ Arrow
     member: Member
         name: "y"
 EOS
-    assert_raise(ParseError){C::Arrow.parse('} void f() {')}
-    assert_raise(ParseError){C::Arrow.parse(';')}
-    assert_raise(ParseError){C::Arrow.parse('int i')}
-    assert_raise(ParseError){C::Arrow.parse('int')}
-    assert_raise(ParseError){C::Arrow.parse('if (0)')}
-    assert_raise(ParseError){C::Arrow.parse('switch (0)')}
-    assert_raise(ParseError){C::Arrow.parse('for (;;)')}
-    assert_raise(ParseError){C::Arrow.parse('goto')}
-    assert_raise(ParseError){C::Arrow.parse('return')}
+    assert_raise(C::ParseError){C::Arrow.parse('} void f() {')}
+    assert_raise(C::ParseError){C::Arrow.parse(';')}
+    assert_raise(C::ParseError){C::Arrow.parse('int i')}
+    assert_raise(C::ParseError){C::Arrow.parse('int')}
+    assert_raise(C::ParseError){C::Arrow.parse('if (0)')}
+    assert_raise(C::ParseError){C::Arrow.parse('switch (0)')}
+    assert_raise(C::ParseError){C::Arrow.parse('for (;;)')}
+    assert_raise(C::ParseError){C::Arrow.parse('goto')}
+    assert_raise(C::ParseError){C::Arrow.parse('return')}
   end
 
   def test_dot
@@ -887,15 +884,15 @@ Dot
     member: Member
         name: "y"
 EOS
-    assert_raise(ParseError){C::Dot.parse('} void f() {')}
-    assert_raise(ParseError){C::Dot.parse(';')}
-    assert_raise(ParseError){C::Dot.parse('int i')}
-    assert_raise(ParseError){C::Dot.parse('int')}
-    assert_raise(ParseError){C::Dot.parse('if (0)')}
-    assert_raise(ParseError){C::Dot.parse('switch (0)')}
-    assert_raise(ParseError){C::Dot.parse('for (;;)')}
-    assert_raise(ParseError){C::Dot.parse('goto')}
-    assert_raise(ParseError){C::Dot.parse('return')}
+    assert_raise(C::ParseError){C::Dot.parse('} void f() {')}
+    assert_raise(C::ParseError){C::Dot.parse(';')}
+    assert_raise(C::ParseError){C::Dot.parse('int i')}
+    assert_raise(C::ParseError){C::Dot.parse('int')}
+    assert_raise(C::ParseError){C::Dot.parse('if (0)')}
+    assert_raise(C::ParseError){C::Dot.parse('switch (0)')}
+    assert_raise(C::ParseError){C::Dot.parse('for (;;)')}
+    assert_raise(C::ParseError){C::Dot.parse('goto')}
+    assert_raise(C::ParseError){C::Dot.parse('return')}
   end
 
   def test_positive
@@ -906,15 +903,15 @@ Positive
     expr: IntLiteral
         val: 1
 EOS
-    assert_raise(ParseError){C::Positive.parse('} void f() {')}
-    assert_raise(ParseError){C::Positive.parse(';')}
-    assert_raise(ParseError){C::Positive.parse('int i')}
-    assert_raise(ParseError){C::Positive.parse('int')}
-    assert_raise(ParseError){C::Positive.parse('if (0)')}
-    assert_raise(ParseError){C::Positive.parse('switch (0)')}
-    assert_raise(ParseError){C::Positive.parse('for (;;)')}
-    assert_raise(ParseError){C::Positive.parse('goto')}
-    assert_raise(ParseError){C::Positive.parse('return')}
+    assert_raise(C::ParseError){C::Positive.parse('} void f() {')}
+    assert_raise(C::ParseError){C::Positive.parse(';')}
+    assert_raise(C::ParseError){C::Positive.parse('int i')}
+    assert_raise(C::ParseError){C::Positive.parse('int')}
+    assert_raise(C::ParseError){C::Positive.parse('if (0)')}
+    assert_raise(C::ParseError){C::Positive.parse('switch (0)')}
+    assert_raise(C::ParseError){C::Positive.parse('for (;;)')}
+    assert_raise(C::ParseError){C::Positive.parse('goto')}
+    assert_raise(C::ParseError){C::Positive.parse('return')}
   end
 
   def test_negative
@@ -925,15 +922,15 @@ Negative
     expr: IntLiteral
         val: 1
 EOS
-    assert_raise(ParseError){C::Negative.parse('} void f() {')}
-    assert_raise(ParseError){C::Negative.parse(';')}
-    assert_raise(ParseError){C::Negative.parse('int i')}
-    assert_raise(ParseError){C::Negative.parse('int')}
-    assert_raise(ParseError){C::Negative.parse('if (0)')}
-    assert_raise(ParseError){C::Negative.parse('switch (0)')}
-    assert_raise(ParseError){C::Negative.parse('for (;;)')}
-    assert_raise(ParseError){C::Negative.parse('goto')}
-    assert_raise(ParseError){C::Negative.parse('return')}
+    assert_raise(C::ParseError){C::Negative.parse('} void f() {')}
+    assert_raise(C::ParseError){C::Negative.parse(';')}
+    assert_raise(C::ParseError){C::Negative.parse('int i')}
+    assert_raise(C::ParseError){C::Negative.parse('int')}
+    assert_raise(C::ParseError){C::Negative.parse('if (0)')}
+    assert_raise(C::ParseError){C::Negative.parse('switch (0)')}
+    assert_raise(C::ParseError){C::Negative.parse('for (;;)')}
+    assert_raise(C::ParseError){C::Negative.parse('goto')}
+    assert_raise(C::ParseError){C::Negative.parse('return')}
   end
 
   def test_add
@@ -946,15 +943,15 @@ Add
     expr2: IntLiteral
         val: 10
 EOS
-    assert_raise(ParseError){C::Add.parse('} void f() {')}
-    assert_raise(ParseError){C::Add.parse(';')}
-    assert_raise(ParseError){C::Add.parse('int i')}
-    assert_raise(ParseError){C::Add.parse('int')}
-    assert_raise(ParseError){C::Add.parse('if (0)')}
-    assert_raise(ParseError){C::Add.parse('switch (0)')}
-    assert_raise(ParseError){C::Add.parse('for (;;)')}
-    assert_raise(ParseError){C::Add.parse('goto')}
-    assert_raise(ParseError){C::Add.parse('return')}
+    assert_raise(C::ParseError){C::Add.parse('} void f() {')}
+    assert_raise(C::ParseError){C::Add.parse(';')}
+    assert_raise(C::ParseError){C::Add.parse('int i')}
+    assert_raise(C::ParseError){C::Add.parse('int')}
+    assert_raise(C::ParseError){C::Add.parse('if (0)')}
+    assert_raise(C::ParseError){C::Add.parse('switch (0)')}
+    assert_raise(C::ParseError){C::Add.parse('for (;;)')}
+    assert_raise(C::ParseError){C::Add.parse('goto')}
+    assert_raise(C::ParseError){C::Add.parse('return')}
   end
 
   def test_subtract
@@ -967,15 +964,15 @@ Subtract
     expr2: IntLiteral
         val: 10
 EOS
-    assert_raise(ParseError){C::Subtract.parse('} void f() {')}
-    assert_raise(ParseError){C::Subtract.parse(';')}
-    assert_raise(ParseError){C::Subtract.parse('int i')}
-    assert_raise(ParseError){C::Subtract.parse('int')}
-    assert_raise(ParseError){C::Subtract.parse('if (0)')}
-    assert_raise(ParseError){C::Subtract.parse('switch (0)')}
-    assert_raise(ParseError){C::Subtract.parse('for (;;)')}
-    assert_raise(ParseError){C::Subtract.parse('goto')}
-    assert_raise(ParseError){C::Subtract.parse('return')}
+    assert_raise(C::ParseError){C::Subtract.parse('} void f() {')}
+    assert_raise(C::ParseError){C::Subtract.parse(';')}
+    assert_raise(C::ParseError){C::Subtract.parse('int i')}
+    assert_raise(C::ParseError){C::Subtract.parse('int')}
+    assert_raise(C::ParseError){C::Subtract.parse('if (0)')}
+    assert_raise(C::ParseError){C::Subtract.parse('switch (0)')}
+    assert_raise(C::ParseError){C::Subtract.parse('for (;;)')}
+    assert_raise(C::ParseError){C::Subtract.parse('goto')}
+    assert_raise(C::ParseError){C::Subtract.parse('return')}
   end
 
   def test_multiply
@@ -988,15 +985,15 @@ Multiply
     expr2: IntLiteral
         val: 10
 EOS
-    assert_raise(ParseError){C::Multiply.parse('} void f() {')}
-    assert_raise(ParseError){C::Multiply.parse(';')}
-    assert_raise(ParseError){C::Multiply.parse('int i')}
-    assert_raise(ParseError){C::Multiply.parse('int')}
-    assert_raise(ParseError){C::Multiply.parse('if (0)')}
-    assert_raise(ParseError){C::Multiply.parse('switch (0)')}
-    assert_raise(ParseError){C::Multiply.parse('for (;;)')}
-    assert_raise(ParseError){C::Multiply.parse('goto')}
-    assert_raise(ParseError){C::Multiply.parse('return')}
+    assert_raise(C::ParseError){C::Multiply.parse('} void f() {')}
+    assert_raise(C::ParseError){C::Multiply.parse(';')}
+    assert_raise(C::ParseError){C::Multiply.parse('int i')}
+    assert_raise(C::ParseError){C::Multiply.parse('int')}
+    assert_raise(C::ParseError){C::Multiply.parse('if (0)')}
+    assert_raise(C::ParseError){C::Multiply.parse('switch (0)')}
+    assert_raise(C::ParseError){C::Multiply.parse('for (;;)')}
+    assert_raise(C::ParseError){C::Multiply.parse('goto')}
+    assert_raise(C::ParseError){C::Multiply.parse('return')}
   end
 
   def test_divide
@@ -1009,15 +1006,15 @@ Divide
     expr2: IntLiteral
         val: 10
 EOS
-    assert_raise(ParseError){C::Divide.parse('} void f() {')}
-    assert_raise(ParseError){C::Divide.parse(';')}
-    assert_raise(ParseError){C::Divide.parse('int i')}
-    assert_raise(ParseError){C::Divide.parse('int')}
-    assert_raise(ParseError){C::Divide.parse('if (0)')}
-    assert_raise(ParseError){C::Divide.parse('switch (0)')}
-    assert_raise(ParseError){C::Divide.parse('for (;;)')}
-    assert_raise(ParseError){C::Divide.parse('goto')}
-    assert_raise(ParseError){C::Divide.parse('return')}
+    assert_raise(C::ParseError){C::Divide.parse('} void f() {')}
+    assert_raise(C::ParseError){C::Divide.parse(';')}
+    assert_raise(C::ParseError){C::Divide.parse('int i')}
+    assert_raise(C::ParseError){C::Divide.parse('int')}
+    assert_raise(C::ParseError){C::Divide.parse('if (0)')}
+    assert_raise(C::ParseError){C::Divide.parse('switch (0)')}
+    assert_raise(C::ParseError){C::Divide.parse('for (;;)')}
+    assert_raise(C::ParseError){C::Divide.parse('goto')}
+    assert_raise(C::ParseError){C::Divide.parse('return')}
   end
 
   def test_mod
@@ -1030,15 +1027,15 @@ Mod
     expr2: IntLiteral
         val: 10
 EOS
-    assert_raise(ParseError){C::Mod.parse('} void f() {')}
-    assert_raise(ParseError){C::Mod.parse(';')}
-    assert_raise(ParseError){C::Mod.parse('int i')}
-    assert_raise(ParseError){C::Mod.parse('int')}
-    assert_raise(ParseError){C::Mod.parse('if (0)')}
-    assert_raise(ParseError){C::Mod.parse('switch (0)')}
-    assert_raise(ParseError){C::Mod.parse('for (;;)')}
-    assert_raise(ParseError){C::Mod.parse('goto')}
-    assert_raise(ParseError){C::Mod.parse('return')}
+    assert_raise(C::ParseError){C::Mod.parse('} void f() {')}
+    assert_raise(C::ParseError){C::Mod.parse(';')}
+    assert_raise(C::ParseError){C::Mod.parse('int i')}
+    assert_raise(C::ParseError){C::Mod.parse('int')}
+    assert_raise(C::ParseError){C::Mod.parse('if (0)')}
+    assert_raise(C::ParseError){C::Mod.parse('switch (0)')}
+    assert_raise(C::ParseError){C::Mod.parse('for (;;)')}
+    assert_raise(C::ParseError){C::Mod.parse('goto')}
+    assert_raise(C::ParseError){C::Mod.parse('return')}
   end
 
   def test_pre_inc
@@ -1049,15 +1046,15 @@ PreInc
     expr: Variable
         name: "i"
 EOS
-    assert_raise(ParseError){C::PreInc.parse('} void f() {')}
-    assert_raise(ParseError){C::PreInc.parse(';')}
-    assert_raise(ParseError){C::PreInc.parse('int i')}
-    assert_raise(ParseError){C::PreInc.parse('int')}
-    assert_raise(ParseError){C::PreInc.parse('if (0)')}
-    assert_raise(ParseError){C::PreInc.parse('switch (0)')}
-    assert_raise(ParseError){C::PreInc.parse('for (;;)')}
-    assert_raise(ParseError){C::PreInc.parse('goto')}
-    assert_raise(ParseError){C::PreInc.parse('return')}
+    assert_raise(C::ParseError){C::PreInc.parse('} void f() {')}
+    assert_raise(C::ParseError){C::PreInc.parse(';')}
+    assert_raise(C::ParseError){C::PreInc.parse('int i')}
+    assert_raise(C::ParseError){C::PreInc.parse('int')}
+    assert_raise(C::ParseError){C::PreInc.parse('if (0)')}
+    assert_raise(C::ParseError){C::PreInc.parse('switch (0)')}
+    assert_raise(C::ParseError){C::PreInc.parse('for (;;)')}
+    assert_raise(C::ParseError){C::PreInc.parse('goto')}
+    assert_raise(C::ParseError){C::PreInc.parse('return')}
   end
 
   def test_post_inc
@@ -1068,15 +1065,15 @@ PostInc
     expr: Variable
         name: "i"
 EOS
-    assert_raise(ParseError){C::PostInc.parse('} void f() {')}
-    assert_raise(ParseError){C::PostInc.parse(';')}
-    assert_raise(ParseError){C::PostInc.parse('int i')}
-    assert_raise(ParseError){C::PostInc.parse('int')}
-    assert_raise(ParseError){C::PostInc.parse('if (0)')}
-    assert_raise(ParseError){C::PostInc.parse('switch (0)')}
-    assert_raise(ParseError){C::PostInc.parse('for (;;)')}
-    assert_raise(ParseError){C::PostInc.parse('goto')}
-    assert_raise(ParseError){C::PostInc.parse('return')}
+    assert_raise(C::ParseError){C::PostInc.parse('} void f() {')}
+    assert_raise(C::ParseError){C::PostInc.parse(';')}
+    assert_raise(C::ParseError){C::PostInc.parse('int i')}
+    assert_raise(C::ParseError){C::PostInc.parse('int')}
+    assert_raise(C::ParseError){C::PostInc.parse('if (0)')}
+    assert_raise(C::ParseError){C::PostInc.parse('switch (0)')}
+    assert_raise(C::ParseError){C::PostInc.parse('for (;;)')}
+    assert_raise(C::ParseError){C::PostInc.parse('goto')}
+    assert_raise(C::ParseError){C::PostInc.parse('return')}
   end
 
   def test_pre_dec
@@ -1087,15 +1084,15 @@ PreDec
     expr: Variable
         name: "i"
 EOS
-    assert_raise(ParseError){C::PreDec.parse('} void f() {')}
-    assert_raise(ParseError){C::PreDec.parse(';')}
-    assert_raise(ParseError){C::PreDec.parse('int i')}
-    assert_raise(ParseError){C::PreDec.parse('int')}
-    assert_raise(ParseError){C::PreDec.parse('if (0)')}
-    assert_raise(ParseError){C::PreDec.parse('switch (0)')}
-    assert_raise(ParseError){C::PreDec.parse('for (;;)')}
-    assert_raise(ParseError){C::PreDec.parse('goto')}
-    assert_raise(ParseError){C::PreDec.parse('return')}
+    assert_raise(C::ParseError){C::PreDec.parse('} void f() {')}
+    assert_raise(C::ParseError){C::PreDec.parse(';')}
+    assert_raise(C::ParseError){C::PreDec.parse('int i')}
+    assert_raise(C::ParseError){C::PreDec.parse('int')}
+    assert_raise(C::ParseError){C::PreDec.parse('if (0)')}
+    assert_raise(C::ParseError){C::PreDec.parse('switch (0)')}
+    assert_raise(C::ParseError){C::PreDec.parse('for (;;)')}
+    assert_raise(C::ParseError){C::PreDec.parse('goto')}
+    assert_raise(C::ParseError){C::PreDec.parse('return')}
   end
 
   def test_post_dec
@@ -1106,15 +1103,15 @@ PostDec
     expr: Variable
         name: "i"
 EOS
-    assert_raise(ParseError){C::PostDec.parse('} void f() {')}
-    assert_raise(ParseError){C::PostDec.parse(';')}
-    assert_raise(ParseError){C::PostDec.parse('int i')}
-    assert_raise(ParseError){C::PostDec.parse('int')}
-    assert_raise(ParseError){C::PostDec.parse('if (0)')}
-    assert_raise(ParseError){C::PostDec.parse('switch (0)')}
-    assert_raise(ParseError){C::PostDec.parse('for (;;)')}
-    assert_raise(ParseError){C::PostDec.parse('goto')}
-    assert_raise(ParseError){C::PostDec.parse('return')}
+    assert_raise(C::ParseError){C::PostDec.parse('} void f() {')}
+    assert_raise(C::ParseError){C::PostDec.parse(';')}
+    assert_raise(C::ParseError){C::PostDec.parse('int i')}
+    assert_raise(C::ParseError){C::PostDec.parse('int')}
+    assert_raise(C::ParseError){C::PostDec.parse('if (0)')}
+    assert_raise(C::ParseError){C::PostDec.parse('switch (0)')}
+    assert_raise(C::ParseError){C::PostDec.parse('for (;;)')}
+    assert_raise(C::ParseError){C::PostDec.parse('goto')}
+    assert_raise(C::ParseError){C::PostDec.parse('return')}
   end
 
   def test_equal
@@ -1127,15 +1124,15 @@ Equal
     expr2: IntLiteral
         val: 10
 EOS
-    assert_raise(ParseError){C::Equal.parse('} void f() {')}
-    assert_raise(ParseError){C::Equal.parse(';')}
-    assert_raise(ParseError){C::Equal.parse('int i')}
-    assert_raise(ParseError){C::Equal.parse('int')}
-    assert_raise(ParseError){C::Equal.parse('if (0)')}
-    assert_raise(ParseError){C::Equal.parse('switch (0)')}
-    assert_raise(ParseError){C::Equal.parse('for (;;)')}
-    assert_raise(ParseError){C::Equal.parse('goto')}
-    assert_raise(ParseError){C::Equal.parse('return')}
+    assert_raise(C::ParseError){C::Equal.parse('} void f() {')}
+    assert_raise(C::ParseError){C::Equal.parse(';')}
+    assert_raise(C::ParseError){C::Equal.parse('int i')}
+    assert_raise(C::ParseError){C::Equal.parse('int')}
+    assert_raise(C::ParseError){C::Equal.parse('if (0)')}
+    assert_raise(C::ParseError){C::Equal.parse('switch (0)')}
+    assert_raise(C::ParseError){C::Equal.parse('for (;;)')}
+    assert_raise(C::ParseError){C::Equal.parse('goto')}
+    assert_raise(C::ParseError){C::Equal.parse('return')}
   end
 
   def test_not_equal
@@ -1148,15 +1145,15 @@ NotEqual
     expr2: IntLiteral
         val: 10
 EOS
-    assert_raise(ParseError){C::NotEqual.parse('} void f() {')}
-    assert_raise(ParseError){C::NotEqual.parse(';')}
-    assert_raise(ParseError){C::NotEqual.parse('int i')}
-    assert_raise(ParseError){C::NotEqual.parse('int')}
-    assert_raise(ParseError){C::NotEqual.parse('if (0)')}
-    assert_raise(ParseError){C::NotEqual.parse('switch (0)')}
-    assert_raise(ParseError){C::NotEqual.parse('for (;;)')}
-    assert_raise(ParseError){C::NotEqual.parse('goto')}
-    assert_raise(ParseError){C::NotEqual.parse('return')}
+    assert_raise(C::ParseError){C::NotEqual.parse('} void f() {')}
+    assert_raise(C::ParseError){C::NotEqual.parse(';')}
+    assert_raise(C::ParseError){C::NotEqual.parse('int i')}
+    assert_raise(C::ParseError){C::NotEqual.parse('int')}
+    assert_raise(C::ParseError){C::NotEqual.parse('if (0)')}
+    assert_raise(C::ParseError){C::NotEqual.parse('switch (0)')}
+    assert_raise(C::ParseError){C::NotEqual.parse('for (;;)')}
+    assert_raise(C::ParseError){C::NotEqual.parse('goto')}
+    assert_raise(C::ParseError){C::NotEqual.parse('return')}
   end
 
   def test_less
@@ -1169,15 +1166,15 @@ Less
     expr2: IntLiteral
         val: 10
 EOS
-    assert_raise(ParseError){C::Less.parse('} void f() {')}
-    assert_raise(ParseError){C::Less.parse(';')}
-    assert_raise(ParseError){C::Less.parse('int i')}
-    assert_raise(ParseError){C::Less.parse('int')}
-    assert_raise(ParseError){C::Less.parse('if (0)')}
-    assert_raise(ParseError){C::Less.parse('switch (0)')}
-    assert_raise(ParseError){C::Less.parse('for (;;)')}
-    assert_raise(ParseError){C::Less.parse('goto')}
-    assert_raise(ParseError){C::Less.parse('return')}
+    assert_raise(C::ParseError){C::Less.parse('} void f() {')}
+    assert_raise(C::ParseError){C::Less.parse(';')}
+    assert_raise(C::ParseError){C::Less.parse('int i')}
+    assert_raise(C::ParseError){C::Less.parse('int')}
+    assert_raise(C::ParseError){C::Less.parse('if (0)')}
+    assert_raise(C::ParseError){C::Less.parse('switch (0)')}
+    assert_raise(C::ParseError){C::Less.parse('for (;;)')}
+    assert_raise(C::ParseError){C::Less.parse('goto')}
+    assert_raise(C::ParseError){C::Less.parse('return')}
   end
 
   def test_more
@@ -1190,15 +1187,15 @@ More
     expr2: IntLiteral
         val: 10
 EOS
-    assert_raise(ParseError){C::More.parse('} void f() {')}
-    assert_raise(ParseError){C::More.parse(';')}
-    assert_raise(ParseError){C::More.parse('int i')}
-    assert_raise(ParseError){C::More.parse('int')}
-    assert_raise(ParseError){C::More.parse('if (0)')}
-    assert_raise(ParseError){C::More.parse('switch (0)')}
-    assert_raise(ParseError){C::More.parse('for (;;)')}
-    assert_raise(ParseError){C::More.parse('goto')}
-    assert_raise(ParseError){C::More.parse('return')}
+    assert_raise(C::ParseError){C::More.parse('} void f() {')}
+    assert_raise(C::ParseError){C::More.parse(';')}
+    assert_raise(C::ParseError){C::More.parse('int i')}
+    assert_raise(C::ParseError){C::More.parse('int')}
+    assert_raise(C::ParseError){C::More.parse('if (0)')}
+    assert_raise(C::ParseError){C::More.parse('switch (0)')}
+    assert_raise(C::ParseError){C::More.parse('for (;;)')}
+    assert_raise(C::ParseError){C::More.parse('goto')}
+    assert_raise(C::ParseError){C::More.parse('return')}
   end
 
   def test_less_or_equal
@@ -1211,15 +1208,15 @@ LessOrEqual
     expr2: IntLiteral
         val: 10
 EOS
-    assert_raise(ParseError){C::LessOrEqual.parse('} void f() {')}
-    assert_raise(ParseError){C::LessOrEqual.parse(';')}
-    assert_raise(ParseError){C::LessOrEqual.parse('int i')}
-    assert_raise(ParseError){C::LessOrEqual.parse('int')}
-    assert_raise(ParseError){C::LessOrEqual.parse('if (0)')}
-    assert_raise(ParseError){C::LessOrEqual.parse('switch (0)')}
-    assert_raise(ParseError){C::LessOrEqual.parse('for (;;)')}
-    assert_raise(ParseError){C::LessOrEqual.parse('goto')}
-    assert_raise(ParseError){C::LessOrEqual.parse('return')}
+    assert_raise(C::ParseError){C::LessOrEqual.parse('} void f() {')}
+    assert_raise(C::ParseError){C::LessOrEqual.parse(';')}
+    assert_raise(C::ParseError){C::LessOrEqual.parse('int i')}
+    assert_raise(C::ParseError){C::LessOrEqual.parse('int')}
+    assert_raise(C::ParseError){C::LessOrEqual.parse('if (0)')}
+    assert_raise(C::ParseError){C::LessOrEqual.parse('switch (0)')}
+    assert_raise(C::ParseError){C::LessOrEqual.parse('for (;;)')}
+    assert_raise(C::ParseError){C::LessOrEqual.parse('goto')}
+    assert_raise(C::ParseError){C::LessOrEqual.parse('return')}
   end
 
   def test_more_or_equal
@@ -1232,15 +1229,15 @@ MoreOrEqual
     expr2: IntLiteral
         val: 10
 EOS
-    assert_raise(ParseError){C::MoreOrEqual.parse('} void f() {')}
-    assert_raise(ParseError){C::MoreOrEqual.parse(';')}
-    assert_raise(ParseError){C::MoreOrEqual.parse('int i')}
-    assert_raise(ParseError){C::MoreOrEqual.parse('int')}
-    assert_raise(ParseError){C::MoreOrEqual.parse('if (0)')}
-    assert_raise(ParseError){C::MoreOrEqual.parse('switch (0)')}
-    assert_raise(ParseError){C::MoreOrEqual.parse('for (;;)')}
-    assert_raise(ParseError){C::MoreOrEqual.parse('goto')}
-    assert_raise(ParseError){C::MoreOrEqual.parse('return')}
+    assert_raise(C::ParseError){C::MoreOrEqual.parse('} void f() {')}
+    assert_raise(C::ParseError){C::MoreOrEqual.parse(';')}
+    assert_raise(C::ParseError){C::MoreOrEqual.parse('int i')}
+    assert_raise(C::ParseError){C::MoreOrEqual.parse('int')}
+    assert_raise(C::ParseError){C::MoreOrEqual.parse('if (0)')}
+    assert_raise(C::ParseError){C::MoreOrEqual.parse('switch (0)')}
+    assert_raise(C::ParseError){C::MoreOrEqual.parse('for (;;)')}
+    assert_raise(C::ParseError){C::MoreOrEqual.parse('goto')}
+    assert_raise(C::ParseError){C::MoreOrEqual.parse('return')}
   end
 
   def test_bit_and
@@ -1253,15 +1250,15 @@ BitAnd
     expr2: IntLiteral
         val: 10
 EOS
-    assert_raise(ParseError){C::BitAnd.parse('} void f() {')}
-    assert_raise(ParseError){C::BitAnd.parse(';')}
-    assert_raise(ParseError){C::BitAnd.parse('int i')}
-    assert_raise(ParseError){C::BitAnd.parse('int')}
-    assert_raise(ParseError){C::BitAnd.parse('if (0)')}
-    assert_raise(ParseError){C::BitAnd.parse('switch (0)')}
-    assert_raise(ParseError){C::BitAnd.parse('for (;;)')}
-    assert_raise(ParseError){C::BitAnd.parse('goto')}
-    assert_raise(ParseError){C::BitAnd.parse('return')}
+    assert_raise(C::ParseError){C::BitAnd.parse('} void f() {')}
+    assert_raise(C::ParseError){C::BitAnd.parse(';')}
+    assert_raise(C::ParseError){C::BitAnd.parse('int i')}
+    assert_raise(C::ParseError){C::BitAnd.parse('int')}
+    assert_raise(C::ParseError){C::BitAnd.parse('if (0)')}
+    assert_raise(C::ParseError){C::BitAnd.parse('switch (0)')}
+    assert_raise(C::ParseError){C::BitAnd.parse('for (;;)')}
+    assert_raise(C::ParseError){C::BitAnd.parse('goto')}
+    assert_raise(C::ParseError){C::BitAnd.parse('return')}
   end
 
   def test_bit_or
@@ -1274,15 +1271,15 @@ BitOr
     expr2: IntLiteral
         val: 10
 EOS
-    assert_raise(ParseError){C::BitOr.parse('} void f() {')}
-    assert_raise(ParseError){C::BitOr.parse(';')}
-    assert_raise(ParseError){C::BitOr.parse('int i')}
-    assert_raise(ParseError){C::BitOr.parse('int')}
-    assert_raise(ParseError){C::BitOr.parse('if (0)')}
-    assert_raise(ParseError){C::BitOr.parse('switch (0)')}
-    assert_raise(ParseError){C::BitOr.parse('for (;;)')}
-    assert_raise(ParseError){C::BitOr.parse('goto')}
-    assert_raise(ParseError){C::BitOr.parse('return')}
+    assert_raise(C::ParseError){C::BitOr.parse('} void f() {')}
+    assert_raise(C::ParseError){C::BitOr.parse(';')}
+    assert_raise(C::ParseError){C::BitOr.parse('int i')}
+    assert_raise(C::ParseError){C::BitOr.parse('int')}
+    assert_raise(C::ParseError){C::BitOr.parse('if (0)')}
+    assert_raise(C::ParseError){C::BitOr.parse('switch (0)')}
+    assert_raise(C::ParseError){C::BitOr.parse('for (;;)')}
+    assert_raise(C::ParseError){C::BitOr.parse('goto')}
+    assert_raise(C::ParseError){C::BitOr.parse('return')}
   end
 
   def test_bit_xor
@@ -1295,15 +1292,15 @@ BitXor
     expr2: IntLiteral
         val: 10
 EOS
-    assert_raise(ParseError){C::BitXor.parse('} void f() {')}
-    assert_raise(ParseError){C::BitXor.parse(';')}
-    assert_raise(ParseError){C::BitXor.parse('int i')}
-    assert_raise(ParseError){C::BitXor.parse('int')}
-    assert_raise(ParseError){C::BitXor.parse('if (0)')}
-    assert_raise(ParseError){C::BitXor.parse('switch (0)')}
-    assert_raise(ParseError){C::BitXor.parse('for (;;)')}
-    assert_raise(ParseError){C::BitXor.parse('goto')}
-    assert_raise(ParseError){C::BitXor.parse('return')}
+    assert_raise(C::ParseError){C::BitXor.parse('} void f() {')}
+    assert_raise(C::ParseError){C::BitXor.parse(';')}
+    assert_raise(C::ParseError){C::BitXor.parse('int i')}
+    assert_raise(C::ParseError){C::BitXor.parse('int')}
+    assert_raise(C::ParseError){C::BitXor.parse('if (0)')}
+    assert_raise(C::ParseError){C::BitXor.parse('switch (0)')}
+    assert_raise(C::ParseError){C::BitXor.parse('for (;;)')}
+    assert_raise(C::ParseError){C::BitXor.parse('goto')}
+    assert_raise(C::ParseError){C::BitXor.parse('return')}
   end
 
   def test_bit_not
@@ -1314,15 +1311,15 @@ BitNot
     expr: Variable
         name: "i"
 EOS
-    assert_raise(ParseError){C::BitNot.parse('} void f() {')}
-    assert_raise(ParseError){C::BitNot.parse(';')}
-    assert_raise(ParseError){C::BitNot.parse('int i')}
-    assert_raise(ParseError){C::BitNot.parse('int')}
-    assert_raise(ParseError){C::BitNot.parse('if (0)')}
-    assert_raise(ParseError){C::BitNot.parse('switch (0)')}
-    assert_raise(ParseError){C::BitNot.parse('for (;;)')}
-    assert_raise(ParseError){C::BitNot.parse('goto')}
-    assert_raise(ParseError){C::BitNot.parse('return')}
+    assert_raise(C::ParseError){C::BitNot.parse('} void f() {')}
+    assert_raise(C::ParseError){C::BitNot.parse(';')}
+    assert_raise(C::ParseError){C::BitNot.parse('int i')}
+    assert_raise(C::ParseError){C::BitNot.parse('int')}
+    assert_raise(C::ParseError){C::BitNot.parse('if (0)')}
+    assert_raise(C::ParseError){C::BitNot.parse('switch (0)')}
+    assert_raise(C::ParseError){C::BitNot.parse('for (;;)')}
+    assert_raise(C::ParseError){C::BitNot.parse('goto')}
+    assert_raise(C::ParseError){C::BitNot.parse('return')}
   end
 
   def test_shift_left
@@ -1335,15 +1332,15 @@ ShiftLeft
     expr2: IntLiteral
         val: 10
 EOS
-    assert_raise(ParseError){C::ShiftLeft.parse('} void f() {')}
-    assert_raise(ParseError){C::ShiftLeft.parse(';')}
-    assert_raise(ParseError){C::ShiftLeft.parse('int i')}
-    assert_raise(ParseError){C::ShiftLeft.parse('int')}
-    assert_raise(ParseError){C::ShiftLeft.parse('if (0)')}
-    assert_raise(ParseError){C::ShiftLeft.parse('switch (0)')}
-    assert_raise(ParseError){C::ShiftLeft.parse('for (;;)')}
-    assert_raise(ParseError){C::ShiftLeft.parse('goto')}
-    assert_raise(ParseError){C::ShiftLeft.parse('return')}
+    assert_raise(C::ParseError){C::ShiftLeft.parse('} void f() {')}
+    assert_raise(C::ParseError){C::ShiftLeft.parse(';')}
+    assert_raise(C::ParseError){C::ShiftLeft.parse('int i')}
+    assert_raise(C::ParseError){C::ShiftLeft.parse('int')}
+    assert_raise(C::ParseError){C::ShiftLeft.parse('if (0)')}
+    assert_raise(C::ParseError){C::ShiftLeft.parse('switch (0)')}
+    assert_raise(C::ParseError){C::ShiftLeft.parse('for (;;)')}
+    assert_raise(C::ParseError){C::ShiftLeft.parse('goto')}
+    assert_raise(C::ParseError){C::ShiftLeft.parse('return')}
   end
 
   def test_shift_right
@@ -1356,15 +1353,15 @@ ShiftRight
     expr2: IntLiteral
         val: 10
 EOS
-    assert_raise(ParseError){C::ShiftRight.parse('} void f() {')}
-    assert_raise(ParseError){C::ShiftRight.parse(';')}
-    assert_raise(ParseError){C::ShiftRight.parse('int i')}
-    assert_raise(ParseError){C::ShiftRight.parse('int')}
-    assert_raise(ParseError){C::ShiftRight.parse('if (0)')}
-    assert_raise(ParseError){C::ShiftRight.parse('switch (0)')}
-    assert_raise(ParseError){C::ShiftRight.parse('for (;;)')}
-    assert_raise(ParseError){C::ShiftRight.parse('goto')}
-    assert_raise(ParseError){C::ShiftRight.parse('return')}
+    assert_raise(C::ParseError){C::ShiftRight.parse('} void f() {')}
+    assert_raise(C::ParseError){C::ShiftRight.parse(';')}
+    assert_raise(C::ParseError){C::ShiftRight.parse('int i')}
+    assert_raise(C::ParseError){C::ShiftRight.parse('int')}
+    assert_raise(C::ParseError){C::ShiftRight.parse('if (0)')}
+    assert_raise(C::ParseError){C::ShiftRight.parse('switch (0)')}
+    assert_raise(C::ParseError){C::ShiftRight.parse('for (;;)')}
+    assert_raise(C::ParseError){C::ShiftRight.parse('goto')}
+    assert_raise(C::ParseError){C::ShiftRight.parse('return')}
   end
 
   def test_and
@@ -1377,15 +1374,15 @@ And
     expr2: IntLiteral
         val: 10
 EOS
-    assert_raise(ParseError){C::And.parse('} void f() {')}
-    assert_raise(ParseError){C::And.parse(';')}
-    assert_raise(ParseError){C::And.parse('int i')}
-    assert_raise(ParseError){C::And.parse('int')}
-    assert_raise(ParseError){C::And.parse('if (0)')}
-    assert_raise(ParseError){C::And.parse('switch (0)')}
-    assert_raise(ParseError){C::And.parse('for (;;)')}
-    assert_raise(ParseError){C::And.parse('goto')}
-    assert_raise(ParseError){C::And.parse('return')}
+    assert_raise(C::ParseError){C::And.parse('} void f() {')}
+    assert_raise(C::ParseError){C::And.parse(';')}
+    assert_raise(C::ParseError){C::And.parse('int i')}
+    assert_raise(C::ParseError){C::And.parse('int')}
+    assert_raise(C::ParseError){C::And.parse('if (0)')}
+    assert_raise(C::ParseError){C::And.parse('switch (0)')}
+    assert_raise(C::ParseError){C::And.parse('for (;;)')}
+    assert_raise(C::ParseError){C::And.parse('goto')}
+    assert_raise(C::ParseError){C::And.parse('return')}
   end
 
   def test_or
@@ -1398,15 +1395,15 @@ Or
     expr2: IntLiteral
         val: 10
 EOS
-    assert_raise(ParseError){C::Or.parse('} void f() {')}
-    assert_raise(ParseError){C::Or.parse(';')}
-    assert_raise(ParseError){C::Or.parse('int i')}
-    assert_raise(ParseError){C::Or.parse('int')}
-    assert_raise(ParseError){C::Or.parse('if (0)')}
-    assert_raise(ParseError){C::Or.parse('switch (0)')}
-    assert_raise(ParseError){C::Or.parse('for (;;)')}
-    assert_raise(ParseError){C::Or.parse('goto')}
-    assert_raise(ParseError){C::Or.parse('return')}
+    assert_raise(C::ParseError){C::Or.parse('} void f() {')}
+    assert_raise(C::ParseError){C::Or.parse(';')}
+    assert_raise(C::ParseError){C::Or.parse('int i')}
+    assert_raise(C::ParseError){C::Or.parse('int')}
+    assert_raise(C::ParseError){C::Or.parse('if (0)')}
+    assert_raise(C::ParseError){C::Or.parse('switch (0)')}
+    assert_raise(C::ParseError){C::Or.parse('for (;;)')}
+    assert_raise(C::ParseError){C::Or.parse('goto')}
+    assert_raise(C::ParseError){C::Or.parse('return')}
   end
 
   def test_not
@@ -1417,15 +1414,15 @@ Not
     expr: Variable
         name: "i"
 EOS
-    assert_raise(ParseError){C::Not.parse('} void f() {')}
-    assert_raise(ParseError){C::Not.parse(';')}
-    assert_raise(ParseError){C::Not.parse('int i')}
-    assert_raise(ParseError){C::Not.parse('int')}
-    assert_raise(ParseError){C::Not.parse('if (0)')}
-    assert_raise(ParseError){C::Not.parse('switch (0)')}
-    assert_raise(ParseError){C::Not.parse('for (;;)')}
-    assert_raise(ParseError){C::Not.parse('goto')}
-    assert_raise(ParseError){C::Not.parse('return')}
+    assert_raise(C::ParseError){C::Not.parse('} void f() {')}
+    assert_raise(C::ParseError){C::Not.parse(';')}
+    assert_raise(C::ParseError){C::Not.parse('int i')}
+    assert_raise(C::ParseError){C::Not.parse('int')}
+    assert_raise(C::ParseError){C::Not.parse('if (0)')}
+    assert_raise(C::ParseError){C::Not.parse('switch (0)')}
+    assert_raise(C::ParseError){C::Not.parse('for (;;)')}
+    assert_raise(C::ParseError){C::Not.parse('goto')}
+    assert_raise(C::ParseError){C::Not.parse('return')}
   end
 
   def test_assign
@@ -1438,15 +1435,15 @@ Assign
     rval: IntLiteral
         val: 10
 EOS
-    assert_raise(ParseError){C::Assign.parse('} void f() {')}
-    assert_raise(ParseError){C::Assign.parse(';')}
-    assert_raise(ParseError){C::Assign.parse('int i')}
-    assert_raise(ParseError){C::Assign.parse('int')}
-    assert_raise(ParseError){C::Assign.parse('if (0)')}
-    assert_raise(ParseError){C::Assign.parse('switch (0)')}
-    assert_raise(ParseError){C::Assign.parse('for (;;)')}
-    assert_raise(ParseError){C::Assign.parse('goto')}
-    assert_raise(ParseError){C::Assign.parse('return')}
+    assert_raise(C::ParseError){C::Assign.parse('} void f() {')}
+    assert_raise(C::ParseError){C::Assign.parse(';')}
+    assert_raise(C::ParseError){C::Assign.parse('int i')}
+    assert_raise(C::ParseError){C::Assign.parse('int')}
+    assert_raise(C::ParseError){C::Assign.parse('if (0)')}
+    assert_raise(C::ParseError){C::Assign.parse('switch (0)')}
+    assert_raise(C::ParseError){C::Assign.parse('for (;;)')}
+    assert_raise(C::ParseError){C::Assign.parse('goto')}
+    assert_raise(C::ParseError){C::Assign.parse('return')}
   end
 
   def test_multiply_assign
@@ -1459,15 +1456,15 @@ MultiplyAssign
     rval: IntLiteral
         val: 10
 EOS
-    assert_raise(ParseError){C::MultiplyAssign.parse('} void f() {')}
-    assert_raise(ParseError){C::MultiplyAssign.parse(';')}
-    assert_raise(ParseError){C::MultiplyAssign.parse('int i')}
-    assert_raise(ParseError){C::MultiplyAssign.parse('int')}
-    assert_raise(ParseError){C::MultiplyAssign.parse('if (0)')}
-    assert_raise(ParseError){C::MultiplyAssign.parse('switch (0)')}
-    assert_raise(ParseError){C::MultiplyAssign.parse('for (;;)')}
-    assert_raise(ParseError){C::MultiplyAssign.parse('goto')}
-    assert_raise(ParseError){C::MultiplyAssign.parse('return')}
+    assert_raise(C::ParseError){C::MultiplyAssign.parse('} void f() {')}
+    assert_raise(C::ParseError){C::MultiplyAssign.parse(';')}
+    assert_raise(C::ParseError){C::MultiplyAssign.parse('int i')}
+    assert_raise(C::ParseError){C::MultiplyAssign.parse('int')}
+    assert_raise(C::ParseError){C::MultiplyAssign.parse('if (0)')}
+    assert_raise(C::ParseError){C::MultiplyAssign.parse('switch (0)')}
+    assert_raise(C::ParseError){C::MultiplyAssign.parse('for (;;)')}
+    assert_raise(C::ParseError){C::MultiplyAssign.parse('goto')}
+    assert_raise(C::ParseError){C::MultiplyAssign.parse('return')}
   end
 
   def test_divide_assign
@@ -1480,15 +1477,15 @@ DivideAssign
     rval: IntLiteral
         val: 10
 EOS
-    assert_raise(ParseError){C::DivideAssign.parse('} void f() {')}
-    assert_raise(ParseError){C::DivideAssign.parse(';')}
-    assert_raise(ParseError){C::DivideAssign.parse('int i')}
-    assert_raise(ParseError){C::DivideAssign.parse('int')}
-    assert_raise(ParseError){C::DivideAssign.parse('if (0)')}
-    assert_raise(ParseError){C::DivideAssign.parse('switch (0)')}
-    assert_raise(ParseError){C::DivideAssign.parse('for (;;)')}
-    assert_raise(ParseError){C::DivideAssign.parse('goto')}
-    assert_raise(ParseError){C::DivideAssign.parse('return')}
+    assert_raise(C::ParseError){C::DivideAssign.parse('} void f() {')}
+    assert_raise(C::ParseError){C::DivideAssign.parse(';')}
+    assert_raise(C::ParseError){C::DivideAssign.parse('int i')}
+    assert_raise(C::ParseError){C::DivideAssign.parse('int')}
+    assert_raise(C::ParseError){C::DivideAssign.parse('if (0)')}
+    assert_raise(C::ParseError){C::DivideAssign.parse('switch (0)')}
+    assert_raise(C::ParseError){C::DivideAssign.parse('for (;;)')}
+    assert_raise(C::ParseError){C::DivideAssign.parse('goto')}
+    assert_raise(C::ParseError){C::DivideAssign.parse('return')}
   end
 
   def test_mod_assign
@@ -1501,15 +1498,15 @@ ModAssign
     rval: IntLiteral
         val: 10
 EOS
-    assert_raise(ParseError){C::ModAssign.parse('} void f() {')}
-    assert_raise(ParseError){C::ModAssign.parse(';')}
-    assert_raise(ParseError){C::ModAssign.parse('int i')}
-    assert_raise(ParseError){C::ModAssign.parse('int')}
-    assert_raise(ParseError){C::ModAssign.parse('if (0)')}
-    assert_raise(ParseError){C::ModAssign.parse('switch (0)')}
-    assert_raise(ParseError){C::ModAssign.parse('for (;;)')}
-    assert_raise(ParseError){C::ModAssign.parse('goto')}
-    assert_raise(ParseError){C::ModAssign.parse('return')}
+    assert_raise(C::ParseError){C::ModAssign.parse('} void f() {')}
+    assert_raise(C::ParseError){C::ModAssign.parse(';')}
+    assert_raise(C::ParseError){C::ModAssign.parse('int i')}
+    assert_raise(C::ParseError){C::ModAssign.parse('int')}
+    assert_raise(C::ParseError){C::ModAssign.parse('if (0)')}
+    assert_raise(C::ParseError){C::ModAssign.parse('switch (0)')}
+    assert_raise(C::ParseError){C::ModAssign.parse('for (;;)')}
+    assert_raise(C::ParseError){C::ModAssign.parse('goto')}
+    assert_raise(C::ParseError){C::ModAssign.parse('return')}
   end
 
   def test_add_assign
@@ -1522,15 +1519,15 @@ AddAssign
     rval: IntLiteral
         val: 10
 EOS
-    assert_raise(ParseError){C::AddAssign.parse('} void f() {')}
-    assert_raise(ParseError){C::AddAssign.parse(';')}
-    assert_raise(ParseError){C::AddAssign.parse('int i')}
-    assert_raise(ParseError){C::AddAssign.parse('int')}
-    assert_raise(ParseError){C::AddAssign.parse('if (0)')}
-    assert_raise(ParseError){C::AddAssign.parse('switch (0)')}
-    assert_raise(ParseError){C::AddAssign.parse('for (;;)')}
-    assert_raise(ParseError){C::AddAssign.parse('goto')}
-    assert_raise(ParseError){C::AddAssign.parse('return')}
+    assert_raise(C::ParseError){C::AddAssign.parse('} void f() {')}
+    assert_raise(C::ParseError){C::AddAssign.parse(';')}
+    assert_raise(C::ParseError){C::AddAssign.parse('int i')}
+    assert_raise(C::ParseError){C::AddAssign.parse('int')}
+    assert_raise(C::ParseError){C::AddAssign.parse('if (0)')}
+    assert_raise(C::ParseError){C::AddAssign.parse('switch (0)')}
+    assert_raise(C::ParseError){C::AddAssign.parse('for (;;)')}
+    assert_raise(C::ParseError){C::AddAssign.parse('goto')}
+    assert_raise(C::ParseError){C::AddAssign.parse('return')}
   end
 
   def test_subtract_assign
@@ -1543,15 +1540,15 @@ SubtractAssign
     rval: IntLiteral
         val: 10
 EOS
-    assert_raise(ParseError){C::SubtractAssign.parse('} void f() {')}
-    assert_raise(ParseError){C::SubtractAssign.parse(';')}
-    assert_raise(ParseError){C::SubtractAssign.parse('int i')}
-    assert_raise(ParseError){C::SubtractAssign.parse('int')}
-    assert_raise(ParseError){C::SubtractAssign.parse('if (0)')}
-    assert_raise(ParseError){C::SubtractAssign.parse('switch (0)')}
-    assert_raise(ParseError){C::SubtractAssign.parse('for (;;)')}
-    assert_raise(ParseError){C::SubtractAssign.parse('goto')}
-    assert_raise(ParseError){C::SubtractAssign.parse('return')}
+    assert_raise(C::ParseError){C::SubtractAssign.parse('} void f() {')}
+    assert_raise(C::ParseError){C::SubtractAssign.parse(';')}
+    assert_raise(C::ParseError){C::SubtractAssign.parse('int i')}
+    assert_raise(C::ParseError){C::SubtractAssign.parse('int')}
+    assert_raise(C::ParseError){C::SubtractAssign.parse('if (0)')}
+    assert_raise(C::ParseError){C::SubtractAssign.parse('switch (0)')}
+    assert_raise(C::ParseError){C::SubtractAssign.parse('for (;;)')}
+    assert_raise(C::ParseError){C::SubtractAssign.parse('goto')}
+    assert_raise(C::ParseError){C::SubtractAssign.parse('return')}
   end
 
   def test_shift_left_assign
@@ -1564,15 +1561,15 @@ ShiftLeftAssign
     rval: IntLiteral
         val: 10
 EOS
-    assert_raise(ParseError){C::ShiftLeftAssign.parse('} void f() {')}
-    assert_raise(ParseError){C::ShiftLeftAssign.parse(';')}
-    assert_raise(ParseError){C::ShiftLeftAssign.parse('int i')}
-    assert_raise(ParseError){C::ShiftLeftAssign.parse('int')}
-    assert_raise(ParseError){C::ShiftLeftAssign.parse('if (0)')}
-    assert_raise(ParseError){C::ShiftLeftAssign.parse('switch (0)')}
-    assert_raise(ParseError){C::ShiftLeftAssign.parse('for (;;)')}
-    assert_raise(ParseError){C::ShiftLeftAssign.parse('goto')}
-    assert_raise(ParseError){C::ShiftLeftAssign.parse('return')}
+    assert_raise(C::ParseError){C::ShiftLeftAssign.parse('} void f() {')}
+    assert_raise(C::ParseError){C::ShiftLeftAssign.parse(';')}
+    assert_raise(C::ParseError){C::ShiftLeftAssign.parse('int i')}
+    assert_raise(C::ParseError){C::ShiftLeftAssign.parse('int')}
+    assert_raise(C::ParseError){C::ShiftLeftAssign.parse('if (0)')}
+    assert_raise(C::ParseError){C::ShiftLeftAssign.parse('switch (0)')}
+    assert_raise(C::ParseError){C::ShiftLeftAssign.parse('for (;;)')}
+    assert_raise(C::ParseError){C::ShiftLeftAssign.parse('goto')}
+    assert_raise(C::ParseError){C::ShiftLeftAssign.parse('return')}
   end
 
   def test_shift_right_assign
@@ -1585,15 +1582,15 @@ ShiftRightAssign
     rval: IntLiteral
         val: 10
 EOS
-    assert_raise(ParseError){C::ShiftRightAssign.parse('} void f() {')}
-    assert_raise(ParseError){C::ShiftRightAssign.parse(';')}
-    assert_raise(ParseError){C::ShiftRightAssign.parse('int i')}
-    assert_raise(ParseError){C::ShiftRightAssign.parse('int')}
-    assert_raise(ParseError){C::ShiftRightAssign.parse('if (0)')}
-    assert_raise(ParseError){C::ShiftRightAssign.parse('switch (0)')}
-    assert_raise(ParseError){C::ShiftRightAssign.parse('for (;;)')}
-    assert_raise(ParseError){C::ShiftRightAssign.parse('goto')}
-    assert_raise(ParseError){C::ShiftRightAssign.parse('return')}
+    assert_raise(C::ParseError){C::ShiftRightAssign.parse('} void f() {')}
+    assert_raise(C::ParseError){C::ShiftRightAssign.parse(';')}
+    assert_raise(C::ParseError){C::ShiftRightAssign.parse('int i')}
+    assert_raise(C::ParseError){C::ShiftRightAssign.parse('int')}
+    assert_raise(C::ParseError){C::ShiftRightAssign.parse('if (0)')}
+    assert_raise(C::ParseError){C::ShiftRightAssign.parse('switch (0)')}
+    assert_raise(C::ParseError){C::ShiftRightAssign.parse('for (;;)')}
+    assert_raise(C::ParseError){C::ShiftRightAssign.parse('goto')}
+    assert_raise(C::ParseError){C::ShiftRightAssign.parse('return')}
   end
 
   def test_bit_and_assign
@@ -1606,15 +1603,15 @@ BitAndAssign
     rval: IntLiteral
         val: 10
 EOS
-    assert_raise(ParseError){C::BitAndAssign.parse('} void f() {')}
-    assert_raise(ParseError){C::BitAndAssign.parse(';')}
-    assert_raise(ParseError){C::BitAndAssign.parse('int i')}
-    assert_raise(ParseError){C::BitAndAssign.parse('int')}
-    assert_raise(ParseError){C::BitAndAssign.parse('if (0)')}
-    assert_raise(ParseError){C::BitAndAssign.parse('switch (0)')}
-    assert_raise(ParseError){C::BitAndAssign.parse('for (;;)')}
-    assert_raise(ParseError){C::BitAndAssign.parse('goto')}
-    assert_raise(ParseError){C::BitAndAssign.parse('return')}
+    assert_raise(C::ParseError){C::BitAndAssign.parse('} void f() {')}
+    assert_raise(C::ParseError){C::BitAndAssign.parse(';')}
+    assert_raise(C::ParseError){C::BitAndAssign.parse('int i')}
+    assert_raise(C::ParseError){C::BitAndAssign.parse('int')}
+    assert_raise(C::ParseError){C::BitAndAssign.parse('if (0)')}
+    assert_raise(C::ParseError){C::BitAndAssign.parse('switch (0)')}
+    assert_raise(C::ParseError){C::BitAndAssign.parse('for (;;)')}
+    assert_raise(C::ParseError){C::BitAndAssign.parse('goto')}
+    assert_raise(C::ParseError){C::BitAndAssign.parse('return')}
   end
 
   def test_bit_xor_assign
@@ -1627,15 +1624,15 @@ BitXorAssign
     rval: IntLiteral
         val: 10
 EOS
-    assert_raise(ParseError){C::BitXorAssign.parse('} void f() {')}
-    assert_raise(ParseError){C::BitXorAssign.parse(';')}
-    assert_raise(ParseError){C::BitXorAssign.parse('int i')}
-    assert_raise(ParseError){C::BitXorAssign.parse('int')}
-    assert_raise(ParseError){C::BitXorAssign.parse('if (0)')}
-    assert_raise(ParseError){C::BitXorAssign.parse('switch (0)')}
-    assert_raise(ParseError){C::BitXorAssign.parse('for (;;)')}
-    assert_raise(ParseError){C::BitXorAssign.parse('goto')}
-    assert_raise(ParseError){C::BitXorAssign.parse('return')}
+    assert_raise(C::ParseError){C::BitXorAssign.parse('} void f() {')}
+    assert_raise(C::ParseError){C::BitXorAssign.parse(';')}
+    assert_raise(C::ParseError){C::BitXorAssign.parse('int i')}
+    assert_raise(C::ParseError){C::BitXorAssign.parse('int')}
+    assert_raise(C::ParseError){C::BitXorAssign.parse('if (0)')}
+    assert_raise(C::ParseError){C::BitXorAssign.parse('switch (0)')}
+    assert_raise(C::ParseError){C::BitXorAssign.parse('for (;;)')}
+    assert_raise(C::ParseError){C::BitXorAssign.parse('goto')}
+    assert_raise(C::ParseError){C::BitXorAssign.parse('return')}
   end
 
   def test_bit_or_assign
@@ -1648,15 +1645,15 @@ BitOrAssign
     rval: IntLiteral
         val: 10
 EOS
-    assert_raise(ParseError){C::BitOrAssign.parse('} void f() {')}
-    assert_raise(ParseError){C::BitOrAssign.parse(';')}
-    assert_raise(ParseError){C::BitOrAssign.parse('int i')}
-    assert_raise(ParseError){C::BitOrAssign.parse('int')}
-    assert_raise(ParseError){C::BitOrAssign.parse('if (0)')}
-    assert_raise(ParseError){C::BitOrAssign.parse('switch (0)')}
-    assert_raise(ParseError){C::BitOrAssign.parse('for (;;)')}
-    assert_raise(ParseError){C::BitOrAssign.parse('goto')}
-    assert_raise(ParseError){C::BitOrAssign.parse('return')}
+    assert_raise(C::ParseError){C::BitOrAssign.parse('} void f() {')}
+    assert_raise(C::ParseError){C::BitOrAssign.parse(';')}
+    assert_raise(C::ParseError){C::BitOrAssign.parse('int i')}
+    assert_raise(C::ParseError){C::BitOrAssign.parse('int')}
+    assert_raise(C::ParseError){C::BitOrAssign.parse('if (0)')}
+    assert_raise(C::ParseError){C::BitOrAssign.parse('switch (0)')}
+    assert_raise(C::ParseError){C::BitOrAssign.parse('for (;;)')}
+    assert_raise(C::ParseError){C::BitOrAssign.parse('goto')}
+    assert_raise(C::ParseError){C::BitOrAssign.parse('return')}
   end
 
   def test_pointer
@@ -1672,9 +1669,9 @@ const volatile unsigned int*
 Pointer
     type: Int (const volatile unsigned)
 EOS
-    assert_raise(ParseError){C::Pointer.parse('1);} void f() {(int')}
-    assert_raise(ParseError){C::Pointer.parse('1); (int')}
-    assert_raise(ParseError){C::Pointer.parse('void')}
+    assert_raise(C::ParseError){C::Pointer.parse('1);} void f() {(int')}
+    assert_raise(C::ParseError){C::Pointer.parse('1); (int')}
+    assert_raise(C::ParseError){C::Pointer.parse('void')}
   end
 
   def test_array
@@ -1692,9 +1689,9 @@ Array
     length: IntLiteral
         val: 10
 EOS
-    assert_raise(ParseError){C::Array.parse('1);} void f() {(int')}
-    assert_raise(ParseError){C::Array.parse('1); (int')}
-    assert_raise(ParseError){C::Array.parse('void')}
+    assert_raise(C::ParseError){C::Array.parse('1);} void f() {(int')}
+    assert_raise(C::ParseError){C::Array.parse('1); (int')}
+    assert_raise(C::ParseError){C::Array.parse('void')}
   end
 
   def test_function
@@ -1717,9 +1714,9 @@ Function
             type: Int
             name: "y"
 EOS
-    assert_raise(ParseError){C::Function.parse('1);} void f() {(int')}
-    assert_raise(ParseError){C::Function.parse('1); (int')}
-    assert_raise(ParseError){C::Function.parse('void')}
+    assert_raise(C::ParseError){C::Function.parse('1);} void f() {(int')}
+    assert_raise(C::ParseError){C::Function.parse('1); (int')}
+    assert_raise(C::ParseError){C::Function.parse('void')}
   end
 
   def test_struct
@@ -1744,9 +1741,9 @@ Struct (const)
                     num_bits: IntLiteral
                         val: 4
 EOS
-    assert_raise(ParseError){C::Struct.parse('1);} void f() {(int')}
-    assert_raise(ParseError){C::Struct.parse('1); (int')}
-    assert_raise(ParseError){C::Struct.parse('void')}
+    assert_raise(C::ParseError){C::Struct.parse('1);} void f() {(int')}
+    assert_raise(C::ParseError){C::Struct.parse('1); (int')}
+    assert_raise(C::ParseError){C::Struct.parse('void')}
   end
 
   def test_union
@@ -1771,9 +1768,9 @@ Union (const)
                     num_bits: IntLiteral
                         val: 4
 EOS
-    assert_raise(ParseError){C::Union.parse('1);} void f() {(int')}
-    assert_raise(ParseError){C::Union.parse('1); (int')}
-    assert_raise(ParseError){C::Union.parse('void')}
+    assert_raise(C::ParseError){C::Union.parse('1);} void f() {(int')}
+    assert_raise(C::ParseError){C::Union.parse('1); (int')}
+    assert_raise(C::ParseError){C::Union.parse('void')}
   end
 
   def test_enum
@@ -1797,15 +1794,15 @@ Enum (const)
         - Enumerator
             name: "Z"
 EOS
-    assert_raise(ParseError){C::Enum.parse('1);} void f() {(int')}
-    assert_raise(ParseError){C::Enum.parse('1); (int')}
-    assert_raise(ParseError){C::Enum.parse('void')}
+    assert_raise(C::ParseError){C::Enum.parse('1);} void f() {(int')}
+    assert_raise(C::ParseError){C::Enum.parse('1); (int')}
+    assert_raise(C::ParseError){C::Enum.parse('void')}
   end
 
   def test_custom_type
-    assert_raise(ParseError){C::CustomType.parse('1);} void f() {(int')}
-    assert_raise(ParseError){C::CustomType.parse('1); (int')}
-    assert_raise(ParseError){C::CustomType.parse('void')}
+    assert_raise(C::ParseError){C::CustomType.parse('1);} void f() {(int')}
+    assert_raise(C::ParseError){C::CustomType.parse('1); (int')}
+    assert_raise(C::ParseError){C::CustomType.parse('void')}
   end
 
   def test_void
@@ -1814,9 +1811,9 @@ const void
 ----
 Void (const)
 EOS
-    assert_raise(ParseError){C::Void.parse('1);} void f() {(int')}
-    assert_raise(ParseError){C::Void.parse('1); (int')}
-    assert_raise(ParseError){C::Void.parse('int')}
+    assert_raise(C::ParseError){C::Void.parse('1);} void f() {(int')}
+    assert_raise(C::ParseError){C::Void.parse('1); (int')}
+    assert_raise(C::ParseError){C::Void.parse('int')}
   end
 
   def test_int
@@ -1825,9 +1822,9 @@ const int
 ----
 Int (const)
 EOS
-    assert_raise(ParseError){C::Int.parse('1);} void f() {(int')}
-    assert_raise(ParseError){C::Int.parse('1); (int')}
-    assert_raise(ParseError){C::Int.parse('void')}
+    assert_raise(C::ParseError){C::Int.parse('1);} void f() {(int')}
+    assert_raise(C::ParseError){C::Int.parse('1); (int')}
+    assert_raise(C::ParseError){C::Int.parse('void')}
   end
 
   def test_float
@@ -1836,9 +1833,9 @@ const float
 ----
 Float (const)
 EOS
-    assert_raise(ParseError){C::Float.parse('1);} void f() {(int')}
-    assert_raise(ParseError){C::Float.parse('1); (int')}
-    assert_raise(ParseError){C::Float.parse('void')}
+    assert_raise(C::ParseError){C::Float.parse('1);} void f() {(int')}
+    assert_raise(C::ParseError){C::Float.parse('1); (int')}
+    assert_raise(C::ParseError){C::Float.parse('void')}
   end
 
   def test_char
@@ -1847,9 +1844,9 @@ const char
 ----
 Char (const)
 EOS
-    assert_raise(ParseError){C::Char.parse('1);} void f() {(int')}
-    assert_raise(ParseError){C::Char.parse('1); (int')}
-    assert_raise(ParseError){C::Char.parse('void')}
+    assert_raise(C::ParseError){C::Char.parse('1);} void f() {(int')}
+    assert_raise(C::ParseError){C::Char.parse('1); (int')}
+    assert_raise(C::ParseError){C::Char.parse('void')}
   end
 
   def test_bool
@@ -1858,9 +1855,9 @@ const _Bool
 ----
 Bool (const)
 EOS
-    assert_raise(ParseError){C::Bool.parse('1);} void f() {(int')}
-    assert_raise(ParseError){C::Bool.parse('1); (int')}
-    assert_raise(ParseError){C::Bool.parse('void')}
+    assert_raise(C::ParseError){C::Bool.parse('1);} void f() {(int')}
+    assert_raise(C::ParseError){C::Bool.parse('1); (int')}
+    assert_raise(C::ParseError){C::Bool.parse('void')}
   end
 
   def test_complex
@@ -1869,9 +1866,9 @@ const _Complex float
 ----
 Complex (const)
 EOS
-    assert_raise(ParseError){C::Complex.parse('1);} void f() {(int')}
-    assert_raise(ParseError){C::Complex.parse('1); (int')}
-    assert_raise(ParseError){C::Complex.parse('void')}
+    assert_raise(C::ParseError){C::Complex.parse('1);} void f() {(int')}
+    assert_raise(C::ParseError){C::Complex.parse('1); (int')}
+    assert_raise(C::ParseError){C::Complex.parse('void')}
   end
 
   def test_imaginary
@@ -1880,9 +1877,9 @@ const _Imaginary float
 ----
 Imaginary (const)
 EOS
-    assert_raise(ParseError){C::Imaginary.parse('1);} void f() {(int')}
-    assert_raise(ParseError){C::Imaginary.parse('1); (int')}
-    assert_raise(ParseError){C::Imaginary.parse('void')}
+    assert_raise(C::ParseError){C::Imaginary.parse('1);} void f() {(int')}
+    assert_raise(C::ParseError){C::Imaginary.parse('1); (int')}
+    assert_raise(C::ParseError){C::Imaginary.parse('void')}
   end
 
   def test_string_literal
@@ -1892,15 +1889,15 @@ EOS
 StringLiteral
     val: "hello"
 EOS
-    assert_raise(ParseError){C::StringLiteral.parse('} void f() {')}
-    assert_raise(ParseError){C::StringLiteral.parse(';')}
-    assert_raise(ParseError){C::StringLiteral.parse('int i')}
-    assert_raise(ParseError){C::StringLiteral.parse('int')}
-    assert_raise(ParseError){C::StringLiteral.parse('if (0)')}
-    assert_raise(ParseError){C::StringLiteral.parse('switch (0)')}
-    assert_raise(ParseError){C::StringLiteral.parse('for (;;)')}
-    assert_raise(ParseError){C::StringLiteral.parse('goto')}
-    assert_raise(ParseError){C::StringLiteral.parse('return')}
+    assert_raise(C::ParseError){C::StringLiteral.parse('} void f() {')}
+    assert_raise(C::ParseError){C::StringLiteral.parse(';')}
+    assert_raise(C::ParseError){C::StringLiteral.parse('int i')}
+    assert_raise(C::ParseError){C::StringLiteral.parse('int')}
+    assert_raise(C::ParseError){C::StringLiteral.parse('if (0)')}
+    assert_raise(C::ParseError){C::StringLiteral.parse('switch (0)')}
+    assert_raise(C::ParseError){C::StringLiteral.parse('for (;;)')}
+    assert_raise(C::ParseError){C::StringLiteral.parse('goto')}
+    assert_raise(C::ParseError){C::StringLiteral.parse('return')}
   end
 
   def test_char_literal
@@ -1910,15 +1907,15 @@ EOS
 CharLiteral
     val: "x"
 EOS
-    assert_raise(ParseError){C::CharLiteral.parse('} void f() {')}
-    assert_raise(ParseError){C::CharLiteral.parse(';')}
-    assert_raise(ParseError){C::CharLiteral.parse('int i')}
-    assert_raise(ParseError){C::CharLiteral.parse('int')}
-    assert_raise(ParseError){C::CharLiteral.parse('if (0)')}
-    assert_raise(ParseError){C::CharLiteral.parse('switch (0)')}
-    assert_raise(ParseError){C::CharLiteral.parse('for (;;)')}
-    assert_raise(ParseError){C::CharLiteral.parse('goto')}
-    assert_raise(ParseError){C::CharLiteral.parse('return')}
+    assert_raise(C::ParseError){C::CharLiteral.parse('} void f() {')}
+    assert_raise(C::ParseError){C::CharLiteral.parse(';')}
+    assert_raise(C::ParseError){C::CharLiteral.parse('int i')}
+    assert_raise(C::ParseError){C::CharLiteral.parse('int')}
+    assert_raise(C::ParseError){C::CharLiteral.parse('if (0)')}
+    assert_raise(C::ParseError){C::CharLiteral.parse('switch (0)')}
+    assert_raise(C::ParseError){C::CharLiteral.parse('for (;;)')}
+    assert_raise(C::ParseError){C::CharLiteral.parse('goto')}
+    assert_raise(C::ParseError){C::CharLiteral.parse('return')}
   end
 
   def test_compound_literal
@@ -1947,15 +1944,15 @@ CompoundLiteral
             init: IntLiteral
                 val: 30
 EOS
-    assert_raise(ParseError){C::CompoundLiteral.parse('} void f() {')}
-    assert_raise(ParseError){C::CompoundLiteral.parse(';')}
-    assert_raise(ParseError){C::CompoundLiteral.parse('int i')}
-    assert_raise(ParseError){C::CompoundLiteral.parse('int')}
-    assert_raise(ParseError){C::CompoundLiteral.parse('if (0)')}
-    assert_raise(ParseError){C::CompoundLiteral.parse('switch (0)')}
-    assert_raise(ParseError){C::CompoundLiteral.parse('for (;;)')}
-    assert_raise(ParseError){C::CompoundLiteral.parse('goto')}
-    assert_raise(ParseError){C::CompoundLiteral.parse('return')}
+    assert_raise(C::ParseError){C::CompoundLiteral.parse('} void f() {')}
+    assert_raise(C::ParseError){C::CompoundLiteral.parse(';')}
+    assert_raise(C::ParseError){C::CompoundLiteral.parse('int i')}
+    assert_raise(C::ParseError){C::CompoundLiteral.parse('int')}
+    assert_raise(C::ParseError){C::CompoundLiteral.parse('if (0)')}
+    assert_raise(C::ParseError){C::CompoundLiteral.parse('switch (0)')}
+    assert_raise(C::ParseError){C::CompoundLiteral.parse('for (;;)')}
+    assert_raise(C::ParseError){C::CompoundLiteral.parse('goto')}
+    assert_raise(C::ParseError){C::CompoundLiteral.parse('return')}
   end
 
   def test_int_literal
@@ -1965,15 +1962,15 @@ EOS
 IntLiteral
     val: 1
 EOS
-    assert_raise(ParseError){C::IntLiteral.parse('} void f() {')}
-    assert_raise(ParseError){C::IntLiteral.parse(';')}
-    assert_raise(ParseError){C::IntLiteral.parse('int i')}
-    assert_raise(ParseError){C::IntLiteral.parse('int')}
-    assert_raise(ParseError){C::IntLiteral.parse('if (0)')}
-    assert_raise(ParseError){C::IntLiteral.parse('switch (0)')}
-    assert_raise(ParseError){C::IntLiteral.parse('for (;;)')}
-    assert_raise(ParseError){C::IntLiteral.parse('goto')}
-    assert_raise(ParseError){C::IntLiteral.parse('return')}
+    assert_raise(C::ParseError){C::IntLiteral.parse('} void f() {')}
+    assert_raise(C::ParseError){C::IntLiteral.parse(';')}
+    assert_raise(C::ParseError){C::IntLiteral.parse('int i')}
+    assert_raise(C::ParseError){C::IntLiteral.parse('int')}
+    assert_raise(C::ParseError){C::IntLiteral.parse('if (0)')}
+    assert_raise(C::ParseError){C::IntLiteral.parse('switch (0)')}
+    assert_raise(C::ParseError){C::IntLiteral.parse('for (;;)')}
+    assert_raise(C::ParseError){C::IntLiteral.parse('goto')}
+    assert_raise(C::ParseError){C::IntLiteral.parse('return')}
   end
 
   def test_float_literal
@@ -1983,15 +1980,15 @@ EOS
 FloatLiteral
     val: 1.0
 EOS
-    assert_raise(ParseError){C::FloatLiteral.parse('} void f() {')}
-    assert_raise(ParseError){C::FloatLiteral.parse(';')}
-    assert_raise(ParseError){C::FloatLiteral.parse('int i')}
-    assert_raise(ParseError){C::FloatLiteral.parse('int')}
-    assert_raise(ParseError){C::FloatLiteral.parse('if (0)')}
-    assert_raise(ParseError){C::FloatLiteral.parse('switch (0)')}
-    assert_raise(ParseError){C::FloatLiteral.parse('for (;;)')}
-    assert_raise(ParseError){C::FloatLiteral.parse('goto')}
-    assert_raise(ParseError){C::FloatLiteral.parse('return')}
+    assert_raise(C::ParseError){C::FloatLiteral.parse('} void f() {')}
+    assert_raise(C::ParseError){C::FloatLiteral.parse(';')}
+    assert_raise(C::ParseError){C::FloatLiteral.parse('int i')}
+    assert_raise(C::ParseError){C::FloatLiteral.parse('int')}
+    assert_raise(C::ParseError){C::FloatLiteral.parse('if (0)')}
+    assert_raise(C::ParseError){C::FloatLiteral.parse('switch (0)')}
+    assert_raise(C::ParseError){C::FloatLiteral.parse('for (;;)')}
+    assert_raise(C::ParseError){C::FloatLiteral.parse('goto')}
+    assert_raise(C::ParseError){C::FloatLiteral.parse('return')}
   end
 
   def test_variable
@@ -2001,14 +1998,14 @@ x
 Variable
     name: "x"
 EOS
-    assert_raise(ParseError){C::Variable.parse('} void f() {')}
-    assert_raise(ParseError){C::Variable.parse(';')}
-    assert_raise(ParseError){C::Variable.parse('int i')}
-    assert_raise(ParseError){C::Variable.parse('int')}
-    assert_raise(ParseError){C::Variable.parse('if (0)')}
-    assert_raise(ParseError){C::Variable.parse('switch (0)')}
-    assert_raise(ParseError){C::Variable.parse('for (;;)')}
-    assert_raise(ParseError){C::Variable.parse('goto')}
-    assert_raise(ParseError){C::Variable.parse('return')}
+    assert_raise(C::ParseError){C::Variable.parse('} void f() {')}
+    assert_raise(C::ParseError){C::Variable.parse(';')}
+    assert_raise(C::ParseError){C::Variable.parse('int i')}
+    assert_raise(C::ParseError){C::Variable.parse('int')}
+    assert_raise(C::ParseError){C::Variable.parse('if (0)')}
+    assert_raise(C::ParseError){C::Variable.parse('switch (0)')}
+    assert_raise(C::ParseError){C::Variable.parse('for (;;)')}
+    assert_raise(C::ParseError){C::Variable.parse('goto')}
+    assert_raise(C::ParseError){C::Variable.parse('return')}
   end
 end

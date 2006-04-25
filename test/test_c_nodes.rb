@@ -1,5 +1,3 @@
-require 'common'
-
 ###
 ### ##################################################################
 ###
@@ -9,8 +7,6 @@ require 'common'
 ### ##################################################################
 ###
 class MiscTests < Test::Unit::TestCase
-  include CheckAst
-
   ###
   ### ----------------------------------------------------------------
   ###                           Declarator#
@@ -42,22 +38,22 @@ class MiscTests < Test::Unit::TestCase
     arr = C::Array.new(C::Pointer.new, C::IntLiteral.new(10))
     decl.declarators << C::Declarator.new(arr, 'm')
 
-    assert_equal_debug_strs(decl.declarators[0].type.inspect, <<EOS)
+    assert_equal_inspect_strs(decl.declarators[0].type.inspect, <<EOS)
 Int
 EOS
-    assert_equal_debug_strs(decl.declarators[1].type.inspect, <<EOS)
+    assert_equal_inspect_strs(decl.declarators[1].type.inspect, <<EOS)
 Pointer
     type: Int
 EOS
-    assert_equal_debug_strs(decl.declarators[2].type.inspect, <<EOS)
+    assert_equal_inspect_strs(decl.declarators[2].type.inspect, <<EOS)
 Array
     type: Int
 EOS
-    assert_equal_debug_strs(decl.declarators[3].type.inspect, <<EOS)
+    assert_equal_inspect_strs(decl.declarators[3].type.inspect, <<EOS)
 Function
     type: Int
 EOS
-    assert_equal_debug_strs(decl.declarators[4].type.inspect, <<EOS)
+    assert_equal_inspect_strs(decl.declarators[4].type.inspect, <<EOS)
 Array
     type: Pointer
         type: Int
