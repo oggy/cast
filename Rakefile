@@ -60,7 +60,7 @@ end
 spec = Gem::Specification.new do |s|
   s.name = 'cast'
   s.summary = "C parser and AST constructor."
-  s.version = '0.0.2'
+  s.version = '0.1.0'
   s.author = 'George Ogata'
   s.email = 'george.ogata@gmail.com'
   s.homepage = 'http://cast.rubyforge.org'

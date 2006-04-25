@@ -1,5 +1,7 @@
 2006-04-26  George Ogata  <george.ogata@gmail.com>
 
+	* Release 0.1.0.
+
 	* Rejigged gemspec to compile new lexer on installation.
 
 	* Moved lib files under lib/cast so they don't all end up directly
