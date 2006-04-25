@@ -7,7 +7,7 @@ require 'rubygems'
 
 require 'rbconfig'
 dlext = (Config::CONFIG['DLEXT'] rescue nil) || 'so'
-FILES = FileList['README', '{lib,ext,doc,test}/**/*', 'ext/yylex.c', 'lib/cast/c.tab.rb']
+FILES = FileList['README', 'ChangeLog', '{lib,ext,doc,test}/**/*', 'ext/yylex.c', 'lib/cast/c.tab.rb']
 
 ## cast_ext
 file 'ext/cast_ext.so' => FileList['ext/*.c', 'ext/yylex.c'] do |t|
