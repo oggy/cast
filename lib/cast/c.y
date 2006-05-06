@@ -602,7 +602,7 @@ restrict return short signed sizeof static struct switch typedef union
       parse_error @pos, "unexpected EOF"
     else
       parse_error(error_value.pos,
-                  "parse error on #{error_token_id.inspect}")
+                  "parse error on #{token_to_str(error_token_id)} (#{error_value.val})")
     end
   end
 

@@ -848,17 +848,31 @@ module C
   ### StringLiteral
   ###
   class StringLiteral
+    field :prefix
     field :val
-    field :wide?
-    initializer :val
+    initializer :val, :prefix
+    def wide?
+      prefix == 'L'
+    end
+    def wide=(val)
+      return if wide? == !!val
+      self.prefix = val ? 'L' : nil
+    end
   end
   ###
   ### CharLiteral
   ###
   class CharLiteral
+    field :prefix
     field :val
-    field :wide?
-    initializer :val
+    initializer :val, :prefix
+    def wide?
+      prefix == 'L'
+    end
+    def wide=(val)
+      return if wide? == !!val
+      self.prefix = val ? 'L' : nil
+    end
   end
   ###
   ### CompoundLiteral
@@ -872,8 +886,8 @@ module C
   ### IntLiteral
   ###
   class IntLiteral
-    field :val
     field :format, :dec
+    field :val
     field :suffix
     initializer :val
     def dec?
@@ -890,8 +904,8 @@ module C
   ### FloatLiteral
   ###
   class FloatLiteral
-    field :val
     field :format, :dec
+    field :val
     field :suffix
     initializer :val
   end

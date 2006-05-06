@@ -34,11 +34,11 @@ set_func(FloatLiteral, val);
 set_func(FloatLiteral, suffix);
 
 new_func(CharLiteral);
-set_func(CharLiteral, wide);
+set_func(CharLiteral, prefix);
 set_func(CharLiteral, val);
 
 new_func(StringLiteral);
-set_func(StringLiteral, wide);
+set_func(StringLiteral, prefix);
 set_func(StringLiteral, val);
 
 /*
@@ -89,8 +89,7 @@ void yylex(VALUE self, cast_Parser *p) {
     E        = [Ee] [+-]? D+;
     P        = [Pp] [+-]? D+;
     FS       = [fFlL];
-    IS       = [uUlL]+;
-
+    IS       = [uU] ([lL] | "ll" | "LL")? | ([lL] | "ll" | "LL") [uU]?;
     ESC      = [\\] ([abfnrtv?'"\\] | O (O O?)? | "x" H+);
   */
   /*!re2c
@@ -145,9 +144,7 @@ void yylex(VALUE self, cast_Parser *p) {
         }
     }
 
-    SUF = L(L|D)*;
-
-    "0" [xX] H+ SUF? {
+    "0" [xX] H+ IS? {
         value = cast_new_IntLiteral_at(p->lineno);
         cast_IntLiteral_set_format(value, ID2SYM(rb_intern("hex")));
         cast_IntLiteral_set_val(value, LONG2NUM(strtol(p->tok, (char **)&cp, 16)));
@@ -155,7 +152,7 @@ void yylex(VALUE self, cast_Parser *p) {
             cast_IntLiteral_set_suffix(value, rb_str_new(cp, cursor - cp));
         RETVALUE(cast_sym_ICON);
     }
-    "0" D+ SUF? {
+    "0" D+ IS? {
         value = cast_new_IntLiteral_at(p->lineno);
         cast_IntLiteral_set_format(value, ID2SYM(rb_intern("oct")));
         cast_IntLiteral_set_val(value, LONG2NUM(strtol(p->tok, (char **)&cp, 8)));
@@ -166,7 +163,7 @@ void yylex(VALUE self, cast_Parser *p) {
         }
         RETVALUE(cast_sym_ICON);
     }
-    ( "0" | [1-9] D* ) SUF?  {
+    ( "0" | [1-9] D* ) IS?  {
         value = cast_new_IntLiteral_at(p->lineno);
         cast_IntLiteral_set_format(value, ID2SYM(rb_intern("dec")));
         cast_IntLiteral_set_val(value, LONG2NUM(strtol(p->tok, (char **)&cp, 10)));
@@ -175,7 +172,7 @@ void yylex(VALUE self, cast_Parser *p) {
         RETVALUE(cast_sym_ICON);
     }
 
-    ( D+ E | D* "." D+ E? | D+ "." D* E? ) SUF? {
+    ( D+ E | D* "." D+ E? | D+ "." D* E? ) FS? {
         value = cast_new_FloatLiteral_at(p->lineno);
         cast_FloatLiteral_set_format(value, ID2SYM(rb_intern("dec")));
         cast_FloatLiteral_set_val(value, rb_float_new(strtod(p->tok, (char **)&cp)));
@@ -183,7 +180,7 @@ void yylex(VALUE self, cast_Parser *p) {
             cast_FloatLiteral_set_suffix(value, rb_str_new(cp, cursor - cp));
         RETVALUE(cast_sym_FCON);
     }
-    ( "0" [Xx] (H+ P | H* "." H+ P? | H+ "." H* P?) ) SUF? {
+    ( "0" [Xx] (H+ P | H* "." H+ P? | H+ "." H* P?) ) FS? {
         value = cast_new_FloatLiteral_at(p->lineno);
         cast_FloatLiteral_set_format(value, ID2SYM(rb_intern("hex")));
         cast_FloatLiteral_set_val(value, rb_float_new(strtod(p->tok, (char **)&cp)));
@@ -192,26 +189,24 @@ void yylex(VALUE self, cast_Parser *p) {
         RETVALUE(cast_sym_FCON);
     }
 
-    L? ['] (ESC|any\[\n\\'])+ ['] {
+    L? ['] (ESC|any\[\\'])+ ['] {
         value = cast_new_CharLiteral_at(p->lineno);
-        if (p->tok[0] == 'L') {
-            cast_CharLiteral_set_wide(value, Qtrue);
-            cp = p->tok + 1;
-        } else {
-            cast_CharLiteral_set_wide(value, Qfalse);
+        if (p->tok[0] == '\'') {
             cp = p->tok;
+        } else {
+            cast_CharLiteral_set_prefix(value, rb_str_new(p->tok, 1));
+            cp = p->tok + 1;
         }
         cast_CharLiteral_set_val(value, rb_str_new(cp + 1, cursor - cp - 2));
         RETVALUE(cast_sym_CCON);
     }
-    L? ["] (ESC|any\[\n\\"])* ["] {
+    L? ["] (ESC|any\[\\"])* ["] {
         value = cast_new_StringLiteral_at(p->lineno);
-        if (p->tok[0] == 'L') {
-            cast_StringLiteral_set_wide(value, Qtrue);
-            cp = p->tok + 1;
-        } else {
-            cast_StringLiteral_set_wide(value, Qfalse);
+        if (p->tok[0] == '"') {
             cp = p->tok;
+        } else {
+            cast_StringLiteral_set_prefix(value, rb_str_new(p->tok, 1));
+            cp = p->tok + 1;
         }
         cast_StringLiteral_set_val(value, rb_str_new(cp + 1, cursor - cp - 2));
         RETVALUE(cast_sym_SCON);
@@ -285,7 +280,6 @@ void yylex(VALUE self, cast_Parser *p) {
 
     any
         {
-            //printf("unexpected character: %c\n", *p->tok);
             rb_raise(cast_eParseError, "%d: unexpected character: %c (ASCII %d)\n", p->lineno, *p->tok, (int)*p->tok);
             goto std;
         }

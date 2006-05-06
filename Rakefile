@@ -31,10 +31,8 @@ desc "Build."
 task :lib => FileList['lib/cast/*.rb', 'lib/cast/c.tab.rb', 'ext/cast_ext.so']
 
 desc "Run unit tests."
-task :test => FileList[:lib] do
-  FileUtils.cd 'test' do
-    sh 'ruby run.rb'
-  end
+task :test => [:lib] do
+  sh 'ruby test/run.rb'
 end
 
 INSTALL_MAP = {

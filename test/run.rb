@@ -201,7 +201,7 @@ end
 ###
 
 if $0 == __FILE__
-  Dir.new(Dir.pwd).grep(/^test_/) do |filename|
-    require "#{Dir.pwd}/#{filename}"
+  Dir["#{CAST_ROOT}/test/test_*"].each do |filename|
+    require filename
   end
 end

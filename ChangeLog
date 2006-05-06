@@ -1,3 +1,22 @@
+2006-05-06  George Ogata  <g_ogata@optushome.com.au>
+
+	* lib/cast/c_nodes.rb: Added fields:
+		+ CharLiteral#prefix
+		+ StringLiteral#prefix
+
+	  For StringLiteral and CharLiteral, added optional parameter for
+	  #prefix to #initialize.  Also, #wide? and #wide= are now methods
+	  rather than fields.
+
+	  For IntLiteral and FloatLiteral, #format now comes first in the
+	  list of fields.
+
+	* ext/yylex.re (yylex): Restrict IntLiteral suffixes to those in
+	  C99, so cases like 2e-2 are now parsed correctly.  Also, allow
+	  newlines in StringLiterals and CharLiterals.
+
+	* lib/cast/c.y (on_error): Made parse error message more meaningful.
+
 2006-04-26  George Ogata  <george.ogata@gmail.com>
 
 	* Release 0.1.0.
@@ -5,7 +24,7 @@
 	* Rejigged gemspec to compile new lexer on installation.
 
 	* Moved lib files under lib/cast so they don't all end up directly
-	in the load path.
+	  in the load path.
 
 	* Merged install.rb into Rakefile.
 
@@ -26,16 +45,16 @@
 2005-07-10  George Ogata  <george.ogata@gmail.com>
 
 	* lib/c_nodes.rb: Added fields:
-		-- StringLiteral#wide?
-		-- CharLiteral#wide?
-		-- IntLiteral#suffix
-		-- FloatLiteral#format
-		-- FloatLiteral#suffix
+		+ StringLiteral#wide?
+		+ CharLiteral#wide?
+		+ IntLiteral#suffix
+		+ FloatLiteral#format
+		+ FloatLiteral#suffix
 
 2005-03-14  George Ogata  <george.ogata@gmail.com>
 
-	* lib/c.y (C): Allow type names in Call#args.  (Not C99, but
-	useful for macros.)
+	* lib/c.y: Allow type names in Call#args.  (Not C99, but useful
+	  for macros.)
 
 2005-03-07  George Ogata  <george.ogata@gmail.com>
 
@@ -44,12 +63,12 @@
 2005-02-26  George Ogata  <george.ogata@gmail.com>
 
 	* lib/to_s.rb (AssignmentExpression::to_s): Fixed for when #lval
-	is a Comma.
+	  is a Comma.
 
 2005-02-23  George Ogata  <george.ogata@gmail.com>
 
 	* lib/inspect.rb: Renamed Node#to_debug to Node#inspect.
-	Renamed to_debug.rb to inspect.rb.
+	  Renamed to_debug.rb to inspect.rb.
 
 	* lib/to_s.rb (Parameter::to_s): Fixed for when #type is nil.
 

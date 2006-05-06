@@ -153,4 +153,61 @@ EOS
     x = C::Void.new
     assert_raise(NoMethodError){t.direct_type = x}
   end
+
+  ###
+  ### ----------------------------------------------------------------
+  ###                    CharLiteral StringLiteral#
+  ###                           wide? wide=
+  ### ----------------------------------------------------------------
+  ###
+  def test_char_literal_wide
+    c = C::CharLiteral.new('abc', 'L')
+    assert(c.wide?)
+    assert_equal('L', c.prefix)
+
+    c.prefix = nil
+    assert(!c.wide?)
+    assert_nil(c.prefix)
+
+    c.prefix = 'x'
+    assert(!c.wide?)
+    assert_equal('x', c.prefix)
+
+    c.wide = false
+    assert(!c.wide?)
+    assert_equal('x', c.prefix)
+
+    c.wide = true
+    assert(c.wide?)
+    assert_equal('L', c.prefix)
+
+    c.wide = false
+    assert(!c.wide?)
+    assert_equal(nil, c.prefix)
+  end
+  def test_string_literal_wide
+    s = C::StringLiteral.new('abc', 'L')
+    assert(s.wide?)
+    assert_equal('L', s.prefix)
+
+    s.prefix = nil
+    assert(!s.wide?)
+    assert_nil(s.prefix)
+
+    s.prefix = 'x'
+    assert(!s.wide?)
+    assert_equal('x', s.prefix)
+
+    s.wide = false
+    assert(!s.wide?)
+    assert_equal('x', s.prefix)
+
+    s.wide = true
+    assert(s.wide?)
+    assert_equal('L', s.prefix)
+
+    s.wide = false
+    assert(!s.wide?)
+    assert_equal(nil, s.prefix)
+  end
 end
