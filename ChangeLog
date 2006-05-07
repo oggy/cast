@@ -1,10 +1,10 @@
-2006-05-07  George Ogata  <g_ogata@optushome.com.au>
+2006-05-07  George Ogata  <george.ogata@gmail.com>
 
 	* lib/cast/preprocessor.rb: Added C::Preprocessor, a preprocessor
 	  that wraps around the command in Config::CONFIG['CPP'].  Assumes
 	  POSIX-style -D and -I options.
 
-2006-05-06  George Ogata  <g_ogata@optushome.com.au>
+2006-05-06  George Ogata  <george.ogata@gmail.com>
 
 	* lib/cast/c_nodes.rb: Added fields:
 		+ CharLiteral#prefix
