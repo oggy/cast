@@ -7,7 +7,6 @@
 ##
 ######################################################################
 
-require 'tempfile'
 module C
   class Preprocessor
     class Error < StandardError
@@ -26,8 +25,8 @@ module C
     end
     def preprocess(text)
       filename = nil
-      Tempfile.open('cast-preprocessor-input',
-                    File.expand_path(pwd || '.')) do |file|
+      Tempfile.open('cast-preprocessor-input.',
+                    File.expand_path(pwd || '.'), '.c') do |file|
         filename = file.path
         file.puts text
       end

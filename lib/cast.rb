@@ -7,6 +7,7 @@ extdir += '/' unless extdir.empty?
 libdir += '/' unless libdir.empty?
 
 require "#{extdir}cast_ext.so"
+require "#{libdir}tempfile.rb"
 require "#{libdir}preprocessor.rb"
 require "#{libdir}node.rb"
 require "#{libdir}node_list.rb"
