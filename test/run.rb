@@ -2,12 +2,16 @@
 
 require 'test/unit'
 require 'stringio'
+require 'fileutils'
 
 # require cast
 CAST_ROOT = File.expand_path('..', File.dirname(__FILE__))
 ENV['CAST_EXTDIR'] = "#{CAST_ROOT}/ext"
 ENV['CAST_LIBDIR'] = "#{CAST_ROOT}/lib/cast"
 require "#{CAST_ROOT}/lib/cast.rb"
+
+# a dir to cd into for creating files and such
+TEST_DIR = "#{CAST_ROOT}/test/var"
 
 ###
 ### ------------------------------------------------------------------
