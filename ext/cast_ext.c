@@ -1,7 +1,5 @@
 #include "cast.h"
 
-VALUE cast_mC;
-
 /* Initialize the cast_ext module.
  */
 void Init_cast_ext(void) {
