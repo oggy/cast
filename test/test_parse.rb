@@ -333,6 +333,21 @@ EOS
     assert_raise(C::ParseError){C::MemberInit.parse('')}
   end
 
+  def test_member
+    check C::Member, <<EOS
+x
+----
+Member
+    name: "x"
+EOS
+    assert_raise(C::ParseError){C::Member.parse('a = 1};} int f() {struct s x = {a')}
+    assert_raise(C::ParseError){C::Member.parse('a = 1}; struct s y = {.a')}
+    assert_raise(C::ParseError){C::Member.parse('a = 1}, x = {.a')}
+    assert_raise(C::ParseError){C::Member.parse('x = 1, y')}
+    assert_raise(C::ParseError){C::Member.parse('1')}
+    assert_raise(C::ParseError){C::Member.parse('a .b')}
+  end
+
   def test_block
     check C::Block, <<EOS
 {}

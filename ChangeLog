@@ -1,3 +1,7 @@
+2007-01-21  George Ogata  <george.ogata@gmail.com>
+
+	* lib/cast/parse.rb (Member::self.parse): Fix Member.parse.
+
 2007-01-20  George Ogata  <george.ogata@gmail.com>
 
 	* lib/cast/parse.rb (Declarator::self.parse): Allow specification

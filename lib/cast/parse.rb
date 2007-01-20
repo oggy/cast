@@ -158,14 +158,14 @@ module C
   class Member
     def self.parse(s, parser=nil)
       parser ||= C.default_parser
-      ents = parser.parse("int f() {struct s x = {#{s} = 1;};}").entities
-      if ents.length == 1                              &&  # };} int f() {struct s x = {a
-          ents[0].def.stmts.length == 1                &&  # }; x
-          #ents[0].def.stmts[0].length == 1            &&  # 1}, x = {.a
-          ents[0].def.stmts[0].declarators.length == 1 &&  # 1}, x = {.a
-          ents[0].def.stmts[0].declarators[0].init.member_inits.length == 1                  && # x = 1, y
-          ents[0].def.stmts[0].declarators[0].init.member_inits[0].member.length == 1        && # .a .b
-          ents[0].def.stmts[0].declarators[0].init.member_inits[0].member[0].is_a?(C::Member)   # [0]
+      ents = parser.parse("int f() {struct s x = {.#{s} = 1};}").entities
+      if ents.length == 1                              &&  # a = 1};} int f() {struct s x = {a
+          ents[0].def.stmts.length == 1                &&  # a = 1}; struct s y = {.a
+          #ents[0].def.stmts[0].length == 1            &&  # a = 1}, x = {.a
+          ents[0].def.stmts[0].declarators.length == 1 &&  # a = 1}, x = {.a
+          ents[0].def.stmts[0].declarators[0].init.member_inits.length == 1 &&        # x = 1, y
+          ents[0].def.stmts[0].declarators[0].init.member_inits[0].member   &&        # 1
+          ents[0].def.stmts[0].declarators[0].init.member_inits[0].member.length == 1 # a .b
         return ents[0].def.stmts[0].declarators[0].init.member_inits[0].member[0].detach
       else
         raise ParseError, "invalid Member"
