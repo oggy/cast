@@ -1,16 +1,14 @@
-###
-### ##################################################################
-###
-### Tests for Node core functionality.
-###
-### ##################################################################
-###
+######################################################################
+#
+# Tests for Node core functionality.
+#
+######################################################################
 
 Chain = C::NodeChain
 
-###
-### Some Node classes.
-###
+#
+# Some Node classes.
+#
 class X < C::Node
   child :a
   initializer :a
@@ -39,11 +37,10 @@ class V < C::Node
 end
 
 class NodeInitializeTest < Test::Unit::TestCase
-  ###
-  ### ----------------------------------------------------------------
-  ###                            initialize
-  ### ----------------------------------------------------------------
-  ###
+
+  # ------------------------------------------------------------------
+  #                             initialize
+  # ------------------------------------------------------------------
 
   def test_initialize_w
     w = W.new
@@ -82,11 +79,10 @@ class NodeInitializeTest < Test::Unit::TestCase
     assert_same(x2, z.b)
   end
 
-  ###
-  ### ----------------------------------------------------------------
-  ###                           Node.new_at
-  ### ----------------------------------------------------------------
-  ###
+  # ------------------------------------------------------------------
+  #                            Node.new_at
+  # ------------------------------------------------------------------
+
   def test_new_at
     pos = C::Node::Pos.new('somefile', 5, 10)
     xa = X.new
@@ -124,17 +120,16 @@ class NodeEqualTest < Test::Unit::TestCase
     return c
   end
 
-  ###
-  ### ----------------------------------------------------------------
-  ###                            ==, eql?
-  ### ----------------------------------------------------------------
-  ###
+  # ------------------------------------------------------------------
+  #                              ==, eql?
+  # ------------------------------------------------------------------
+
   def test_eq
-    ## copy should be equal
+    # copy should be equal
     assert_equal(node, node)
     assert(node.eql?(node))
 
-    ## change any one field and it should be not_equal
+    # change any one field and it should be not_equal
     n = node
     n.type = nil
     assert_not_equal(node, n)
@@ -151,32 +146,32 @@ class NodeEqualTest < Test::Unit::TestCase
     assert_not_equal(node, n)
     assert(!node.eql?(n))
 
-    ## add a member's init and it should be not_equal
+    # add a member's init and it should be not_equal
     n = node
     n.member_inits[3].init = C::IntLiteral.new(9)
     assert_not_equal(node, n)
     assert(!node.eql?(n))
 
-    ## change a member's init and it should be not_equal
+    # change a member's init and it should be not_equal
     n = node
     n.member_inits[0].init = C::IntLiteral.new(10)
     assert_not_equal(node, n)
     assert(!node.eql?(n))
 
-    ## add a member specifier and it should be not_equal
+    # add a member specifier and it should be not_equal
     n = node
     n.member_inits[3].member = Chain[C::Member.new('d')]
     assert_not_equal(node, n)
     assert(!node.eql?(n))
 
-    ## pop a member and it should be not_equal
+    # pop a member and it should be not_equal
     n = node
     n.member_inits.pop
     assert_not_equal(node, n)
     assert(!node.eql?(n))
 
-    ## assign a field a copy of what's there and it should still be
-    ## equal
+    # assign a field a copy of what's there and it should still be
+    # equal
     n = node
     n.member_inits[0].member[0] = C::Member.new('a')
     assert_equal(node, n)
@@ -188,17 +183,16 @@ class NodeEqualTest < Test::Unit::TestCase
     assert(node.eql?(n))
   end
 
-  ###
-  ### ----------------------------------------------------------------
-  ###                               hash
-  ### ----------------------------------------------------------------
-  ###
+  # ------------------------------------------------------------------
+  #                                hash
+  # ------------------------------------------------------------------
+
   def test_hash
-    ## copy should be equal
+    # copy should be equal
     assert_equal(node.hash, node.hash)
 
-    ## should be equal after assigning to a field a copy of what's
-    ## there
+    # should be equal after assigning to a field a copy of what's
+    # there
     n = node
     n.member_inits[0].member[0] = C::Member.new('a')
     assert_equal(node.hash, n.hash)
@@ -211,9 +205,7 @@ end
 
 class NodeCopyTest < Test::Unit::TestCase
   def setup
-    ## (struct s){.a = 1, [2] = {3, 4}, .b [5] = 6, 7}
-
-
+    # (struct s){.a = 1, [2] = {3, 4}, .b [5] = 6, 7}
 
     @c_t_n = 's'
     @c_t   = C::Struct.new(@c_t_n)
@@ -263,11 +255,10 @@ class NodeCopyTest < Test::Unit::TestCase
   end
   attr_accessor :c, :d, :e
 
-  ###
-  ### ----------------------------------------------------------------
-  ###                            dup, clone
-  ### ----------------------------------------------------------------
-  ###
+  # ------------------------------------------------------------------
+  #                             dup, clone
+  # ------------------------------------------------------------------
+
   def check_node value
     cres = yield(c)
     dres = yield(d)
@@ -290,10 +281,10 @@ class NodeCopyTest < Test::Unit::TestCase
   end
 
   def test_copy
-    ## each element should be equal, but not the same, except for
-    ## immediate values
-    ##
-    ## (struct s){.a = 1, [2] = {3, 4}, .b [5] = 6, 7}
+    # each element should be equal, but not the same, except for
+    # immediate values
+    #
+    # (struct s){.a = 1, [2] = {3, 4}, .b [5] = 6, 7}
     assert_tree(c)
     assert_tree(d)
     assert_tree(e)
@@ -339,13 +330,13 @@ class NodeCopyTest < Test::Unit::TestCase
 end
 
 class NodeWalkTest < Test::Unit::TestCase
-  ###
-  ### Collect and return the args yielded to `node.send(method)' as an
-  ### Array, each element of which is an array of args yielded.
-  ###
-  ### Also, assert that the return value of the method is `exp'.
-  ###
-  def yields method, node, exp
+  #
+  # Collect and return the args yielded to `node.send(method)' as an
+  # Array, each element of which is an array of args yielded.
+  #
+  # Also, assert that the return value of the method is `exp'.
+  #
+  def yields(method, node, exp)
     ret = []
     out = node.send(method) do |*args|
       ret << args
@@ -355,18 +346,18 @@ class NodeWalkTest < Test::Unit::TestCase
     return ret
   end
 
-  ###
-  ### Assert exp and out are equal, where elements are compared with
-  ### Array#same_list?.  That is, exp[i].same_list?(out[i]) for all i.
-  ###
-  def assert_equal_yields exp, out
+  #
+  # Assert exp and out are equal, where elements are compared with
+  # Array#same_list?.  That is, exp[i].same_list?(out[i]) for all i.
+  #
+  def assert_equal_yields(exp, out)
     if exp.zip(out).all?{|a,b| a.same_list?(b)}
       assert(true)
     else
       flunk("walk not equal: #{walk_str(out)} (expected #{walk_str(exp)})")
     end
   end
-  def walk_str walk
+  def walk_str(walk)
     walk.is_a? ::Array or
       raise "walk_str: expected ::Array"
     if walk.empty?
@@ -394,17 +385,16 @@ class NodeWalkTest < Test::Unit::TestCase
     end
   end
 
-  ###
-  ### ----------------------------------------------------------------
-  ###                 depth_first, reverse_depth_first
-  ### ----------------------------------------------------------------
-  ###
-  def check_depth_firsts node, exp
-    ## depth_first
+  # ------------------------------------------------------------------
+  #                  depth_first, reverse_depth_first
+  # ------------------------------------------------------------------
+
+  def check_depth_firsts(node, exp)
+    # depth_first
     out = yields(:depth_first, node, node)
     assert_equal_yields exp, out
 
-    ## reverse_depth_first
+    # reverse_depth_first
     exp = exp.reverse.map! do |ev, node|
       if ev == :ascending
         [:descending, node]
@@ -417,13 +407,13 @@ class NodeWalkTest < Test::Unit::TestCase
   end
 
   def test_depth_first
-    ## empty node
+    # empty node
     d = C::Int.new
     d.longness = 1
     check_depth_firsts(d,
                        [[:descending, d], [:ascending, d]])
 
-    ## one-storey -- populate both the list child and nonlist child
+    # one-storey -- populate both the list child and nonlist child
     d = C::Declaration.new(C::Int.new)
     d.declarators << C::Declarator.new
     d.declarators[0].name = 'one'
@@ -440,7 +430,7 @@ class NodeWalkTest < Test::Unit::TestCase
                          [:ascending, d]
                        ])
 
-    ## multi-layer
+    # multi-layer
     d.declarators[0].indirect_type = C::Function.new
     d.declarators[0].indirect_type.params = Chain[]
     d.declarators[0].indirect_type.params << C::Parameter.new(C::Int.new, 'i')
@@ -468,8 +458,8 @@ class NodeWalkTest < Test::Unit::TestCase
                        ])
   end
 
-  def check_depth_first_prunes pruned_nodes, node, exp
-    ## depth_first
+  def check_depth_first_prunes(pruned_nodes, node, exp)
+    # depth_first
     out = yields(:depth_first, node, node) do |ev, node|
       if ev.equal? :descending
         if pruned_nodes.any?{|n| n.equal? node}
@@ -478,7 +468,7 @@ class NodeWalkTest < Test::Unit::TestCase
       end
     end
     assert_equal_yields exp, out
-    ##
+    #
     ret = catch :prune do
       node.depth_first do |ev, node|
         throw :prune, :x if ev.equal? :ascending
@@ -487,7 +477,7 @@ class NodeWalkTest < Test::Unit::TestCase
     end
     assert_same(:x, ret)
 
-    ## reverse_depth_first
+    # reverse_depth_first
     exp = exp.reverse.map! do |ev, node|
       if ev.equal? :ascending
         [:descending, node]
@@ -503,7 +493,7 @@ class NodeWalkTest < Test::Unit::TestCase
       end
     end
     assert_equal_yields exp, out
-    ##
+    #
     ret = catch :prune do
       node.reverse_depth_first do |ev, node|
         throw :prune, :x if ev.equal? :ascending
@@ -514,13 +504,13 @@ class NodeWalkTest < Test::Unit::TestCase
   end
 
   def test_depth_first_prune
-    ## empty node
+    # empty node
     d = C::Int.new
     d.longness = 1
     check_depth_first_prunes([d], d,
                        [[:descending, d], [:ascending, d]])
 
-    ## one-storey -- populate both the list child and nonlist child
+    # one-storey -- populate both the list child and nonlist child
     d = C::Declaration.new(C::Int.new)
     d.declarators << C::Declarator.new
     d.declarators[0].name = 'one'
@@ -534,7 +524,7 @@ class NodeWalkTest < Test::Unit::TestCase
                          [:ascending, d]
                        ])
 
-    ## multi-layer
+    # multi-layer
     d.type = C::Struct.new('S')
     d.type.members = Chain[]
     d.type.members << C::Declaration.new(C::Int.new)
@@ -557,13 +547,11 @@ class NodeWalkTest < Test::Unit::TestCase
                        ])
   end
 
-  ###
-  ### ----------------------------------------------------------------
-  ###                        each, reverse_each
-  ### ----------------------------------------------------------------
-  ###
+  # ------------------------------------------------------------------
+  #                         each, reverse_each
+  # ------------------------------------------------------------------
 
-  def iter_str iter
+  def iter_str(iter)
     iter.is_a? ::Array or
       raise "iter_str: expected ::Array"
     if iter.empty?
@@ -582,7 +570,7 @@ class NodeWalkTest < Test::Unit::TestCase
       return s.string
     end
   end
-  def check_each node, exp
+  def check_each(node, exp)
     exp.map!{|n| [n]}
 
     out = yields(:each, node, node)
@@ -593,34 +581,31 @@ class NodeWalkTest < Test::Unit::TestCase
     assert_equal_yields exp, out
   end
   def test_each
-    ## empty
+    # empty
     parent = X.new
     check_each(parent, [])
 
-    ## one child
+    # one child
     x1 = X.new
     parent = X.new(x1)
     check_each(parent, [x1])
 
-    ## two children
+    # two children
     x1, x2 = 2.of{X.new}
     parent = Y.new(x1, x2)
     check_each(parent, [x1, x2])
 
-    ## three with some nil and some fields
+    # three with some nil and some fields
     x1, x2, x3, x4, x5 = 5.of{X.new}
     parent = Z.new(x1, x2, nil, x4, x5)
     check_each(parent, [x1, x5])
   end
 
-  ###
-  ### ----------------------------------------------------------------
-  ###                    preorder, reverse_preorder
-  ###                   postorder, reverse_postorder
-  ### ----------------------------------------------------------------
-  ###
+  # ------------------------------------------------------------------
+  #      preorder, reverse_preorder, postorder, reverse_postorder
+  # ------------------------------------------------------------------
 
-  def check_preorder node, exp
+  def check_preorder(node, exp)
     exp.map!{|n| [n]}
 
     out = yields(:preorder, node, node)
@@ -630,7 +615,7 @@ class NodeWalkTest < Test::Unit::TestCase
     exp.reverse!
     assert_equal_yields exp, out
   end
-  def check_postorder node, exp
+  def check_postorder(node, exp)
     exp.map!{|n| [n]}
 
     out = yields(:postorder, node, node)
@@ -641,12 +626,12 @@ class NodeWalkTest < Test::Unit::TestCase
     assert_equal_yields exp, out
   end
   def test_preorder
-    ## empty node
+    # empty node
     d = C::Int.new
     d.longness = 1
     check_preorder(d, [d])
 
-    ## one-storey -- populate both the list child and nonlist child
+    # one-storey -- populate both the list child and nonlist child
     d = C::Declaration.new(C::Int.new)
     d.declarators << C::Declarator.new
     d.declarators[0].name = 'one'
@@ -661,7 +646,7 @@ class NodeWalkTest < Test::Unit::TestCase
                      d.declarators[1]
                    ])
 
-    ## multi-layer
+    # multi-layer
     d.declarators[0].indirect_type = C::Function.new
     d.declarators[0].indirect_type.params = Chain[]
     d.declarators[0].indirect_type.params << C::Parameter.new(C::Int.new, 'i')
@@ -682,12 +667,12 @@ class NodeWalkTest < Test::Unit::TestCase
                    ])
   end
   def test_postorder
-    ## empty node
+    # empty node
     d = C::Int.new
     d.longness = 1
     check_preorder(d, [d])
 
-    ## one-storey -- populate both the list child and nonlist child
+    # one-storey -- populate both the list child and nonlist child
     d = C::Declaration.new(C::Int.new)
     d.declarators << C::Declarator.new
     d.declarators[0].name = 'one'
@@ -702,7 +687,7 @@ class NodeWalkTest < Test::Unit::TestCase
                      d
                     ])
 
-    ## multi-layer
+    # multi-layer
     d.declarators[0].indirect_type = C::Function.new
     d.declarators[0].indirect_type.params = Chain[]
     d.declarators[0].indirect_type.params << C::Parameter.new(C::Int.new, 'i')
@@ -722,7 +707,7 @@ class NodeWalkTest < Test::Unit::TestCase
                      d
                     ])
   end
-  def check_preorder_prune method, pruned_nodes, root, exp
+  def check_preorder_prune(method, pruned_nodes, root, exp)
     exp.map!{|n| [n]}
 
     out = yields(method, root, root) do |node|
@@ -734,13 +719,13 @@ class NodeWalkTest < Test::Unit::TestCase
   end
 
   def test_preorder_prune
-    ## empty node
+    # empty node
     d = C::Int.new
     d.longness = 1
     check_preorder_prune(:preorder, [d], d, [d])
     check_preorder_prune(:reverse_preorder, [d], d, [d])
 
-    ## one-storey -- populate both the list child and nonlist child
+    # one-storey -- populate both the list child and nonlist child
     d = C::Declaration.new(C::Int.new)
     d.declarators << C::Declarator.new
     d.declarators[0].name = 'one'
@@ -759,7 +744,7 @@ class NodeWalkTest < Test::Unit::TestCase
                                    d.type,
                                  ])
 
-    ## multi-layer
+    # multi-layer
     d.type = C::Struct.new('S')
     d.type.members = Chain[]
     d.type.members << C::Declaration.new(C::Int.new)
@@ -788,14 +773,12 @@ class NodeWalkTest < Test::Unit::TestCase
                                  ])
   end
 
-  ###
-  ### ----------------------------------------------------------------
-  ###                 next, prev, list_next, list_prev
-  ### ----------------------------------------------------------------
-  ###
+  # ------------------------------------------------------------------
+  #                  next, prev, list_next, list_prev
+  # ------------------------------------------------------------------
 
   def test_next_prev
-    ## list parent
+    # list parent
     i1 = C::Int.new
     i2 = C::Int.new
     list = Chain[i1, i2]
@@ -804,7 +787,7 @@ class NodeWalkTest < Test::Unit::TestCase
     assert_same(i1, i2.prev)
     assert_nil(i1.prev)
 
-    ## node parent
+    # node parent
     i1 = C::IntLiteral.new(1)
     i2 = C::IntLiteral.new(2)
     a = C::Add.new(i1, i2)
@@ -813,14 +796,14 @@ class NodeWalkTest < Test::Unit::TestCase
     assert_same(i1, i2.prev)
     assert_nil(i1.prev)
 
-    ## no parent
+    # no parent
     i = C::Int.new
     assert_raise(C::Node::NoParent){i.next}
     assert_raise(C::Node::NoParent){i.prev}
   end
 
   def test_list_next_prev
-    ## list parent
+    # list parent
     i1 = C::Int.new
     i2 = C::Int.new
     list = Chain[i1, i2]
@@ -829,7 +812,7 @@ class NodeWalkTest < Test::Unit::TestCase
     assert_same(i1, i2.list_prev)
     assert_nil(i1.list_prev)
 
-    ## node parent
+    # node parent
     i1 = C::IntLiteral.new(1)
     i2 = C::IntLiteral.new(2)
     a = C::Add.new(i1, i2)
@@ -838,7 +821,7 @@ class NodeWalkTest < Test::Unit::TestCase
     assert_raise(C::Node::BadParent){i1.list_prev}
     assert_raise(C::Node::BadParent){i2.list_prev}
 
-    ## no parent
+    # no parent
     i = C::Int.new
     assert_raise(C::Node::NoParent){i.list_next}
     assert_raise(C::Node::NoParent){i.list_prev}
@@ -847,10 +830,10 @@ end
 
 class NodeTreeTest < Test::Unit::TestCase
   def setup
-    ## @c = "(int){[1] = 10,
-    ##             .x = 20,
-    ##             [2] .y = 30
-    ##            }
+    # @c = "(int){[1] = 10,
+    #             .x = 20,
+    #             [2] .y = 30
+    #            }
     @c = C::CompoundLiteral.new
     c.type = C::Int.new
     c.member_inits << C::MemberInit.new
@@ -975,19 +958,19 @@ class NodeTreeTest < Test::Unit::TestCase
   end
 
   def test_node_swap_with
-    ## swap with itself -- attached
+    # swap with itself -- attached
     x = X.new
     parent = X.new(x)
     assert_same(x, x.swap_with(x))
     assert_same(parent, x.parent)
     assert_same(x, parent.a)
 
-    ## swap with itself -- detached
+    # swap with itself -- detached
     x = X.new
     assert_same(x, x.swap_with(x))
     assert_nil(x.parent)
 
-    ## both attached
+    # both attached
     x = X.new
     y = X.new
     xp = X.new(x)
@@ -998,7 +981,7 @@ class NodeTreeTest < Test::Unit::TestCase
     assert_same(yp, x.parent)
     assert_same(y, xp.a)
 
-    ## only receiver attached
+    # only receiver attached
     x = X.new
     y = X.new
     xp = X.new(x)
@@ -1007,7 +990,7 @@ class NodeTreeTest < Test::Unit::TestCase
     assert_same(xp, y.parent)
     assert_same(y, xp.a)
 
-    ## only arg attached
+    # only arg attached
     x = X.new
     y = X.new
     yp = X.new(y)
@@ -1016,7 +999,7 @@ class NodeTreeTest < Test::Unit::TestCase
     assert_same(x, yp.a)
     assert_nil(y.parent)
 
-    ## neither attached
+    # neither attached
     x = X.new
     y = X.new
     assert_same(x, x.swap_with(y))
@@ -1024,11 +1007,10 @@ class NodeTreeTest < Test::Unit::TestCase
     assert_nil(y.parent)
   end
 
-  ###
-  ### ----------------------------------------------------------------
-  ###                     insert_next, insert_prev
-  ### ----------------------------------------------------------------
-  ###
+  # ------------------------------------------------------------------
+  #                      insert_next, insert_prev
+  # ------------------------------------------------------------------
+
   def test_node_insert_next_detached
     x1, x2 = 2.of{X.new}
     assert_raise(C::Node::NoParent){x1.insert_next}
@@ -1091,14 +1073,12 @@ class NodeTreeTest < Test::Unit::TestCase
     assert_same_list([x2, x3, x4, x1], parent)
   end
 
-  ###
-  ### ----------------------------------------------------------------
-  ###                     node_after, node_before
-  ### ----------------------------------------------------------------
-  ###
+  # ------------------------------------------------------------------
+  #                      node_after, node_before
+  # ------------------------------------------------------------------
 
   def test_node_after_before
-    ## node not a child
+    # node not a child
     x1, x2 = 2.of{X.new}
     parent = X.new(x1)
     assert_raise(ArgumentError){parent.node_after(x2)}
@@ -1111,13 +1091,13 @@ class NodeTreeTest < Test::Unit::TestCase
     assert_raise(ArgumentError){parent.node_before(x1)}
     assert_raise(ArgumentError){parent.node_before(x2)}
 
-    ## one child
+    # one child
     x = X.new
     parent = X.new(x)
     assert_nil(parent.node_after(x))
     assert_nil(parent.node_before(x))
 
-    ## two children
+    # two children
     x1 = X.new
     x2 = X.new
     parent = Y.new(x1, x2)
@@ -1126,7 +1106,7 @@ class NodeTreeTest < Test::Unit::TestCase
     assert_same(x1, parent.node_before(x2))
     assert_nil(parent.node_before(x1))
 
-    ## skip over stuff in the middle
+    # skip over stuff in the middle
     x1, x2, x3, x4, x5 = 5.of{X.new}
     parent = Z.new(x1, x2, nil, x4, x5)
     assert_same(x5, parent.node_after(x1))
@@ -1134,7 +1114,7 @@ class NodeTreeTest < Test::Unit::TestCase
     assert_same(x1, parent.node_before(x5))
     assert_nil(parent.node_before(x1))
 
-    ## skip over stuff at the end
+    # skip over stuff at the end
     x1, x2, x3, x4, x5 = 5.of{X.new}
     parent = Z.new(nil, x2, x3, x4, nil)
     assert_nil(parent.node_after(x3))
@@ -1142,20 +1122,20 @@ class NodeTreeTest < Test::Unit::TestCase
   end
 
   def test_remove_node
-    ## node not a child
+    # node not a child
     x1, x2, x3 = 3.of{X.new}
     parent = Z.new(x1, x2)
     assert_raise(ArgumentError){parent.remove_node(x2)}
     assert_raise(ArgumentError){parent.remove_node(x3)}
 
-    ## one child
+    # one child
     x = X.new
     parent = X.new(x)
     assert_same(parent, parent.remove_node(x))
     assert_tree(parent)
     assert_tree(x)
 
-    ## two children
+    # two children
     x1, x2 = 2.of{X.new}
     parent = Y.new(x1, x2)
     assert_same(parent, parent.remove_node(x2))
@@ -1166,13 +1146,13 @@ class NodeTreeTest < Test::Unit::TestCase
   end
 
   def test_replace_node
-    ## node not a child
+    # node not a child
     x1, x2, x3, x4 = 3.of{X.new}
     parent = Z.new(x1, x2)
     assert_raise(ArgumentError){parent.replace_node(x2, x4)}
     assert_raise(ArgumentError){parent.replace_node(x3, x4)}
 
-    ## no newnode
+    # no newnode
     x = X.new
     parent = X.new(x)
     assert_same(parent, parent.replace_node(x))
@@ -1180,32 +1160,32 @@ class NodeTreeTest < Test::Unit::TestCase
     assert_tree(x)
     assert_nil(parent.a)
 
-    ## >1 newnode
+    # >1 newnode
     x1, x2, x3 = 3.of{X.new}
     parent = X.new(x1)
     assert_raise(ArgumentError){parent.replace_node(x1, x2, x3)}
 
-    ## one child
+    # one child
     x1, x2 = 2.of{X.new}
     parent = X.new(x1)
     assert_same(parent, parent.replace_node(x1, x2))
     assert_tree(parent)
     assert_tree(x1)
     assert_same(x2, parent.a)
-    ##
+    #
     assert_same(parent, parent.replace_node(x2, nil))
     assert_tree(parent)
     assert_tree(x2)
     assert_nil(parent.a)
 
-    ## two children
+    # two children
     x1, x2, x3 = 3.of{X.new}
     parent = Y.new(x1, x2)
     assert_same(parent, parent.replace_node(x2, x3))
     assert_tree(parent)
     assert_tree(x2)
     assert_same(x3, parent.b)
-    ##
+    #
     assert_same(parent, parent.replace_node(x3, nil))
     assert_tree(parent)
     assert_tree(x3)

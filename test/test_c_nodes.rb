@@ -1,18 +1,14 @@
-###
-### ##################################################################
-###
-### Tests for miscellaneous methods specific to individual Node
-### classes.
-###
-### ##################################################################
-###
+######################################################################
+#
+# Tests for miscellaneous methods specific to individual Node classes.
+#
+######################################################################
+
 class MiscTests < Test::Unit::TestCase
-  ###
-  ### ----------------------------------------------------------------
-  ###                           Declarator#
-  ###                         declaration type
-  ### ----------------------------------------------------------------
-  ###
+
+  # ------------------------------------------------------------------
+  #                    Declarator#declaration type
+  # ------------------------------------------------------------------
 
   def test_declarator_declaration
     tor = C::Declarator.new(nil, 'x')
@@ -29,7 +25,7 @@ class MiscTests < Test::Unit::TestCase
   end
 
   def test_declarator_type
-    ## int i, *j, k[], l(), *m[10];
+    # int i, *j, k[], l(), *m[10];
     decl = C::Declaration.new(C::Int.new)
     decl.declarators << C::Declarator.new(nil, 'i')
     decl.declarators << C::Declarator.new(C::Pointer.new, 'j')
@@ -62,14 +58,9 @@ Array
 EOS
   end
 
-  ###
-  ### ----------------------------------------------------------------
-  ###                           DirectType#
-  ###                    direct_type indirect_type
-  ###                          IndirectType#
-  ###              direct_type indirect_type direct_type=
-  ### ----------------------------------------------------------------
-  ###
+  # ------------------------------------------------------------------
+  #                      DirectType, IndirectType
+  # ------------------------------------------------------------------
 
   def test_type_direct_type
     d = C::Int.new
@@ -154,12 +145,10 @@ EOS
     assert_raise(NoMethodError){t.direct_type = x}
   end
 
-  ###
-  ### ----------------------------------------------------------------
-  ###                    CharLiteral StringLiteral#
-  ###                           wide? wide=
-  ### ----------------------------------------------------------------
-  ###
+  # ------------------------------------------------------------------
+  #                     CharLiteral StringLiteral
+  # ------------------------------------------------------------------
+
   def test_char_literal_wide
     c = C::CharLiteral.new('abc', 'L')
     assert(c.wide?)

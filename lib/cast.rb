@@ -1,5 +1,5 @@
-## these env vars are to facilitate testing -- see test/run.rb in the
-## cast source
+# these env vars are to facilitate testing -- see test/run.rb in the
+# cast source
 extdir = ENV['CAST_EXTDIR'] || ''
 libdir = ENV['CAST_LIBDIR'] || 'cast'
 

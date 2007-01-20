@@ -1,19 +1,15 @@
-###
-### ##################################################################
-###
-### All those Node classes.
-###
-### ##################################################################
-###
+######################################################################
+#
+# All those Node classes.
+#
+######################################################################
 
 module C
-  ###
-  ### ==================================================================
-  ###
-  ###                        Class declarations
-  ###
-  ### ==================================================================
-  ###
+
+  # ------------------------------------------------------------------
+  #                         Class declarations
+  # ------------------------------------------------------------------
+
   class Statement            < Node           ; abstract; end
   class Label                < Node           ; abstract; end
   class Expression           < Node           ; abstract; end
@@ -128,30 +124,19 @@ module C
   class Complex              < PrimitiveType       ; end
   class Imaginary            < PrimitiveType       ; end
 
-  ###
-  ### ==================================================================
-  ###
-  ###                      Class implementations
-  ###
-  ### ==================================================================
-  ###
+  # ------------------------------------------------------------------
+  #                       Class implementations
+  # ------------------------------------------------------------------
 
-  ###
-  ### Node
-  ###
   class Node
     initializer
   end
-  ###
-  ### TranslationUnit
-  ###
+
   class TranslationUnit
     child :entities, lambda{NodeChain.new}
     initializer :entities
   end
-  ###
-  ### Declaration
-  ###
+
   class Declaration
     field :storage
     child :type
@@ -174,9 +159,7 @@ module C
       storage.equal? :register
     end
   end
-  ###
-  ### Declarator
-  ###
+
   class Declarator
     child :indirect_type
     field :name
@@ -186,10 +169,10 @@ module C
     def declaration
       parent and parent.parent
     end
-    ###
-    ### Return (a copy of) the type of the variable this Declarator
-    ### declares.
-    ###
+    #
+    # Return (a copy of) the type of the variable this Declarator
+    # declares.
+    #
     def type
       if indirect_type
         ret = indirect_type.clone
@@ -200,9 +183,7 @@ module C
       end
     end
   end
-  ###
-  ### FunctionDef
-  ###
+
   class FunctionDef
     field :storage
     field :inline?
@@ -217,65 +198,51 @@ module C
     def static?
       storage.equal? :static
     end
-    def prototype= val
+    def prototype=(val)
       self.no_prototype = !val
     end
     def prototype?
       !no_prototype?
     end
   end
-  ###
-  ### Parameter
-  ###
+
   class Parameter
     field :register?
     child :type
     field :name
     initializer :type, :name
   end
-  ###
-  ### Enumerator
-  ###
+
   class Enumerator
     field :name
     child :val
     initializer :name, :val
   end
-  ###
-  ### MemberInit
-  ###
+
   class MemberInit
-    ## member is a _NodeList_ of:
-    ##   -- Member (for struct/union members)
-    ##   -- Expression (for array members)
+    # member is a _NodeList_ of:
+    #   -- Member (for struct/union members)
+    #   -- Expression (for array members)
     child :member
     child :init
     initializer :member, :init
   end
-  ###
-  ### Member
-  ###
+
   class Member
     field :name
     initializer :name
   end
 
-  ###
-  ### ----------------------------------------------------------------
-  ###                            Statements
-  ### ----------------------------------------------------------------
+  # ------------------------------------------------------------------
+  #                             Statements
+  # ------------------------------------------------------------------
 
-  ###
-  ### Block
-  ###
   class Block
     child :labels, lambda{NodeArray.new}
     child :stmts, lambda{NodeChain.new}
     initializer :stmts
   end
-  ###
-  ### If
-  ###
+
   class If
     child :labels, lambda{NodeArray.new}
     child :cond
@@ -283,18 +250,14 @@ module C
     child :else
     initializer :cond, :then, :else
   end
-  ###
-  ### Switch
-  ###
+
   class Switch
     child :labels, lambda{NodeArray.new}
     child :cond
     child :stmt
     initializer :cond, :stmt
   end
-  ###
-  ### While
-  ###
+
   class While
     child :labels, lambda{NodeArray.new}
     field :do?
@@ -302,9 +265,7 @@ module C
     child :stmt
     initializer :cond, :stmt, :do?
   end
-  ###
-  ### For
-  ###
+
   class For
     child :labels, lambda{NodeArray.new}
     child :init
@@ -313,406 +274,297 @@ module C
     child :stmt
     initializer :init, :cond, :iter, :stmt
   end
-  ###
-  ### Goto
-  ###
+
   class Goto
     child :labels, lambda{NodeArray.new}
     field :target
     initializer :target
   end
-  ###
-  ### Continue
-  ###
+
   class Continue
     child :labels, lambda{NodeArray.new}
   end
-  ###
-  ### Break
-  ###
+
   class Break
     child :labels, lambda{NodeArray.new}
   end
-  ###
-  ### Return
-  ###
+
   class Return
     child :labels, lambda{NodeArray.new}
     child :expr
     initializer :expr
   end
-  ###
-  ### ExpressionStatement
-  ###
+
   class ExpressionStatement
     child :labels, lambda{NodeArray.new}
     child :expr
     initializer :expr
   end
 
-  ###
-  ### ----------------------------------------------------------------
-  ###                              Labels
-  ### ----------------------------------------------------------------
-  ###
+  # ------------------------------------------------------------------
+  #                               Labels
+  # ------------------------------------------------------------------
 
-  ###
-  ### PlainLabel
-  ###
   class PlainLabel
     field :name
     initializer :name
   end
 
-  ###
-  ### Default
-  ###
   class Default
   end
 
-  ###
-  ### Case
-  ###
   class Case
     child :expr
     initializer :expr
   end
 
-  ###
-  ### ----------------------------------------------------------------
-  ###                           Expressions
-  ### ----------------------------------------------------------------
-  ###
+  # ------------------------------------------------------------------
+  #                            Expressions
+  # ------------------------------------------------------------------
 
-  ###
-  ### Comma
-  ###
   class Comma
     child :exprs, lambda{NodeArray.new}
     initializer :exprs
   end
-  ###
-  ### Conditional
-  ###
+
   class Conditional
     child :cond
     child :then
     child :else
     initializer :cond, :then, :else
   end
-  ###
-  ### Variable
-  ###
+
   class Variable
     field :name
     initializer :name
   end
 
-  ###
-  ### ----------------------------------------------------------------
-  ###                        PrefixExpressions
-  ### ----------------------------------------------------------------
-  ###
+  # ------------------------------------------------------------------
+  #                         PrefixExpressions
+  # ------------------------------------------------------------------
 
-  ###
-  ### Cast
-  ###
   class Cast
     child :type
     child :expr
     initializer :type, :expr
   end
-  ###
-  ### Address
-  ###
+
   class Address
     child :expr
     initializer :expr
   end
-  ###
-  ### Dereference
-  ###
+
   class Dereference
     child :expr
     initializer :expr
   end
-  ###
-  ### Sizeof
-  ###
+
   class Sizeof
     child :expr
     initializer :expr
   end
-  ###
-  ### Positive
-  ###
+
   class Positive
     child :expr
     initializer :expr
   end
-  ###
-  ### Negative
-  ###
+
   class Negative
     child :expr
     initializer :expr
   end
-  ###
-  ### PreInc
-  ###
+
   class PreInc
     child :expr
     initializer :expr
   end
-  ###
-  ### PreDec
-  ###
+
   class PreDec
     child :expr
     initializer :expr
   end
-  ###
-  ### BitNot
-  ###
+
   class BitNot
     child :expr
     initializer :expr
   end
-  ###
-  ### Not
-  ###
+
   class Not
     child :expr
     initializer :expr
   end
 
-  ###
-  ### ----------------------------------------------------------------
-  ###                        PostfixExpressions
-  ### ----------------------------------------------------------------
-  ###
+  # ------------------------------------------------------------------
+  #                         PostfixExpressions
+  # ------------------------------------------------------------------
 
-  ###
-  ### Index
-  ###
   class Index
     child :expr
     child :index
     initializer :expr, :index
   end
-  ###
-  ### Call
-  ###
+
   class Call
     child :expr
     child :args, lambda{NodeArray.new}
     initializer :expr, :args
   end
-  ###
-  ### Dot
-  ###
+
   class Dot
     child :expr
     child :member
     initializer :expr, :member
   end
-  ###
-  ### Arrow
-  ###
+
   class Arrow
     child :expr
     child :member
     initializer :expr, :member
   end
-  ###
-  ### PostInc
-  ###
+
   class PostInc
     child :expr
     initializer :expr
   end
-  ###
-  ### PostDec
-  ###
+
   class PostDec
     child :expr
     initializer :expr
   end
 
-  ###
-  ### ----------------------------------------------------------------
-  ###                        BinaryExpressions
-  ### ----------------------------------------------------------------
-  ###
+  # ------------------------------------------------------------------
+  #                         BinaryExpressions
+  # ------------------------------------------------------------------
 
-  ###
-  ### BinaryExpression (abstract)
-  ###
   class BinaryExpression
     class << self
-      ###
-      ### The operator (a String) pertaining to the class (e.g.,
-      ### Add.operator is '+').
-      ###
+      #
+      # The operator (a String) pertaining to the class (e.g.,
+      # Add.operator is '+').
+      #
       attr_accessor :operator
     end
   end
-  ###
-  ### Add
-  ###
+
   class Add
     child :expr1
     child :expr2
     initializer :expr1, :expr2
     self.operator = '+'
   end
-  ###
-  ### Subtract
-  ###
+
   class Subtract
     child :expr1
     child :expr2
     initializer :expr1, :expr2
     self.operator = '-'
   end
-  ###
-  ### Multiply
-  ###
+
   class Multiply
     child :expr1
     child :expr2
     initializer :expr1, :expr2
     self.operator = '*'
   end
-  ###
-  ### Divide
-  ###
+
   class Divide
     child :expr1
     child :expr2
     initializer :expr1, :expr2
     self.operator = '/'
   end
-  ###
-  ### Mod
-  ###
+
   class Mod
     child :expr1
     child :expr2
     initializer :expr1, :expr2
     self.operator = '%'
   end
-  ###
-  ### Equal
-  ###
+
   class Equal
     child :expr1
     child :expr2
     initializer :expr1, :expr2
     self.operator = '=='
   end
-  ###
-  ### NotEqual
-  ###
+
   class NotEqual
     child :expr1
     child :expr2
     initializer :expr1, :expr2
     self.operator = '!='
   end
-  ###
-  ### Less
-  ###
+
   class Less
     child :expr1
     child :expr2
     initializer :expr1, :expr2
     self.operator = '<'
   end
-  ###
-  ### More
-  ###
+
   class More
     child :expr1
     child :expr2
     initializer :expr1, :expr2
     self.operator = '>'
   end
-  ###
-  ### LessOrEqual
-  ###
+
   class LessOrEqual
     child :expr1
     child :expr2
     initializer :expr1, :expr2
     self.operator = '<='
   end
-  ###
-  ### MoreOrEqual
-  ###
+
   class MoreOrEqual
     child :expr1
     child :expr2
     initializer :expr1, :expr2
     self.operator = '>='
   end
-  ###
-  ### BitAnd
-  ###
+
   class BitAnd
     child :expr1
     child :expr2
     initializer :expr1, :expr2
     self.operator = '&'
   end
-  ###
-  ### BitOr
-  ###
+
   class BitOr
     child :expr1
     child :expr2
     initializer :expr1, :expr2
     self.operator = '|'
   end
-  ###
-  ### BitXor
-  ###
+
   class BitXor
     child :expr1
     child :expr2
     initializer :expr1, :expr2
     self.operator = '^'
   end
-  ###
-  ### ShiftLeft
-  ###
+
   class ShiftLeft
     child :expr1
     child :expr2
     initializer :expr1, :expr2
     self.operator = '<<'
   end
-  ###
-  ### ShiftRight
-  ###
+
   class ShiftRight
     child :expr1
     child :expr2
     initializer :expr1, :expr2
     self.operator = '>>'
   end
-  ###
-  ### And
-  ###
+
   class And
     child :expr1
     child :expr2
     initializer :expr1, :expr2
     self.operator = '&&'
   end
-  ###
-  ### Or
-  ###
+
   class Or
     child :expr1
     child :expr2
@@ -720,117 +572,90 @@ module C
     self.operator = '||'
   end
 
-  ###
-  ### ----------------------------------------------------------------
-  ###                      AssignmentExpressions
-  ### ----------------------------------------------------------------
-  ###
+  # ------------------------------------------------------------------
+  #                       AssignmentExpressions
+  # ------------------------------------------------------------------
 
-  ###
-  ### AssignmentExpression (abstract)
-  ###
   class AssignmentExpression
     class << self
-      ###
-      ### The operator (a String) pertaining to the class (e.g.,
-      ### Assign.operator is '=').
-      ###
+      #
+      # The operator (a String) pertaining to the class (e.g.,
+      # Assign.operator is '=').
+      #
       attr_accessor :operator
     end
   end
-  ###
-  ### Assign
-  ###
+
   class Assign
     child :lval
     child :rval
     initializer :lval, :rval
     self.operator = '='
   end
-  ###
-  ### MultiplyAssign
-  ###
+
   class MultiplyAssign
     child :lval
     child :rval
     initializer :lval, :rval
     self.operator = '*='
   end
-  ###
-  ### DivideAssign
-  ###
+
   class DivideAssign
     child :lval
     child :rval
     initializer :lval, :rval
     self.operator = '/='
   end
-  ###
-  ### ModAssign
-  ###
+
   class ModAssign
     child :lval
     child :rval
     initializer :lval, :rval
     self.operator = '%='
   end
-  ###
-  ### AddAssign
-  ###
+
   class AddAssign
     child :lval
     child :rval
     initializer :lval, :rval
     self.operator = '+='
   end
-  ###
-  ### SubtractAssign
-  ###
+
   class SubtractAssign
     child :lval
     child :rval
     initializer :lval, :rval
     self.operator = '-='
   end
-  ###
-  ### ShiftLeftAssign
-  ###
+
   class ShiftLeftAssign
     child :lval
     child :rval
     initializer :lval, :rval
     self.operator = '<<='
   end
-  ###
-  ### ShiftRightAssign
-  ###
+
   class ShiftRightAssign
     child :lval
     child :rval
     initializer :lval, :rval
     self.operator = '>>='
   end
-  ###
-  ### BitAndAssign
-  ###
+
   class BitAndAssign
     child :lval
     child :rval
     initializer :lval, :rval
     self.operator = '&='
   end
-  ###
-  ### BitXorAssign
-  ###
+
   class BitXorAssign
     child :lval
     child :rval
     initializer :lval, :rval
     self.operator = '^='
   end
-  ###
-  ### BitOrAssign
-  ###
+
   class BitOrAssign
     child :lval
     child :rval
@@ -838,15 +663,10 @@ module C
     self.operator = '|='
   end
 
-  ###
-  ### ----------------------------------------------------------------
-  ###                            Literals
-  ### ----------------------------------------------------------------
-  ###
+  # ------------------------------------------------------------------
+  #                              Literals
+  # ------------------------------------------------------------------
 
-  ###
-  ### StringLiteral
-  ###
   class StringLiteral
     field :prefix
     field :val
@@ -859,9 +679,7 @@ module C
       self.prefix = val ? 'L' : nil
     end
   end
-  ###
-  ### CharLiteral
-  ###
+
   class CharLiteral
     field :prefix
     field :val
@@ -874,17 +692,13 @@ module C
       self.prefix = val ? 'L' : nil
     end
   end
-  ###
-  ### CompoundLiteral
-  ###
+
   class CompoundLiteral
     child :type
     child :member_inits, lambda{NodeArray.new}
     initializer :type, :member_inits
   end
-  ###
-  ### IntLiteral
-  ###
+
   class IntLiteral
     field :format, :dec
     field :val
@@ -900,9 +714,7 @@ module C
       format.equal? :oct
     end
   end
-  ###
-  ### FloatLiteral
-  ###
+
   class FloatLiteral
     field :format, :dec
     field :val
@@ -910,15 +722,10 @@ module C
     initializer :val
   end
 
-  ###
-  ### ----------------------------------------------------------------
-  ###                              Types
-  ### ----------------------------------------------------------------
-  ###
+  # ------------------------------------------------------------------
+  #                               Types
+  # ------------------------------------------------------------------
 
-  ###
-  ### DirectType (abstract)
-  ###
   class DirectType
     def direct_type
       self
@@ -927,9 +734,7 @@ module C
       nil
     end
   end
-  ###
-  ### IndirectType (abstract)
-  ###
+
   class IndirectType
     def direct_type
       if type.is_a? IndirectType
@@ -938,7 +743,7 @@ module C
         type
       end
     end
-    def direct_type= val
+    def direct_type=(val)
       if type.is_a? IndirectType
         type.direct_type = val
       else
@@ -955,9 +760,7 @@ module C
       return ret
     end
   end
-  ###
-  ### Pointer
-  ###
+
   class Pointer
     field :const?
     field :restrict?
@@ -965,9 +768,7 @@ module C
     child :type
     initializer :type
   end
-  ###
-  ### Array
-  ###
+
   class Array
     field :const?
     field :restrict?
@@ -976,9 +777,7 @@ module C
     child :length
     initializer :type, :length
   end
-  ###
-  ### Function
-  ###
+
   class Function
     field :const?
     field :restrict?
@@ -988,9 +787,7 @@ module C
     field :var_args?
     initializer :type, :params
   end
-  ###
-  ### Struct
-  ###
+
   class Struct
     field :const?
     field :restrict?
@@ -999,9 +796,7 @@ module C
     child :members
     initializer :name, :members
   end
-  ###
-  ### Union
-  ###
+
   class Union
     field :const?
     field :restrict?
@@ -1010,9 +805,7 @@ module C
     child :members
     initializer :name, :members
   end
-  ###
-  ### Enum
-  ###
+
   class Enum
     field :const?
     field :restrict?
@@ -1021,9 +814,7 @@ module C
     child :members
     initializer :name, :members
   end
-  ###
-  ### CustomType
-  ###
+
   class CustomType
     field :const?
     field :restrict?
@@ -1031,17 +822,13 @@ module C
     field :name
     initializer :name
   end
-  ###
-  ### Void
-  ###
+
   class Void
     field :const?
     field :restrict?
     field :volatile?
   end
-  ###
-  ### Int
-  ###
+
   class Int
     field :const?
     field :restrict?
@@ -1052,7 +839,7 @@ module C
     def signed?
       !unsigned?
     end
-    def signed= val
+    def signed=(val)
       self.unsigned = !val
     end
     def short?
@@ -1068,9 +855,7 @@ module C
       longness.equal? 2
     end
   end
-  ###
-  ### Float
-  ###
+
   class Float
     field :const?
     field :restrict?
@@ -1087,15 +872,13 @@ module C
       longness.equal? 2
     end
   end
-  ###
-  ### Char
-  ###
+
   class Char
     field :const?
     field :restrict?
     field :volatile?
-    ## 6.2.5p15: `char', `signed char', and `unsigned char' are
-    ## distinct types
+    # 6.2.5p15: `char', `signed char', and `unsigned char' are
+    # distinct types
     field :signed
     def signed?
       signed.equal? true
@@ -1107,17 +890,13 @@ module C
       signed.nil?
     end
   end
-  ###
-  ### Bool
-  ###
+
   class Bool
     field :const?
     field :restrict?
     field :volatile?
   end
-  ###
-  ### Complex
-  ###
+
   class Complex
     field :const?
     field :restrict?
@@ -1134,9 +913,7 @@ module C
       longness.equal? 2
     end
   end
-  ###
-  ### Imaginary
-  ###
+
   class Imaginary
     field :const?
     field :restrict?
@@ -1154,26 +931,22 @@ module C
     end
   end
 
-  ###
-  ### ================================================================
-  ###
-  ###                           Tag classes
-  ###
-  ### ================================================================
-  ###
+  # ------------------------------------------------------------------
+  #                            Tag classes
+  # ------------------------------------------------------------------
 
-  ## classify the node classes by including modules
+  # classify the node classes by including modules
   tagger = lambda do |included, *includers|
     includers.each{|mod| mod.send(:include, included)}
   end
 
-  ## expression classes
+  # expression classes
   module ArithmeticExpression; end
   module BitwiseExpression   ; end
   module LogicalExpression   ; end
   module RelationalExpression; end
   module ShiftExpression     ; end
-  ##
+  #
   tagger.call(ArithmeticExpression,
               PostInc, PostDec, Positive, Negative, PreInc, PreDec, Add,
               Subtract, Multiply, Divide, Mod)
@@ -1186,13 +959,9 @@ module C
   tagger.call(ShiftExpression,
               ShiftLeft, ShiftRight)
 
-  ###
-  ### ================================================================
-  ###
-  ###                       CORE_C_NODE_CLASSES
-  ###
-  ### ================================================================
-  ###
+  # ------------------------------------------------------------------
+  #                        CORE_C_NODE_CLASSES
+  # ------------------------------------------------------------------
 
   CORE_C_NODE_CLASSES = [
     TranslationUnit,
@@ -1296,7 +1065,7 @@ module C
     Imaginary
   ]
 
-  ## check we didn't miss any
+  # check we didn't miss any
   expected_classes = Node.subclasses_recursive.sort_by{|c| c.name}
   expected_classes -= NodeList.subclasses_recursive
   expected_classes -= [NodeList]
@@ -1315,6 +1084,6 @@ module C
     DirectType,
     PrimitiveType
   ]
-  ##
+  #
   CORE_C_NODE_CLASSES.sort_by{|c| c.name} == expected_classes or raise
 end

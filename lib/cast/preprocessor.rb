@@ -1,10 +1,10 @@
 ######################################################################
-##
-## A C preprocessor that wraps the command in Config::CONFIG['CPP'].
-##
-## Assumes a POSIX-style cpp command line interface, in particular, -I
-## and -D options.
-##
+#
+# A C preprocessor that wraps the command in Config::CONFIG['CPP'].
+#
+# Assumes a POSIX-style cpp command line interface, in particular, -I
+# and -D options.
+#
 ######################################################################
 
 module C

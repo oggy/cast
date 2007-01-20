@@ -1,10 +1,8 @@
-###
-### ##################################################################
-###
-### Node#inspect.
-###
-### ##################################################################
-###
+######################################################################
+#
+# Node#inspect.
+#
+######################################################################
 
 module C
   class Node
@@ -13,7 +11,7 @@ module C
       return Node.inspect1(self)
     end
 
-    def Node.inspect1 x, prefix='', indent=0, is_child=true
+    def Node.inspect1(x, prefix='', indent=0, is_child=true)
       case x
       when NodeList
         if x.empty?
@@ -42,8 +40,8 @@ module C
         others.each do |field|
           val = x.send(field.reader)
           next if val == field.make_default ||
-            ## don't bother with non-child Nodes, since they may cause
-            ## loops in the tree
+            # don't bother with non-child Nodes, since they may cause
+            # loops in the tree
             (val.is_a?(Node) && !field.child?)
           str << inspect1(val, "#{field.reader}: ", indent+1, field.child?)
         end

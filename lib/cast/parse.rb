@@ -1,45 +1,43 @@
-###
-### ##################################################################
-###
-### C.default_parser and the parse_* methods.
-###
-### Yeah, this could be so much faster.
-###
-### ##################################################################
-###
+######################################################################
+#
+# C.default_parser and the parse_* methods.
+#
+# Yeah, this could be so much faster.
+#
+######################################################################
 
 module C
   @@default_parser = Parser.new
   def self.default_parser
     @@default_parser
   end
-  def self.default_parser= val
+  def self.default_parser=(val)
     @@default_parser = val
   end
 
   class Node
-    ###
-    ### Return true if `str' is parsed to something `==' to this Node.
-    ### str is first converted to a String using #to_s, then given to
-    ### self.class.parse (along with the optional `parser').
-    ###
-    def match? str, parser=nil
+    #
+    # Return true if `str' is parsed to something `==' to this Node.
+    # str is first converted to a String using #to_s, then given to
+    # self.class.parse (along with the optional `parser').
+    #
+    def match?(str, parser=nil)
       node = self.class.parse(str.to_s, parser) rescue (return false)
       self == node
     end
-    ###
-    ### Same as #match?.
-    ###
-    def =~ *args
+    #
+    # Same as #match?.
+    #
+    def =~(*args)
       match? *args
     end
     private
   end
   class NodeList
-    ###
-    ### As defined in Node.
-    ###
-    def match? arr, parser=nil
+    #
+    # As defined in Node.
+    #
+    def match?(arr, parser=nil)
       arr = arr.to_a
       return false if arr.length != self.length
       each_with_index do |node, i|
@@ -49,19 +47,19 @@ module C
     end
   end
 
-  def self.parse s, parser=nil
+  def self.parse(s, parser=nil)
     TranslationUnit.parse(s, parser)
   end
 
   class TranslationUnit
-    def self.parse s, parser=nil
+    def self.parse(s, parser=nil)
       parser ||= C.default_parser
       parser.parse(s)
     end
   end
 
   class Declaration
-    def self.parse s, parser=nil
+    def self.parse(s, parser=nil)
       parser ||= C.default_parser
       ents = parser.parse(s).entities
       if ents.length == 1 &&          # int i; int j;
@@ -74,7 +72,7 @@ module C
   end
 
   class Parameter
-    def self.parse s, parser=nil
+    def self.parse(s, parser=nil)
       parser ||= C.default_parser
       ents = parser.parse("void f(#{s}) {}").entities
       if ents.length == 1              &&  # ) {} void (
@@ -94,7 +92,7 @@ module C
   end
 
   class Declarator
-    def self.parse s, parser=nil
+    def self.parse(s, parser=nil)
       parser ||= C.default_parser
       ents = parser.parse("int #{s};").entities
       if ents.length == 1 &&               # f; int f;
@@ -107,7 +105,7 @@ module C
   end
 
   class FunctionDef
-    def self.parse s, parser=nil
+    def self.parse(s, parser=nil)
       parser ||= C.default_parser
       ents = parser.parse(s).entities
       if ents.length == 1 &&          # void f(); void g();
@@ -120,7 +118,7 @@ module C
   end
 
   class Enumerator
-    def self.parse s, parser=nil
+    def self.parse(s, parser=nil)
       parser ||= C.default_parser
       ents = parser.parse("enum {#{s}};").entities
       if ents.length == 1            &&     # } enum {
@@ -134,7 +132,7 @@ module C
   end
 
   class MemberInit
-    def self.parse s, parser=nil
+    def self.parse(s, parser=nil)
       parser ||= C.default_parser
       ents = parser.parse("int f() {struct s x = {#{s}};}").entities
       if ents.length == 1                              &&  # } int f() {
@@ -149,7 +147,7 @@ module C
   end
 
   class Member
-    def self.parse s, parser=nil
+    def self.parse(s, parser=nil)
       parser ||= C.default_parser
       ents = parser.parse("int f() {struct s x = {#{s} = 1;};}").entities
       if ents.length == 1                              &&  # };} int f() {struct s x = {a
@@ -167,12 +165,12 @@ module C
   end
 
   class Statement
-    def self.parse s, parser=nil
+    def self.parse(s, parser=nil)
       parser ||= C.default_parser
       ents = parser.parse("void f() {#{s}}").entities
-      if ents.length == 1         &&      # } void f() {
+      if ents.length == 1               &&      # } void f() {
           ents[0].def.stmts.length == 1 &&      # ;;
-          ents[0].def.stmts[0].is_a?(self) # int i;
+          ents[0].def.stmts[0].is_a?(self)      # int i;
         return ents[0].def.stmts[0].detach
       else
         raise ParseError, "invalid #{self}"
@@ -181,10 +179,10 @@ module C
   end
 
   class Label
-    def self.parse s, parser=nil
+    def self.parse(s, parser=nil)
       parser ||= C.default_parser
       ents = parser.parse("void f() {switch (0) #{s};}").entities
-      if ents.length == 1                        &&  # } void f() {
+      if ents.length == 1                              &&  # } void f() {
           ents[0].def.stmts.length == 1                &&  # ;
           ents[0].def.stmts[0].stmt                    &&  #
           ents[0].def.stmts[0].stmt.labels.length == 1 &&  # x
@@ -197,11 +195,11 @@ module C
   end
 
   class Expression
-    def self.parse s, parser=nil
+    def self.parse(s, parser=nil)
       parser ||= C.default_parser
       ents = parser.parse("void f() {#{s};}").entities
-      if ents.length == 1                  &&  # } void f() {
-          ents[0].def.stmts.length == 1          &&  # ;
+      if ents.length == 1                                 &&  # } void f() {
+          ents[0].def.stmts.length == 1                   &&  # ;
           ents[0].def.stmts[0].is_a?(ExpressionStatement) &&  # int i
           ents[0].def.stmts[0].expr.is_a?(self)
         return ents[0].def.stmts[0].expr.detach
@@ -212,10 +210,10 @@ module C
   end
 
   class Type
-    def self.parse s, parser=nil
+    def self.parse(s, parser=nil)
       parser ||= C.default_parser
       ents = parser.parse("void f() {(#{s})x;}").entities
-      if ents.length == 1                  &&  # 1);} void f() {(int
+      if ents.length == 1                        &&  # 1);} void f() {(int
           ents[0].def.stmts.length == 1          &&  # 1); (int
           ents[0].def.stmts[0].expr.type.is_a?(self)
         return ents[0].def.stmts[0].expr.type.detach
@@ -225,7 +223,7 @@ module C
     end
   end
 
-  #### Make sure we didn't miss any
+  # Make sure we didn't miss any
   CORE_C_NODE_CLASSES.each do |c|
     c.methods.include? 'parse' or
       raise "#{c}#parse not defined"

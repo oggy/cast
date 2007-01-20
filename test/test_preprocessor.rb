@@ -1,4 +1,4 @@
-## publicize the private methods so we can test them easily
+# publicize the private methods so we can test them easily
 class C::Preprocessor
   public :shellquote, :full_command
   self.command = 'cpp -E'

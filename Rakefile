@@ -1,4 +1,4 @@
-### -*- mode: ruby -*-
+# -*- mode: ruby -*-
 
 task :default => :test
 
@@ -9,7 +9,7 @@ require 'rbconfig'
 dlext = (Config::CONFIG['DLEXT'] rescue nil) || 'so'
 FILES = FileList['README', 'ChangeLog', '{lib,ext,doc,test}/**/*', 'ext/yylex.c', 'lib/cast/c.tab.rb']
 
-## cast_ext
+# cast_ext
 file 'ext/cast_ext.so' => FileList['ext/*.c', 'ext/yylex.c'] do |t|
   FileUtils.cd 'ext' do
     ruby 'extconf.rb'
@@ -17,12 +17,12 @@ file 'ext/cast_ext.so' => FileList['ext/*.c', 'ext/yylex.c'] do |t|
   end
 end
 
-## lexer
+# lexer
 file 'ext/yylex.c' => 'ext/yylex.re' do |t|
   sh "re2c #{t.prerequisites[0]} > #{t.name}"
 end
 
-## parser
+# parser
 file 'lib/cast/c.tab.rb' => 'lib/cast/c.y' do |t|
   sh "racc #{t.prerequisites[0]}"
 end
@@ -54,7 +54,7 @@ task :uninstall do
   end
 end
 
-## Gem spec
+# Gem spec
 spec = Gem::Specification.new do |s|
   s.name = 'cast'
   s.summary = "C parser and AST constructor."
@@ -72,10 +72,10 @@ spec = Gem::Specification.new do |s|
   s.has_rdoc = false
 end
 
-### Target: gem
-### Target: package
-### Target: clobber_package
-### Target: repackage
+# Target: gem
+# Target: package
+# Target: clobber_package
+# Target: repackage
 Rake::GemPackageTask.new(spec) do |task|
   task.need_tar = true
   task.need_zip = true

@@ -1,8 +1,8 @@
 ######################################################################
-##
-## Alternative to the standard ruby tempfile library, which lets you
-## specify a filename suffix.
-##
+#
+# Alternative to the standard ruby tempfile library, which lets you
+# specify a filename suffix.
+#
 ######################################################################
 
 require 'delegate'

@@ -1,13 +1,11 @@
-###
-### ##################################################################
-###
-### Parser routine tests.  One test for each grammar rule.
-###
-### ##################################################################
-###
+######################################################################
+#
+# Parser routine tests.  One test for each grammar rule.
+#
+######################################################################
 
 class ParserTest < Test::Unit::TestCase
-  def check s
+  def check(s)
     check_ast(s){|inp| C::Parser.new.parse(inp)}
   end
 
@@ -138,31 +136,31 @@ TranslationUnit
                         name: "argv"
             name: "main"
 EOS
-    ## non-function type
+    # non-function type
     assert_raise(C::ParseError){C::Parser.new.parse("int f {}")}
 
-    ## both prototype and declist
+    # both prototype and declist
     assert_raise(C::ParseError){C::Parser.new.parse("void f(int argc, int argv) int argc, argv; {}")}
     assert_raise(C::ParseError){C::Parser.new.parse("void f(int argc, argv) int argv; {}")}
 
-    ## bad param name
+    # bad param name
     assert_raise(C::ParseError){C::Parser.new.parse("void f(argc, argv) int argx, argc; {}")}
     assert_raise(C::ParseError){C::Parser.new.parse("void f(argc, argv) int argx, argc, argv; {}")}
 
-    ## type missing
+    # type missing
     assert_raise(C::ParseError){C::Parser.new.parse("void f(argc, argv) int argc; {}")}
 
-    ## bad storage
+    # bad storage
     assert_raise(C::ParseError){C::Parser.new.parse("typedef void f(argc, argv) int argc; {}")}
     assert_raise(C::ParseError){C::Parser.new.parse("auto void f(argc, argv) int argc; {}")}
     assert_raise(C::ParseError){C::Parser.new.parse("register void f(argc, argv) int argc; {}")}
 
-    ## duplicate storages
+    # duplicate storages
     assert_raise(C::ParseError){C::Parser.new.parse("static  auto     int i;")}
     assert_raise(C::ParseError){C::Parser.new.parse("static  extern   int i;")}
     assert_raise(C::ParseError){C::Parser.new.parse("typedef register int i;")}
 
-    ## `inline' can be repeated
+    # `inline' can be repeated
     assert_nothing_raised{C::Parser.new.parse("inline inline int i() {}")}
   end
 
@@ -833,12 +831,12 @@ TranslationUnit
                 - Declarator
                     name: "j"
 EOS
-    ## duplicate storages
+    # duplicate storages
     assert_raise(C::ParseError){C::Parser.new.parse("static  auto     int     ;")}
     assert_raise(C::ParseError){C::Parser.new.parse("static  extern   int i   ;")}
     assert_raise(C::ParseError){C::Parser.new.parse("typedef register int i, j;")}
 
-    ## `inline' can be repeated
+    # `inline' can be repeated
     assert_nothing_raised{C::Parser.new.parse("inline inline int f();")}
   end
 
@@ -1150,7 +1148,7 @@ TranslationUnit
             type: CustomType
                 name: "I"
 EOS
-    ## some illegal combos
+    # some illegal combos
     assert_raise(C::ParseError){C::Parser.new.parse("int float;")}
     assert_raise(C::ParseError){C::Parser.new.parse("struct s {} int;")}
     assert_raise(C::ParseError){C::Parser.new.parse("_Complex;")}
@@ -1300,7 +1298,7 @@ TranslationUnit
                         expr: Sizeof
                             expr: Int (const)
 EOS
-    ## quals can be repeated
+    # quals can be repeated
     assert_nothing_raised{C::Parser.new.parse("void f() {sizeof(const const int);}")}
   end
 
@@ -1561,7 +1559,7 @@ EOS
   end
 
   def test_direct_declarator
-    ## TODO
+    # TODO
   end
 
   def test_pointer
@@ -1817,7 +1815,7 @@ EOS
   end
 
   def test_direct_abstract_declarator
-    ## TODO
+    # TODO
   end
 
   def test_typedef_name

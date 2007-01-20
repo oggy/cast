@@ -1,29 +1,21 @@
-###
-### ##################################################################
-###
-### NodeList and subclasses.
-###
-### ##################################################################
-###
+######################################################################
+#
+# NodeList and subclasses.
+#
+######################################################################
 
 module C
-  ## Declare all the classes, so we don't have to declare the
-  ## inheritances later.
+  # Declare all the classes, so we don't have to declare the
+  # inheritances later.
   class NodeList < Node; abstract; end
   class NodeArray < NodeList; end
   class NodeChain < NodeList; end
 
-  ###
-  ### ================================================================
-  ###
-  ###                             NodeList
-  ###
-  ###   Abstract base class of the Node list classes.
-  ###
-  ### ================================================================
-  ###
+  #
+  # Abstract base class of the Node list classes.
+  #
   class NodeList
-    def self.[] *args
+    def self.[](*args)
       new.concat(args)
     end
 
@@ -32,11 +24,11 @@ module C
       length
     end
 
-    def == other
+    def ==(other)
       return false if !other.is_a? C::NodeList
 
-      ## none of the NodeList classes here have fields, but there's no
-      ## reason why one can't subclass one to have fields
+      # none of the NodeList classes here have fields, but there's no
+      # reason why one can't subclass one to have fields
       fields.each do |field|
         mine  = self .send(field.reader)
         yours = other.send(field.reader)
@@ -69,23 +61,23 @@ module C
 
     protected  # -----------------------------------------------------
 
-    ###
-    ### Return `[i, n, splat?]', where if `args' is used as an index
-    ### to ::Array#[]=, it is equivalent to calling:
-    ###
-    ###   val = args.pop
-    ###   if splat?
-    ###     array[i, n] = *val
-    ###   else
-    ###     array[i, n] = val
-    ###   end
-    ###
-    def parse_index *args
-      ## what we must do:
-      ##
-      ##   -- move numbers into range 0..length-1
-      ##   -- i..j   -->  i...j+1
-      ##   -- i...j  -->  i, j-i
+    #
+    # Return `[i, n, splat?]', where if `args' is used as an index to
+    # ::Array#[]=, it is equivalent to calling:
+    #
+    #   val = args.pop
+    #   if splat?
+    #     array[i, n] = *val
+    #   else
+    #     array[i, n] = val
+    #   end
+    #
+    def parse_index(*args)
+      # what we must do:
+      #
+      #   -- move numbers into range 0..length-1
+      #   -- i..j   -->  i...j+1
+      #   -- i...j  -->  i, j-i
       case args.length
       when 1
         arg = args.first
@@ -110,24 +102,24 @@ module C
       end
     end
 
-    ###
-    ### Wrap the given index if less than 0, and return it.
-    ###
-    def wrap_index i
+    #
+    # Wrap the given index if less than 0, and return it.
+    #
+    def wrap_index(i)
       i < 0 ? (i + length) : i
     end
 
-    ###
-    ### Prepare the given nodes for addition.  This means:
-    ###   -- clone any attached nodes as necessary
-    ###   -- set the nodes' parents to self.
-    ###
-    ### `oldnodes' are the nodes that will be replaced.  These aren't
-    ### cloned the first time they appear in `nodes'.
-    ###
-    ### Return the list of nodes to add.
-    ###
-    def add_prep nodes, oldnodes=nil
+    #
+    # Prepare the given nodes for addition.  This means:
+    #   -- clone any attached nodes as necessary
+    #   -- set the nodes' parents to self.
+    #
+    # `oldnodes' are the nodes that will be replaced.  These aren't
+    # cloned the first time they appear in `nodes'.
+    #
+    # Return the list of nodes to add.
+    #
+    def add_prep(nodes, oldnodes=nil)
       if oldnodes
         oldnodes = oldnodes.map{|n| n.object_id}
         nodes.map! do |node|
@@ -147,16 +139,16 @@ module C
       return nodes
     end
 
-    ###
-    ### Set the parent of `node' to `val'.
-    ###
-    def set_parent node, val
+    #
+    # Set the parent of `node' to `val'.
+    #
+    def set_parent(node, val)
       node.send(:parent=, val)
     end
   end
 
   class NodeArray
-    def assert_invariants testcase
+    def assert_invariants(testcase)
       super
       testcase.assert_same(::Array, @array)
       @array.each_with_index do |node, i|
@@ -185,7 +177,7 @@ module C
   end
 
   class NodeChain
-    def assert_invariants testcase
+    def assert_invariants(testcase)
       super
       assert_same(@length.zero?, @first.nil?)
       assert_same(@length.zero?, @last.nil?)
@@ -238,20 +230,18 @@ module C
     end
   end
 
-  ###
-  ### ----------------------------------------------------------------
-  ###                   Methods called from children
-  ### ----------------------------------------------------------------
-  ###
+  # ------------------------------------------------------------------
+  #                    Methods called from children
+  # ------------------------------------------------------------------
 
   class NodeArray
-    def node_after node
+    def node_after(node)
       node.parent.equal? self or
         raise ArgumentError, "node is not a child"
       @array[index = node.instance_variable_get(:@parent_index)+1]
     end
 
-    def node_before node
+    def node_before(node)
       node.parent.equal? self or
         raise ArgumentError, "node is not a child"
       index = node.instance_variable_get(:@parent_index)
@@ -262,7 +252,7 @@ module C
       end
     end
 
-    def remove_node node
+    def remove_node(node)
       node.parent.equal? self or
         raise ArgumentError, "node is not a child"
       index = node.instance_variable_get(:@parent_index)
@@ -273,21 +263,21 @@ module C
       return self
     end
 
-    def insert_after node, *newnodes
+    def insert_after(node, *newnodes)
       node.parent.equal? self or
         raise ArgumentError, "node is not a child"
       index = node.instance_variable_get(:@parent_index) + 1
       insert(index, *newnodes)
       return self
     end
-    def insert_before node, *newnodes
+    def insert_before(node, *newnodes)
       node.parent.equal? self or
         raise ArgumentError, "node is not a child"
       index = node.instance_variable_get(:@parent_index)
       insert(index, *newnodes)
       return self
     end
-    def replace_node oldnode, *newnodes
+    def replace_node(oldnode, *newnodes)
       oldnode.parent.equal? self or
         raise ArgumentError, "node is not a child"
       index = oldnode.instance_variable_get(:@parent_index)
@@ -297,27 +287,27 @@ module C
 
     private
 
-    ###
-    ### Adjust the indices of all elements from index `from_i' to the
-    ### end.
-    ###
-    def adjust_indices_ from_i
+    #
+    # Adjust the indices of all elements from index `from_i' to the
+    # end.
+    #
+    def adjust_indices_(from_i)
       (from_i...@array.length).each do |i|
         @array[i].instance_variable_set(:@parent_index, i)
       end
     end
-    ###
-    ### Called when something was added.
-    ###
-    def added_ *nodes
+    #
+    # Called when something was added.
+    #
+    def added_(*nodes)
       nodes.each do |n|
         n.instance_variable_set(:@parent, self)
       end
     end
-    ###
-    ### Called when something was removed.
-    ###
-    def removed_ *nodes
+    #
+    # Called when something was removed.
+    #
+    def removed_(*nodes)
       nodes.each do |n|
         n.instance_variable_set(:@parent, nil)
       end
@@ -325,17 +315,17 @@ module C
   end
 
   class NodeChain
-    def node_after node
+    def node_after(node)
       node.parent.equal? self or
         raise ArgumentError, "node is not a child"
       return node.instance_variable_get(:@next)
     end
-    def node_before node
+    def node_before(node)
       node.parent.equal? self or
         raise ArgumentError, "node is not a child"
       return node.instance_variable_get(:@prev)
     end
-    def remove_node node
+    def remove_node(node)
       node.parent.equal? self or
         raise ArgumentError, "node is not a child"
       node_prev = node.instance_variable_get(:@prev)
@@ -344,7 +334,7 @@ module C
       link2_(node_prev, node_next)
       return self
     end
-    def insert_after node, *newnodes
+    def insert_after(node, *newnodes)
       node.parent.equal? self or
         raise ArgumentError, "node is not a child"
       newnodes = add_prep(newnodes)
@@ -353,7 +343,7 @@ module C
       added_(*newnodes)
       return self
     end
-    def insert_before node, *newnodes
+    def insert_before(node, *newnodes)
       node.parent.equal? self or
         raise ArgumentError, "node is not a child"
       newnodes = add_prep(newnodes)
@@ -362,7 +352,7 @@ module C
       added_(*newnodes)
       return self
     end
-    def replace_node oldnode, *newnodes
+    def replace_node(oldnode, *newnodes)
       oldnode.parent.equal? self or
         raise ArgumentError, "node is not a child"
       newnodes = add_prep(newnodes, [oldnode])
@@ -373,27 +363,25 @@ module C
       added_(*newnodes)
       return self
     end
-    ###
-    ### Called when something was added.
-    ###
-    def added_ *newnodes
+    #
+    # Called when something was added.
+    #
+    def added_(*newnodes)
       newnodes.each{|n| n.instance_variable_set(:@parent, self)}
       @length += newnodes.length
     end
-    ###
-    ### Called when something was removed.
-    ###
-    def removed_ *nodes
+    #
+    # Called when something was removed.
+    #
+    def removed_(*nodes)
       nodes.each{|n| n.instance_variable_set(:@parent, nil)}
       @length -= nodes.length
     end
   end
 
-  ###
-  ### ----------------------------------------------------------------
-  ###                          Array methods
-  ### ----------------------------------------------------------------
-  ###
+  # ------------------------------------------------------------------
+  #                           Array methods
+  # ------------------------------------------------------------------
 
   class NodeArray
     %w[
@@ -408,8 +396,8 @@ module C
        join
     ].each do |m|
       eval "
-      def #{m} *args, &blk
-        @array.#{m} *args, &blk
+      def #{m}(*args, &blk)
+        @array.#{m}(*args, &blk)
       end
       "
     end
@@ -420,8 +408,8 @@ module C
       each_index
     ].each do |m|
       eval "
-      def #{m} *args, &blk
-        @array.#{m} *args, &blk
+      def #{m}(*args, &blk)
+        @array.#{m}(*args, &blk)
         return self
       end
       "
@@ -430,7 +418,7 @@ module C
     def to_a
       @array.dup
     end
-    def push *nodes
+    def push(*nodes)
       nodes = add_prep(nodes)
       i = @array.length
       @array.push(*nodes)
@@ -438,14 +426,14 @@ module C
       adjust_indices_(i)
       return self
     end
-    def unshift *nodes
+    def unshift(*nodes)
       nodes = add_prep(nodes)
       @array.unshift(*nodes)
       added_(*nodes)
       adjust_indices_(0)
       return self
     end
-    def pop *args
+    def pop(*args)
       if args.empty?
         ret = @array.pop
         removed_(ret)
@@ -460,7 +448,7 @@ module C
         return ret
       end
     end
-    def shift *args
+    def shift(*args)
       if args.empty?
         ret = @array.shift
         removed_ ret
@@ -475,7 +463,7 @@ module C
       adjust_indices_(0)
       return ret
     end
-    def insert i, *newnodes
+    def insert(i, *newnodes)
       (0..@array.length).include? i or
         raise IndexError, "index #{i} out of NodeList (length #{@array.length})"
       newnodes = add_prep(newnodes)
@@ -484,14 +472,14 @@ module C
       adjust_indices_(i)
       return self
     end
-    def << newnode
+    def <<(newnode)
       newnode = *add_prep([newnode])
       @array << newnode
       added_(newnode)
       adjust_indices_(@array.length - 1)
       return self
     end
-    def []= *args
+    def []=(*args)
       newnodes = args.pop
       i, n, splat = parse_index(*args)
       oldnodes = @array[i, n] or
@@ -499,7 +487,7 @@ module C
       if splat
         newnodes = add_prep(newnodes, oldnodes)
       else
-        ## newnodes is a single node (not an Array)
+        # newnodes is a single node (not an Array)
         newnodes = add_prep([newnodes], [oldnodes])
       end
       @array[i, n] = newnodes
@@ -513,7 +501,7 @@ module C
       adjust_indices_(i)
       return newnodes
     end
-    def concat other
+    def concat(other)
       other = other.to_a
       other = add_prep(other)
       len = @array.length
@@ -522,7 +510,7 @@ module C
       adjust_indices_(len)
       return self
     end
-    def delete_at index
+    def delete_at(index)
       if index < @array.length
         ret = @array.delete_at(index)
         removed_(ret)
@@ -538,7 +526,7 @@ module C
       removed_(*nodes)
       return self
     end
-    def replace other
+    def replace(other)
       other = other.to_a
       other = add_prep(other)
       oldnodes = @array.dup
@@ -551,10 +539,10 @@ module C
   end
 
   class NodeChain
-    ###
-    ### const methods
-    ###
-    def first n=nil
+    #
+    # const methods
+    #
+    def first(n=nil)
       if n.nil?
         return @first
       else
@@ -568,7 +556,7 @@ module C
         return ret
       end
     end
-    def last n=nil
+    def last(n=nil)
       if n.nil?
         return @last
       else
@@ -610,12 +598,12 @@ module C
       end
       return ret
     end
-    def [] *args
+    def [](*args)
       i, n, splat = parse_index(*args)
       return nil if i >= @length
       node = get_(i)
       if splat
-        ## return an array of Nodes
+        # return an array of Nodes
         n = length-i if n > length-i
         ret = ::Array.new(n) do
           r = node
@@ -624,7 +612,7 @@ module C
         end
         return ret
       else
-        ## return a Node
+        # return a Node
         return node
       end
     end
@@ -635,7 +623,7 @@ module C
     def empty?
       @length.zero?
     end
-    def index node
+    def index(node)
       curr = @first
       i = 0
       while curr
@@ -645,7 +633,7 @@ module C
       end
       return nil
     end
-    def rindex node
+    def rindex(node)
       curr = @last
       i = @length - 1
       while curr
@@ -655,34 +643,34 @@ module C
       end
       return nil
     end
-    def values_at *args
+    def values_at(*args)
       args.map!{|i| self[i]}
     end
-    def join *args
+    def join(*args)
       self.to_a.join(*args)
     end
 
-    ###
-    ### non-const methods
-    ###
-    def push *newnodes
+    #
+    # non-const methods
+    #
+    def push(*newnodes)
       newnodes = add_prep(newnodes)
       added_(*newnodes)
       link_(@last, newnodes, nil)
       return self
     end
-    def << newnode
+    def <<(newnode)
       return push(newnode)
     end
-    def unshift *newnodes
+    def unshift(*newnodes)
       newnodes = add_prep(newnodes)
       added_(*newnodes)
       link_(nil, newnodes, @first)
       return self
     end
-    def pop n=nil
+    def pop(n=nil)
       if n
-        ## return an Array of Nodes
+        # return an Array of Nodes
         ret = last(n)
         return ret if ret.empty?
         link2_(ret.first.instance_variable_get(:@prev), nil)
@@ -690,16 +678,16 @@ module C
         return ret
       else
         return nil if empty?
-        ## return a Node
+        # return a Node
         ret = @last
         link2_(@last.instance_variable_get(:@prev), nil)
         removed_(ret)
         return ret
       end
     end
-    def shift n=nil
+    def shift(n=nil)
       if n
-        ## return an Array of Nodes
+        # return an Array of Nodes
         ret = first(n)
         return ret if ret.empty?
         link2_(nil, ret.last.instance_variable_get(:@next))
@@ -707,14 +695,14 @@ module C
         return ret
       else
         return nil if empty?
-        ## return a Node
+        # return a Node
         ret = @first
         link2_(nil, @first.instance_variable_get(:@next))
         removed_(ret)
         return ret
       end
     end
-    def insert i, *newnodes
+    def insert(i, *newnodes)
       (0..@length).include? i or
         raise IndexError, "index #{i} out of NodeList"
       if i == @length
@@ -723,7 +711,7 @@ module C
         insert_before(self[i], *newnodes)
       end
     end
-    def []= *args
+    def []=(*args)
       newnodes = args.pop
       i, n, splat = parse_index(*args)
       oldnodes = self[i, n] or
@@ -750,10 +738,10 @@ module C
       end
       return newnodes
     end
-    def concat other
+    def concat(other)
       return push(*other.to_a)
     end
-    def delete_at index
+    def delete_at(index)
       node = self[index]
       remove_node(node)
       return node
@@ -764,15 +752,15 @@ module C
       @length = 0
       return self
     end
-    def replace other
+    def replace(other)
       return clear.push(*other.to_a)
     end
 
     private
-    ###
-    ### Link up `nodes' between `a' and `b'.
-    ###
-    def link_ a, nodes, b
+    #
+    # Link up `nodes' between `a' and `b'.
+    #
+    def link_(a, nodes, b)
       if nodes.empty?
         if a.nil?
           @first = b
@@ -785,7 +773,7 @@ module C
           b.instance_variable_set(:@prev, a)
         end
       else
-        ## connect `a' and `b'
+        # connect `a' and `b'
         first = nodes.first
         if a.nil?
           @first = first
@@ -799,7 +787,7 @@ module C
           b.instance_variable_set(:@prev, last)
         end
       
-        ## connect `nodes'
+        # connect `nodes'
         if nodes.length == 1
           node = nodes[0]
           node.instance_variable_set(:@prev, a)
@@ -817,8 +805,10 @@ module C
         end
       end
     end
-    ### Special case for 2
-    def link2_ a, b
+    #
+    # Special case for 2
+    #
+    def link2_(a, b)
       if a.nil?
         @first = b
       else
@@ -830,17 +820,18 @@ module C
         b.instance_variable_set(:@prev, a) unless b.nil?
       end
     end
-    ###
-    ### Return the `i'th Node.  Assume `i' is in 0...length.
-    ###
-    def get_ i
-      ## return a Node
+
+    #
+    # Return the `i'th Node.  Assume `i' is in 0...length.
+    #
+    def get_(i)
+      # return a Node
       if i < (@length >> 1)
-        ## go from the beginning
+        # go from the beginning
         node = @first
         i.times{node = node.next}
       else
-        ## go from the end
+        # go from the end
         node = @last
         (@length - 1 - i).times{node = node.prev}
       end

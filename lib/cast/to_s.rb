@@ -1,25 +1,23 @@
-###
-### ##################################################################
-###
-### The Node#to_s methods.
-###
-### Yeah, this could be so so *SO* much faster.
-###
-### ##################################################################
-###
+######################################################################
+#
+# The Node#to_s methods.
+#
+# Yeah, this could be so so *SO* much faster.
+#
+######################################################################
 
 module C
-  ## undef the #to_s methods so we can check that we didn't forget to
-  ## define any
+  # undef the #to_s methods so we can check that we didn't forget to
+  # define any
   Node.send(:undef_method, :to_s)
 
   INDENT = '    '
   class Node
     private
-    def indent s, levels=1
+    def indent(s, levels=1)
       s.gsub(/^/, INDENT*levels)
     end
-    def hang stmt, cont=false
+    def hang(stmt, cont=false)
       if stmt.is_a? Block
         return " #{stmt.to_s(:hanging)}" << (cont ? ' ' : '')
       else
@@ -69,14 +67,17 @@ module C
     end
   end
 
-  ### Statements
+  # ------------------------------------------------------------------
+  #                             Statements
+  # ------------------------------------------------------------------
+
   class Statement
-    def label str
+    def label(str)
       labels.map{|s| "#{s}:\n"}.join + indent(str)
     end
   end
   class Block
-    def to_s hanging=false
+    def to_s(hanging=false)
       str = stmts.map do |s|
         if s.is_a? Statement
           s.to_s
@@ -180,7 +181,10 @@ module C
     end
   end
 
-  ### Expressions
+  # ------------------------------------------------------------------
+  #                            Expressions
+  # ------------------------------------------------------------------
+
   precedence_table = {}
   [[Comma],
     [Assign, MultiplyAssign, DivideAssign, ModAssign, AddAssign,
@@ -206,14 +210,14 @@ module C
       klass.send(:define_method, :to_s_precedence){|| prec}
     end
   end
-  ## check all Expression classes have a precedence
+  # check all Expression classes have a precedence
   C::Expression.subclasses_recursive do |c|
     next if !C::Node.subclasses_recursive.include? c
     c.instance_methods.include? 'to_s_precedence' or
       raise "#{c}#to_s_precedence not defined"
   end
 
-  ## PrefixExpressions
+  # PrefixExpressions
   [ [Cast       , lambda{"(#{self.type})"}],
     [Address    , lambda{"&"             }],
     [Dereference, lambda{"*"             }],
@@ -232,7 +236,7 @@ module C
       end
     end
   end
-  ## PostfixExpressions
+  # PostfixExpressions
   [ [Arrow      , lambda{"->#{member}"}],
     [Dot        , lambda{".#{member}" }],
     [Index      , lambda{"[#{index}]" }],
@@ -247,7 +251,7 @@ module C
       end
     end
   end
-  ## BinaryExpressions
+  # BinaryExpressions
   [ [Add        , '+' ],
     [Subtract   , '-' ],
     [Multiply   , '*' ],
@@ -273,7 +277,7 @@ module C
       else
         str1 = "#{expr1}"
       end
-      ## all binary expressions are left associative
+      # all binary expressions are left associative
       if expr2.to_s_precedence <= self.to_s_precedence
         str2 = "(#{expr2})"
       else
@@ -282,7 +286,7 @@ module C
       "#{str1} #{op} #{str2}"
     end
   end
-  ## AssignmentExpressions
+  # AssignmentExpressions
   [ [Assign          , ''  ],
     [MultiplyAssign  , '*' ],
     [DivideAssign    , '/' ],
@@ -309,7 +313,7 @@ module C
       "#{lvalstr} #{op}= #{rvalstr}"
     end
   end
-  ## Other Expressions
+  # Other Expressions
   class Sizeof
     def to_s
       if expr.is_a? Expression
@@ -323,7 +327,7 @@ module C
       end
     end
   end
-  ## DirectTypes
+  # DirectTypes
   int_longnesses   = ['short ', '', 'long ', 'long long ']
   float_longnesses = ['float', 'double', 'long double']
   [ [Struct, lambda do
@@ -422,9 +426,9 @@ module C
     end
   end
 
-  ### IndirectTypes
+  ## IndirectTypes
   class Pointer
-    def to_s name=nil
+    def to_s(name=nil)
       str = '*'
       const?    and str << 'const '
       restrict? and str << 'restrict '
@@ -444,7 +448,7 @@ module C
     end
   end
   class Array
-    def to_s name=nil
+    def to_s(name=nil)
       str = "#{name}[#{length}]"
       if type
         type.to_s(str)
@@ -454,7 +458,7 @@ module C
     end
   end
   class Function
-    def to_s name=nil
+    def to_s(name=nil)
       str =
         if params.nil?
           paramstr = ''
@@ -483,7 +487,7 @@ module C
     end
   end
 
-  ### Literals
+  ## Literals
   class StringLiteral
     def to_s
       "\"#{val}\""
@@ -539,7 +543,7 @@ module C
     end
   end
 
-  ## check we didn't miss any
+  # check we didn't miss any
   CORE_C_NODE_CLASSES.each do |c|
     c.method_defined? :to_s or
       raise "#{c}#to_s not defined"

@@ -1,13 +1,13 @@
 ######################################################################
-##
-## Lexer routine tests.  We only test nontrivial tokens, as things
-## like operators are exercised sufficiently in the parser tests
-## (test_parser.rb).
-##
+#
+# Lexer routine tests.  We only test nontrivial tokens, as things like
+# operators are exercised sufficiently in the parser tests
+# (test_parser.rb).
+#
 ######################################################################
 
 class LexerTest < Test::Unit::TestCase
-  def check s
+  def check(s)
     check_ast(s){|inp| C::Parser.new.parse(inp)}
   end
 

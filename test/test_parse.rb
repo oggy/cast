@@ -1,10 +1,8 @@
-###
-### ##################################################################
-###
-### Tests for the parse methods.
-###
-### ##################################################################
-###
+######################################################################
+#
+# Tests for the parse methods.
+#
+######################################################################
 
 class MatchTest < Test::Unit::TestCase
   def setup
@@ -22,21 +20,21 @@ class MatchTest < Test::Unit::TestCase
     i = C::Int.new
     assert_same(false, i.match?('unsigned int'))
     assert_same(false, i.match?('long int'))
-    assert_same(false, i.match?('no int here'))  # shouldn't raise!
+    assert_same(false, i.match?('no int here'))  ## shouldn't raise!
 
     l = C::IntLiteral.new(10)
     assert_same(false, i.match?(10.0))
 
     t = C::CustomType.new('T')
-    ##
+    #
     assert_same(false, t.match?('T'))
-    ##
+    #
     parser = C::Parser.new
     parser.type_names << 'T'
     assert_same(true, t.match?('T', parser))
-    ##
+    #
     assert_same(false, t.match?('T'))
-    ##
+    #
     C.default_parser.type_names << 'T'
     assert_same(true, t.match?('T'))
   end
@@ -62,22 +60,22 @@ class MatchTest < Test::Unit::TestCase
     assert_same(false, list.match?([['int']]))
 
     t = C::NodeArray[C::CustomType.new('T')]
-    ##
+    #
     assert_same(false, t.match?(['T']))
-    ##
+    #
     parser = C::Parser.new
     parser.type_names << 'T'
     assert_same(true, t.match?(['T'], parser))
-    ##
+    #
     assert_same(false, t.match?(['T']))
-    ##
+    #
     C.default_parser.type_names << 'T'
     assert_same(true, t.match?(['T']))
   end
 end
 
 class ParseTests < Test::Unit::TestCase
-  def check klass, s
+  def check(klass, s)
     check_ast(s){|inp| klass.parse(inp)}
   end
 
