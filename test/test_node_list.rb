@@ -543,7 +543,7 @@ module NodeListChildManagementTests
     check_list(b, b1, b2, b3, b4, b5)
   end
 
-  def insert_one_into_two
+  def test_insert_one_into_two
     a1, a2, a3 = 3.of{C::Int.new}
     b1, b2, b3 = 3.of{C::Int.new}
     c1, c2, c3 = 3.of{C::Int.new}
@@ -1997,7 +1997,7 @@ module NodeListModifierTests
     assert_same_list([b1, b2, b3, b4, b5], b)
   end
 
-  def insert_one_into_two
+  def test_insert_one_into_two
     a1, a2, a3 = 3.of{C::Int.new}
     b1, b2, b3 = 3.of{C::Int.new}
     c1, c2, c3 = 3.of{C::Int.new}
@@ -2014,7 +2014,7 @@ module NodeListModifierTests
     assert_same_list([b1, b2, b3], b)
 
     # middle
-    c.insert1(c1, c3)
+    c.insert(1, c3)
     assert_same_list([c1, c3, c2], c)
   end
 
