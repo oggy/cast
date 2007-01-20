@@ -1,3 +1,8 @@
+2007-01-20  George Ogata  <george.ogata@gmail.com>
+
+	* lib/cast/parse.rb (Declarator::self.parse): Allow specification
+	of #num_bits.
+
 2006-05-07  George Ogata  <george.ogata@gmail.com>
 
 	* lib/cast/preprocessor.rb: Added C::Preprocessor, a preprocessor

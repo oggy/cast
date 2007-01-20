@@ -94,10 +94,13 @@ module C
   class Declarator
     def self.parse(s, parser=nil)
       parser ||= C.default_parser
-      ents = parser.parse("int #{s};").entities
-      if ents.length == 1 &&               # f; int f;
-          ents[0].declarators.length == 1  # i,j
-        return ents[0].declarators[0].detach
+      # declare in a struct so we can populate num_bits
+      ents = parser.parse("struct {int #{s};};").entities
+      if ents.length == 1 &&                              # i;}; struct {int i
+          ents[0].is_a?(Declaration) &&                   # i;} *f() {
+          ents[0].type.members.length == 1 &&             # i; int j
+          ents[0].type.members[0].declarators.length == 1 # i,j
+        return ents[0].type.members[0].declarators[0].detach
       else
         raise ParseError, "invalid Declarator"
       end
