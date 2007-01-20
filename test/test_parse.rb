@@ -198,6 +198,14 @@ Declarator
         val: 2
 EOS
     check C::Declarator, <<EOS
+x = 2
+----
+Declarator
+    name: "x"
+    init: IntLiteral
+        val: 2
+EOS
+    check C::Declarator, <<EOS
 *x(int argc, char **argv)
 ----
 Declarator
@@ -214,8 +222,10 @@ Declarator
                 name: "argv"
     name: "x"
 EOS
-    assert_raise(C::ParseError){C::Declarator.parse('i;}; struct {int i')}
-    assert_raise(C::ParseError){C::Declarator.parse('i; int j')}
+    assert_raise(C::ParseError){C::Declarator.parse('i:1;}; struct {int i')}
+    assert_raise(C::ParseError){C::Declarator.parse('i:1; int j')}
+    assert_raise(C::ParseError){C::Declarator.parse('i:1,j')}
+    assert_raise(C::ParseError){C::Declarator.parse('f; int f;')}
     assert_raise(C::ParseError){C::Declarator.parse('i,j')}
     assert_raise(C::ParseError){C::Declarator.parse(';')}
     assert_raise(C::ParseError){C::Declarator.parse('')}
