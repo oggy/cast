@@ -1,5 +1,24 @@
 2007-01-21  George Ogata  <george.ogata@gmail.com>
 
+	* test/test_render.rb: Born.  (Tests for #to_s, which will be
+	shortly renamed #render.)
+
+	* lib/cast/to_s.rb: Fixes for bugs found while testing:
+	(Node#hang): Don't hang labelled blocks.
+	(FunctionDef#to_s): Don't print types in parameter list of
+	no_prototype? is true.
+	({PlainLabel,Default,Case}#to_s): Print ':' with label name.
+	({Address,Positive,Negative}#to_s): Separate operators for nested
+	unary expressions (e.g., "& &a" instead of "&&a", since "&&" is a
+	different operator.
+	(Sizeof#to_s): Always print parentheses with sizeof.  (C99 doesn't
+	mandate them, but seems to be a stylistic preference.)
+	(Char#to_s): Distinguish between 'signed', 'unsigned', and
+	unqualified chars.  (C99 does distinguish between them.)
+	({Bool,Complex,Imaginary}#to_s): Print longness correctly.
+	(Conditional#to_s): Handle nested Conditionals correctly.
+	(MemberInit#to_s): Print member correctly.
+
 	* lib/cast/parse.rb (Member.parse): Fix Member.parse.
 	(Expression.parse): Support CompoundLiterals without types (as
 	allowed in declarators only).

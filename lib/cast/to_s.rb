@@ -18,7 +18,7 @@ module C
       s.gsub(/^/, INDENT*levels)
     end
     def hang(stmt, cont=false)
-      if stmt.is_a? Block
+      if stmt.is_a?(Block) && stmt.labels.empty?
         return " #{stmt.to_s(:hanging)}" << (cont ? ' ' : '')
       else
         return "\n#{stmt.to_s}" << (cont ? "\n" : '')
@@ -56,7 +56,7 @@ module C
       static? and str << 'static '
       inline? and str << 'inline '
       if no_prototype?
-        str << "#{type.to_s(name)}\n"
+        str << "#{type.to_s(name, true)}\n"
         type.params.each do |p|
           str << indent("#{p.to_s};\n")
         end
@@ -73,7 +73,7 @@ module C
 
   class Statement
     def label(str)
-      labels.map{|s| "#{s}:\n"}.join + indent(str)
+      labels.map{|s| "#{s}\n"}.join + indent(str)
     end
   end
   class Block
@@ -167,17 +167,17 @@ module C
 
   class PlainLabel
     def to_s
-      name.to_s
+      "#{name}:"
     end
   end
   class Default
     def to_s
-      'default'
+      'default:'
     end
   end
   class Case
     def to_s
-      "case #{expr}"
+      "case #{expr}:"
     end
   end
 
@@ -218,19 +218,21 @@ module C
   end
 
   # PrefixExpressions
-  [ [Cast       , lambda{"(#{self.type})"}],
-    [Address    , lambda{"&"             }],
-    [Dereference, lambda{"*"             }],
-    [Positive   , lambda{"+"             }],
-    [Negative   , lambda{"-"             }],
-    [PreInc     , lambda{"++"            }],
-    [PreDec     , lambda{"--"            }],
-    [BitNot     , lambda{"~"             }],
-    [Not        , lambda{"!"             }]
-  ].each do |c, proc|
+  [ [Cast       , lambda{"(#{self.type})"}, false],
+    [Address    , lambda{"&"             }, true ],
+    [Dereference, lambda{"*"             }, false],
+    [Positive   , lambda{"+"             }, true ],
+    [Negative   , lambda{"-"             }, true ],
+    [PreInc     , lambda{"++"            }, false],
+    [PreDec     , lambda{"--"            }, false],
+    [BitNot     , lambda{"~"             }, false],
+    [Not        , lambda{"!"             }, false]
+  ].each do |c, proc, space_needed|
     c.send(:define_method, :to_s) do | |
       if expr.to_s_precedence < self.to_s_precedence
         return "#{instance_eval(&proc)}(#{expr})"
+      elsif space_needed && expr.class == self.class
+        return "#{instance_eval(&proc)} #{expr}"
       else
         return "#{instance_eval(&proc)}#{expr}"
       end
@@ -316,15 +318,7 @@ module C
   # Other Expressions
   class Sizeof
     def to_s
-      if expr.is_a? Expression
-        if expr.to_s_precedence < self.to_s_precedence
-          return "sizeof(#{expr})"
-        else
-          return "sizeof #{expr}"
-        end
-      else
-        return "sizeof(#{expr})"
-      end
+      "sizeof(#{expr})"
     end
   end
   # DirectTypes
@@ -355,10 +349,10 @@ module C
         "#{unsigned? ? 'unsigned ' : ''}#{longness_str}int"
       end],
     [Float     , lambda{float_longnesses[longness].dup}],
-    [Char      , lambda{"#{unsigned? ? 'unsigned ' : ''}char"}],
-    [Bool      , lambda{'_Bool'     }],
-    [Complex   , lambda{'_Complex'  }],
-    [Imaginary , lambda{'_Imaginary'}]
+    [Char      , lambda{"#{unsigned? ? 'unsigned ' : signed? ? 'signed ' : ''}char"}],
+    [Bool      , lambda{"_Bool"     }],
+    [Complex   , lambda{"_Complex #{float_longnesses[longness]}"}],
+    [Imaginary , lambda{"_Imaginary #{float_longnesses[longness]}"}]
   ].each do |c, x|
     c.send(:define_method, :to_s) do |*args|
       case args.length
@@ -398,7 +392,7 @@ module C
     def to_s
       strs = [:cond, :then, :else].map do |child|
         val = send(child)
-        if val.to_s_precedence < self.to_s_precedence
+        if val.to_s_precedence <= self.to_s_precedence
           "(#{val})"
         else
           "#{val}"
@@ -458,14 +452,18 @@ module C
     end
   end
   class Function
-    def to_s(name=nil)
+    def to_s(name=nil, no_types=false)
       str =
         if params.nil?
           paramstr = ''
         elsif params.empty?
           paramstr = 'void'
         else
-          paramstr = params.join(', ')
+          if no_types
+            paramstr = params.map{|p| p.name}.join(', ')
+          else
+            paramstr = params.join(', ')
+          end
         end
       var_args? and paramstr << ', ...'
       str = "#{name}(#{paramstr})"
@@ -517,7 +515,7 @@ module C
             ".#{m}"
           end
         end
-        str << member.join(' ') << ' = '
+        str << memberstr.join(' ') << ' = '
       end
       return str << init.to_s
     end
