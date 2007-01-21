@@ -1,3 +1,4 @@
+<!-- OMG, a ruby page with no red on it! -->
 <html>
 <head>
   <title>CAST -- Ruby's C parsing dog.  Woof.</title>
@@ -153,7 +154,7 @@ parser.pos.filename = "toy.c"      <span class="code_comment"># used for error m
 parser.type_names << 'LinkedList'  <span class="code_comment"># treat these words as types</span>
 
 <span class="code_comment">## gimme a tree</span>
-ugly_c_code = open("toy.c"){|f| f.read}
+ugly_c_code = File.read("toy.c")
 tree = parser.parse(ugly_c_code)
 
 <span class="code_comment">## what's the tree look like?</span>
@@ -2386,10 +2387,11 @@ CompoundLiteral
   <tt>Node</tt>s by parsing C code.  Each class -- even the abstract
   classes like <tt>Statement</tt> -- has a <tt>.parse</tt> method:
 <pre class="code_snippet">
-funcdef = C::FunctionDef.parse &lt;&lt;EOS
-void frobnicate(int karma) {
-  use_waffle_iron();
-}
+function_def = C::FunctionDef.parse &lt;&lt;EOS
+  void frobnicate(int karma) {
+    use_waffle_iron();
+  }
+EOS
 
 stmt = C::Statement.parse('while (not_looking) paint_car();')
 </pre>
@@ -2441,11 +2443,6 @@ ast = C.parse(STDIN)
     to run a file through the preprocessor (which you need to do to
     get type names at least once).  Is this stupid?  Ideally we should
     probably have a builtin preprocessor and use that.
-  </li>
-  <li>
-    Should a <tt>Member</tt> be allowed in <tt>MemberInit#member</tt>?
-    It'd be the common case, but special cases make uniform treatment
-    more arduous.  Is "uniform treatment" an issue?
   </li>
 </ul>
 
