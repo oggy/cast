@@ -1976,6 +1976,18 @@ CompoundLiteral
             init: IntLiteral
                 val: 30
 EOS
+    check C::CompoundLiteral, <<EOS
+{1, 2}
+----
+CompoundLiteral
+    member_inits:
+        - MemberInit
+            init: IntLiteral
+                val: 1
+        - MemberInit
+            init: IntLiteral
+                val: 2
+EOS
     assert_raise(C::ParseError){C::CompoundLiteral.parse('} void f() {')}
     assert_raise(C::ParseError){C::CompoundLiteral.parse(';')}
     assert_raise(C::ParseError){C::CompoundLiteral.parse('int i')}

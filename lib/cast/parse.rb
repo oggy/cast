@@ -206,14 +206,28 @@ module C
   class Expression
     def self.parse(s, parser=nil)
       parser ||= C.default_parser
-      ents = parser.parse("void f() {#{s};}").entities
-      if ents.length == 1                                 &&  # } void f() {
-          ents[0].def.stmts.length == 1                   &&  # ;
-          ents[0].def.stmts[0].is_a?(ExpressionStatement) &&  # int i
-          ents[0].def.stmts[0].expr.is_a?(self)
-        return ents[0].def.stmts[0].expr.detach
+      if s =~ /\A(\s*(\/\*.*?\*\/)?)*\{/
+        # starts with a brace -- must be a CompoundLiteral.  in this
+        # case, use a Declarator since only those can handle typeless
+        # CompoundLiterals.
+        ents = parser.parse("int i = #{s};").entities
+        if ents.length == 1                 &&  # 1; int i = 1
+            ents[0].declarators.length == 1 &&  # 1, j = 2
+            ents[0].declarators[0].init.is_a?(self)
+          return ents[0].declarators[0].init.detach
+        else
+          raise ParseError, "invalid #{self}"
+        end
       else
-        raise ParseError, "invalid #{self}"
+        ents = parser.parse("void f() {#{s};}").entities
+        if ents.length == 1                                 &&  # } void f() {
+            ents[0].def.stmts.length == 1                   &&  # ;
+            ents[0].def.stmts[0].is_a?(ExpressionStatement) &&  # int i
+            ents[0].def.stmts[0].expr.is_a?(self)
+          return ents[0].def.stmts[0].expr.detach
+        else
+          raise ParseError, "invalid #{self}"
+        end
       end
     end
   end
