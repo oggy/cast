@@ -2,8 +2,8 @@
 
 task :default => :test
 
+require 'rake/testtask'
 require 'rake/gempackagetask'
-require 'rubygems'
 
 require 'rbconfig'
 dlext = (Config::CONFIG['DLEXT'] rescue nil) || 'so'
@@ -31,8 +31,10 @@ desc "Build."
 task :lib => FileList['lib/cast/*.rb', 'lib/cast/c.tab.rb', 'ext/cast_ext.so']
 
 desc "Run unit tests."
-task :test => [:lib] do
-  sh 'ruby test/run.rb'
+Rake::TestTask.new(:test => :lib) do |t|
+  t.libs << 'ext' << 'test'
+  t.test_files = FileList['test/*_test.rb']
+  t.verbose = true
 end
 
 INSTALL_MAP = {

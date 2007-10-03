@@ -1,17 +1,12 @@
 #!/usr/bin/env ruby
 
+require 'cast'
 require 'test/unit'
 require 'stringio'
 require 'fileutils'
 
-# require cast--ensure we use ../lib, and not some system-wide
-# installed version
-root = File.expand_path('..', File.dirname(__FILE__))
-$:.unshift "#{root}/ext", "#{root}/lib"
-require 'cast'
-
 # a dir to cd into for creating files and such
-TEST_DIR = "#{root}/test/var"
+TEST_DIR = "#{File.dirname(__FILE__)}/var"
 
 # --------------------------------------------------------------------
 #                         Helpers for testing
@@ -193,15 +188,5 @@ module Test::Unit::Assertions
   #
   def assert_invariants(node)
     node.assert_invariants(self)
-  end
-end
-
-# --------------------------------------------------------------------
-#                                 Main
-# --------------------------------------------------------------------
-
-if $0 == __FILE__
-  Dir["#{root}/test/test_*"].each do |filename|
-    require filename
   end
 end

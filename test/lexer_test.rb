@@ -6,6 +6,8 @@
 #
 ######################################################################
 
+require 'test_helper'
+
 class LexerTest < Test::Unit::TestCase
   def check(s)
     check_ast(s){|inp| C::Parser.new.parse(inp)}

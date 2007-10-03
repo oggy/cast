@@ -4,6 +4,8 @@
 #
 ######################################################################
 
+require 'test_helper'
+
 #
 # NodeListTest classes are abstract, inherited by classes which define
 # List() to return a NodeList class.  The tests defined in

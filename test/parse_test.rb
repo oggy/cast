@@ -4,6 +4,8 @@
 #
 ######################################################################
 
+require 'test_helper'
+
 class MatchTest < Test::Unit::TestCase
   def setup
     C.default_parser = C::Parser.new

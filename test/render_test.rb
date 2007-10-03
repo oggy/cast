@@ -4,6 +4,8 @@
 #
 ######################################################################
 
+require 'test_helper'
+
 class RenderTest < Test::Unit::TestCase
   def setup
     # refresh the parser so we can change types per test.

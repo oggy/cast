@@ -1,3 +1,11 @@
+######################################################################
+#
+# Tests for the preprocessor.
+#
+######################################################################
+
+require 'test_helper'
+
 # publicize the private methods so we can test them easily
 class C::Preprocessor
   public :shellquote, :full_command

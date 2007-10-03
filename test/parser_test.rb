@@ -4,6 +4,8 @@
 #
 ######################################################################
 
+require 'test_helper'
+
 class ParserTest < Test::Unit::TestCase
   def check(s)
     check_ast(s){|inp| C::Parser.new.parse(inp)}
