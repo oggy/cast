@@ -61,6 +61,26 @@ EOS
   end
 
   # ------------------------------------------------------------------
+  #                            FunctionDef
+  # ------------------------------------------------------------------
+
+  def test_function_def_initialize
+    fd = C::FunctionDef.new
+    assert fd.def.Block?
+    assert fd.def.stmts.empty?
+  end
+
+  # ------------------------------------------------------------------
+  #                          BlockExpression
+  # ------------------------------------------------------------------
+
+  def test_function_def_initialize
+    expr = C::BlockExpression.new
+    assert expr.block.Block?
+    assert expr.block.stmts.empty?
+  end
+
+  # ------------------------------------------------------------------
   #                      DirectType, IndirectType
   # ------------------------------------------------------------------
 

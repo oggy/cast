@@ -8,13 +8,8 @@ require 'test_helper'
 
 class RenderTest < Test::Unit::TestCase
   def setup
-    # refresh the parser so we can change types per test.
-    C.default_parser = C::Parser.new
-    C.default_parser.type_names << 'T'
-  end
-
-  def teardown
-    C.default_parser = nil
+    @parser = C::Parser.new
+    @parser.type_names << 'T'
   end
 
   #
@@ -23,7 +18,7 @@ class RenderTest < Test::Unit::TestCase
   #
   def check(klass, expected)
     expected = expected.chomp.gsub(/^ *\|/, '')
-    node = klass.parse(expected)
+    node = klass.parse(expected, @parser)
     assert_equal(expected, node.to_s)
   end
 
@@ -708,9 +703,22 @@ class RenderTest < Test::Unit::TestCase
   end
 
   # ------------------------------------------------------------------
+  #                          BlockExpression
+  # ------------------------------------------------------------------
+
+  def test_block_expression
+    @parser.enable_block_expressions
+    check(C::BlockExpression, <<-EOS)
+      |({
+      |    ;
+      |})
+    EOS
+  end
+
+  # ------------------------------------------------------------------
   #                               Index
   # ------------------------------------------------------------------
-  
+
   def test_index
     check(C::Index, <<-EOS)
       |a[0]

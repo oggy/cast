@@ -1,4 +1,4 @@
-<!-- OMG, a ruby page with no red on it! -->
+<!-- OMG, a ruby page with hardly any red on it! -->
 <html>
 <head>
   <title>CAST -- Ruby's C parsing dog.  Woof.</title>
@@ -41,6 +41,7 @@
     color: #447744;
   }
   pre.code_snippet {
+    line-height: 1.2;
     border-style: solid;
     border-color: #000000;
     border-width: 2;
@@ -146,18 +147,18 @@
 <pre class="code_snippet">
 require 'cast/cast'
 
-<span class="code_comment">## create a parser</span>
+<span class="code_comment"># create a parser</span>
 parser = C::Parser.new
 
-<span class="code_comment">## (optional) set some settings...</span>
+<span class="code_comment"># (optional) set some settings...</span>
 parser.pos.filename = "toy.c"      <span class="code_comment"># used for error messages</span>
 parser.type_names << 'LinkedList'  <span class="code_comment"># treat these words as types</span>
 
-<span class="code_comment">## gimme a tree</span>
+<span class="code_comment"># gimme a tree</span>
 ugly_c_code = File.read("toy.c")
 tree = parser.parse(ugly_c_code)
 
-<span class="code_comment">## what's the tree look like?</span>
+<span class="code_comment"># what's the tree look like?</span>
 p tree
 </pre>
 
@@ -439,10 +440,10 @@ p tree
   need.  Example:
 </p>
 <pre class="code_snippet">
-<span class="code_comment">## make a tree</span>
+<span class="code_comment"># make a tree</span>
 ast = C::Parser.new.parse(code_string)
 
-<span class="code_comment">## print all global variables</span>
+<span class="code_comment"># print all global variables</span>
 ast.entities.each do |node|
   node.<span class="code_highlight">Declaration?</span> or next
   node.declarators.each do |decl|
@@ -2360,6 +2361,17 @@ CompoundLiteral
     <td class="nd_values"><tt>0</tt>, <tt>1</tt>, <tt>2</tt></td>
     <td class="nd_default"><tt>0</tt></td>
   </tr>
+  <tr class="node_desc_evenrow">
+    <td class="nd_class" rowspan="1"><tt>BlockExpression</tt></td>
+    <td class="nd_field"><tt>block</tt></td>
+    <td class="nd_child">Y</td>
+    <td class="nd_values"><tt>Block</tt></td>
+    <td class="nd_default"><tt>Block.new</tt></td>
+    <td class="nd_comments" rowspan="1">
+      Only if the <tt>block_expressions</tt> extension is enabled.
+      See "Extensions" section below.
+    </td>
+  </tr>
 </tbody></table>
 
 <h3>Node Construction</h3>
@@ -2387,20 +2399,20 @@ CompoundLiteral
   <tt>Node</tt>s by parsing C code.  Each class -- even the abstract
   classes like <tt>Statement</tt> -- has a <tt>.parse</tt> method:
 <pre class="code_snippet">
-function_def = C::FunctionDef.parse &lt;&lt;EOS
+function_def = C::FunctionDef.<span class="code_highlight">parse</span> &lt;&lt;EOS
   void frobnicate(int karma) {
     use_waffle_iron();
   }
 EOS
 
-stmt = C::Statement.parse('while (not_looking) paint_car();')
+stmt = C::Statement.<span class="code_highlight">parse</span>('while (not_looking) paint_car();')
 </pre>
 </p>
 <p>
   Need to tell it to treat <tt>WaffleIron</tt> as a type name?  All
   those <tt>parse</tt> methods use <tt>C.default_parser</tt>:
 <pre class="code_snippet">
-C.default_parser.type_names << 'WaffleIron'
+<span class="code_highlight">C.default_parser</span>.type_names << 'WaffleIron'
 type = C::Type.parse('WaffleIron')
 </pre>
 
@@ -2410,7 +2422,7 @@ parser:</p>
 <pre class="code_snippet">
 parser = C::Parser.new
 parser.type_names << 'WaffleIron'
-type = C::Type.parse('WaffleIron', parser)
+type = C::Type.parse('WaffleIron', <span class="code_highlight">parser</span>)
 </pre>
 </p>
 <p>
@@ -2425,6 +2437,30 @@ ast = C.parse(STDIN)
   C::Parser.new; parser.parse(...)</tt> was actually all a charade to
   make you type more.  I so own you.
 </p>
+
+<a name="open_issues"></a><h2>Extensions</h2>
+<p>
+  CAST has developed extensions!  To the C99 grammar, I mean.
+</p>
+<ul>
+  <li>
+    <tt>Type</tt>s are allowed as function arguments.  This lets you
+    parse macros like <tt>va_arg()</tt>.
+  </li>
+  <li>
+    <tt>Block</tt>s in parentheses are allowed as expressions (<a
+    href="http://gcc.gnu.org/onlinedocs/gcc-4.2.1/gcc/Statement-Exprs.html#Statement-Exprs">a
+    gcc extension</a>).  You need to call
+    <tt>#enable_block_expressions</tt> on the parser first.  They pop
+    out as <tt>BlockExpression</tt> nodes.
+
+<pre class="code_snippet">
+C.default_parser.<span class="code_highlight">enable_block_expressions</span>
+node = C.parse 'char *brag(void) { return <span class="code_highlight">({"I\'m tricky!";})</span>; }'
+node.entities[0].def.stmts.last.expr.class  <span class="code_comment"># => C::BlockExpression</span>
+</pre>
+  </li>
+</ul>
 
 <a name="open_issues"></a><h2>Open Issues</h2>
 <ul>

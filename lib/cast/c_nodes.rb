@@ -51,6 +51,7 @@ module C
   class Comma                < Expression          ; end
   class Conditional          < Expression          ; end
   class Variable             < Expression          ; end
+  class BlockExpression      < Expression          ; end
 
   class Index                < PostfixExpression   ; end
   class Call                 < PostfixExpression   ; end
@@ -337,6 +338,11 @@ module C
   class Variable
     field :name
     initializer :name
+  end
+
+  class BlockExpression
+    child :block, lambda{Block.new}
+    initializer :block
   end
 
   # ------------------------------------------------------------------
@@ -991,6 +997,7 @@ module C
     Comma,
     Conditional,
     Variable,
+    BlockExpression,
 
     Index,
     Call,

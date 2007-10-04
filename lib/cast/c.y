@@ -335,17 +335,20 @@ designator_list
 
 # Returns {Pos, Expression|Member}
 designator
-  : LBRACKET constant_expression RBRACKET {result = [val[1].pos, val[1]    ]}
+  : LBRACKET constant_expression RBRACKET {result = [val[1].pos, val[1]                               ]}
   | DOT identifier                        {result = [val[1].pos, Member.new_at(val[1].pos, val[1].val)]}
 
 # A.2.1 Expressions
 
 # Returns Expression
 primary_expression
-  : identifier               {result = Variable.new_at(val[0].pos, val[0].val)}
-  | constant                 {result = val[0]}
-  | string_literal           {result = val[0]}
-  | LPAREN expression RPAREN {result = val[1]}
+  : identifier                                     {result = Variable.new_at(val[0].pos, val[0].val)}
+  | constant                                       {result = val[0]}
+  | string_literal                                 {result = val[0]}
+  # GCC EXTENSION: allow a compound statement in parentheses as an expression
+  | LPAREN expression         RPAREN {result = val[1]}
+  | LPAREN compound_statement RPAREN {block_expressions_enabled? or parse_error val[0].pos, "compound statement found where expression expected"
+                                      result = BlockExpression.new(val[1]); result.pos = val[0].pos}
 
 # Returns Expression
 postfix_expression
@@ -360,12 +363,12 @@ postfix_expression
   | LPAREN type_name RPAREN LBRACE initializer_list RBRACE         {result = CompoundLiteral.new_at(val[0].pos, val[1], val[4])}
   | LPAREN type_name RPAREN LBRACE initializer_list COMMA RBRACE   {result = CompoundLiteral.new_at(val[0].pos, val[1], val[4])}
 
-# Returns [Expression|Type] -- allow type names here too -- TODO: add an option to disallow this
+# Returns [Expression|Type]
 argument_expression_list
   : argument_expression                                {result = NodeArray[val[0]]}
   | argument_expression_list COMMA argument_expression {result = val[0] << val[2]}
 
-# Returns Expression|Type
+# Returns Expression|Type -- EXTENSION: allow type names here too, to support some standard library macros (e.g., va_arg [7.15.1.1])
 argument_expression
   : assignment_expression {result = val[0]}
   | type_name             {result = val[0]}
@@ -605,6 +608,25 @@ restrict return short signed sizeof static struct switch typedef union
                   "parse error on #{token_to_str(error_token_id)} (#{error_value.val})")
     end
   end
+
+  def self.feature(name)
+    attr_writer "#{name}_enabled"
+    class_eval <<-EOS
+      def enable_#{name}
+        @#{name}_enabled = true
+      end
+      def #{name}_enabled?
+        @#{name}_enabled
+      end
+    EOS
+  end
+  private_class_method :feature
+
+  #
+  # Allow blocks in parentheses as expressions, as per the gcc
+  # extension.  [http://rubyurl.com/iB7]
+  #
+  feature :block_expressions
 
   private  # ---------------------------------------------------------
 

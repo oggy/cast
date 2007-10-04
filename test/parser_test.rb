@@ -8,7 +8,19 @@ require 'test_helper'
 
 class ParserTest < Test::Unit::TestCase
   def check(s)
-    check_ast(s){|inp| C::Parser.new.parse(inp)}
+    check_ast(s){|inp| @parser.parse(inp)}
+  end
+
+  def setup
+    @parser = C::Parser.new
+  end
+
+  def test_features
+    assert !@parser.block_expressions_enabled?
+    @parser.enable_block_expressions
+    assert  @parser.block_expressions_enabled?
+    @parser.block_expressions_enabled = false
+    assert !@parser.block_expressions_enabled?
   end
 
   def test_comments
@@ -2066,6 +2078,34 @@ TranslationUnit
                     - ExpressionStatement
                         expr: IntLiteral
                             val: 1
+EOS
+  end
+
+  def test_primary_expression_block_expression
+    src = <<EOS
+void f() {
+  ({;});
+}
+EOS
+    assert_raise(C::ParseError){@parser.parse(src)}
+
+    @parser.enable_block_expressions
+    check <<EOS
+#{src}
+----
+TranslationUnit
+    entities:
+        - FunctionDef
+            type: Function
+                type: Void
+            name: "f"
+            def: Block
+                stmts:
+                    - ExpressionStatement
+                        expr: BlockExpression
+                            block: Block
+                                stmts:
+                                    - ExpressionStatement
 EOS
   end
 

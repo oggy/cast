@@ -540,6 +540,12 @@ module C
       name.dup
     end
   end
+  class BlockExpression
+    def to_s
+      # note that the grammar does not allow the block to have a label
+      "(#{block.to_s(:hanging)})"
+    end
+  end
 
   # check we didn't miss any
   CORE_C_NODE_CLASSES.each do |c|
