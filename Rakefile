@@ -37,6 +37,11 @@ Rake::TestTask.new(:test => :lib) do |t|
   t.verbose = true
 end
 
+desc "Run irb with cast loaded."
+task :irb => :lib do
+  sh 'irb -Ilib:ext -rcast'
+end
+
 INSTALL_MAP = {
   File.expand_path('lib/cast')              => "#{Config::CONFIG['sitelibdir']}/cast",
   File.expand_path('lib/cast.rb')           => "#{Config::CONFIG['sitelibdir']}/cast.rb",
