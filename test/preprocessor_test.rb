@@ -9,7 +9,6 @@ require 'test_helper'
 # publicize the private methods so we can test them easily
 class C::Preprocessor
   public :shellquote, :full_command
-  self.command = 'cpp -E'
 end
 class PreprocessorTest < Test::Unit::TestCase
   attr_accessor :cpp
@@ -36,9 +35,13 @@ class PreprocessorTest < Test::Unit::TestCase
     assert_equal("\"a\\\\\\$\\\"'\"", cpp.shellquote("a\\$\"'"))
   end
   def test_full_command
-    assert_equal("cpp -E -Idir1 '-Idir 2' -DI=5 '-DS=\"blah\"' " <<
+    original_command = C::Preprocessor.command
+    C::Preprocessor.command = 'COMMAND'
+    assert_equal("COMMAND -Idir1 '-Idir 2' -DI=5 '-DS=\"blah\"' " <<
                    "'-DSWAP(a,b)=a ^= b ^= a ^= b' -DV 'a file.c'",
                  cpp.full_command('a file.c'))
+  ensure
+    C::Preprocessor.command = original_command
   end
   def test_preprocess
     output = cpp.preprocess("I S SWAP(x, y)")
