@@ -849,7 +849,7 @@ module C
       self.unsigned = !val
     end
     def short?
-      longness.equal? -1
+      longness.equal?(-1)
     end
     def plain?
       longness.equal? 0

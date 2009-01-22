@@ -29,7 +29,7 @@ module C
     # Same as #match?.
     #
     def =~(*args)
-      match? *args
+      match?(*args)
     end
     private
   end

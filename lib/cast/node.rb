@@ -140,7 +140,7 @@ module C
     def depth_first(&blk)
       catch :prune do
         yield :descending, self
-        each{|n| n.depth_first &blk}
+        each{|n| n.depth_first(&blk)}
       end
       yield :ascending, self
       return self
@@ -159,7 +159,7 @@ module C
     def reverse_depth_first(&blk)
       catch :prune do
         yield :descending, self
-        reverse_each{|n| n.reverse_depth_first &blk}
+        reverse_each{|n| n.reverse_depth_first(&blk)}
       end
       yield :ascending, self
       return self
@@ -175,7 +175,7 @@ module C
     def preorder(&blk)
       catch :prune do
         yield self
-        each{|n| n.preorder &blk}
+        each{|n| n.preorder(&blk)}
       end
       return self
     end
@@ -190,7 +190,7 @@ module C
     def reverse_preorder(&blk)
       catch :prune do
         yield self
-        reverse_each{|n| n.reverse_preorder &blk}
+        reverse_each{|n| n.reverse_preorder(&blk)}
       end
       return self
     end
@@ -200,7 +200,7 @@ module C
     # Return self.
     #
     def postorder(&blk)
-      each{|n| n.postorder &blk}
+      each{|n| n.postorder(&blk)}
       yield self
       return self
     end
@@ -210,7 +210,7 @@ module C
     # in turn.  Return self.
     #
     def reverse_postorder(&blk)
-      reverse_each{|n| n.reverse_postorder &blk}
+      reverse_each{|n| n.reverse_postorder(&blk)}
       yield self
       return self
     end
@@ -452,9 +452,10 @@ module C
       newfield.index = fields.length
       fields << newfield
       # getter
-      define_method(newfield.reader) do
-        instance_variable_get(newfield.var)
-      end
+      # define_method(newfield.reader) do
+      #   instance_variable_get(newfield.var)
+      # end
+      eval "def #{newfield.reader}; #{newfield.var}; end"
       # setter
       if newfield.child?
         define_method(newfield.writer) do |val|

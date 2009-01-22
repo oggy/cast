@@ -1,3 +1,5 @@
+require 'rbconfig'
+
 ######################################################################
 #
 # A C preprocessor that wraps the command in Config::CONFIG['CPP'].

@@ -444,7 +444,7 @@ module C
         arg = args[0]
         arg = @array.length if @array.length < arg
         ret = @array.slice!(-arg, arg)
-        removed_ *ret
+        removed_(*ret)
         return ret
       end
     end
@@ -458,7 +458,7 @@ module C
         arg = args[0]
         arg = @array.length if @array.length < arg
         ret = @array.slice!(0, arg)
-        removed_ *ret
+        removed_(*ret)
       end
       adjust_indices_(0)
       return ret
