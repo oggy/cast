@@ -131,8 +131,8 @@ VALUE cast_Parser_prepare_lexer(VALUE self, VALUE string) {
   Get_Struct(self, Parser, self_p);
   string = rb_convert_type(string, T_STRING, "String", "to_s");
 
-  b = RSTRING(string)->ptr;
-  e = b + RSTRING(string)->len + 1;
+  b = RSTRING_PTR(string);
+  e = b + RSTRING_LEN(string) + 1;
 
   self_p->bot = b;
   self_p->tok = b;
