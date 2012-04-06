@@ -17,7 +17,7 @@ module C
     class << self
       attr_accessor :command
     end
-    self.command = Config::CONFIG['CPP']
+    self.command = (defined?(RbConfig) ? RbConfig : Config)::CONFIG['CPP']
 
     attr_accessor :pwd, :include_path, :macros
 
