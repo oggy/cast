@@ -481,6 +481,7 @@ module C
           instance_variable_set(newfield.var, val)
         end
       end
+      public newfield.reader, newfield.writer
     end
     def self.fields
       @fields
