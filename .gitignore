@@ -3,3 +3,4 @@
 /ext/*.o
 /ext/yylex.c
 /lib/cast/c.tab.rb
+/lib/cast/cast.bundle
