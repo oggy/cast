@@ -280,7 +280,7 @@ void yylex(VALUE self, cast_Parser *p) {
 
     any
         {
-            rb_raise(cast_eParseError, "%d: unexpected character: %c (ASCII %d)\n", p->lineno, *p->tok, (int)*p->tok);
+            rb_raise(cast_eParseError, "%ld: unexpected character: %c (ASCII %d)\n", p->lineno, *p->tok, (int)*p->tok);
             goto std;
         }
   */
@@ -298,7 +298,7 @@ void yylex(VALUE self, cast_Parser *p) {
         {
             if (cursor == p->eof)
               rb_raise(cast_eParseError,
-                       "%d: unclosed multiline comment",
+                       "%ld: unclosed multiline comment",
                        p->lineno);
         }
 
