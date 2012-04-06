@@ -1,0 +1,47 @@
+== LATEST
+
+ * Added C::Preprocessor, which wraps Config::CONFIG['CPP']. Assumes
+   POSIX-style -D and -I options.
+ * IntLiteral suffixes are parsed correctly for things like 2e-2.
+ * Newlines are allowed in StringLiterals and CharLiterals.
+ * Added StringLiteral and CharLiteral #prefix. #wide? and #wide are
+   now methods, not fields.
+ * IntLiteral and FloatLiteral #format is now the first field.
+ * More meaningful parse error messages.
+ * Printing (#to_s):
+   * FunctionDef#no_prototype? is now honored.
+   * ':' is now printed for labels.
+   * Consequetive unary operators no longer conflict with other
+     operators (e.g. "+ +" instead of "++").
+   * Sizeof is printed with parentheses (not mandated by C99, but
+     conventional).
+   * Signedness qualifier is always printed for char.
+   * Longness is printed correctly for Bool, Complex, Imaginary.
+   * Nested Conditionals are handled correctly.
+   * MemberInit#member is printed correctly.
+ * Parsing (#parse):
+   * Member now works.
+   * Expression now supports CompoundLiterals without types (as
+     allowed in declarators only).
+   * Declarator allows specification of #num_bits.
+
+== 0.1.0 2006-04-25
+
+ * Faster lexer (written in C).
+ * Renamed Node#to_debug to Node#inspect.
+ * Allow type names in Call#args. (Not C99, but useful for macros.)
+ * Added node fields:
+   * StringLiteral#wide?
+   * CharLiteral#wide?
+   * IntLiteral#suffix
+   * FloatLiteral#format
+   * FloatLiteral#suffix
+ * Fixed CompoundLiteral#to_s.
+ * Fixed AssignmentExpression#to_s when #lval is a Comma.
+ * Fixed Parameter#to_s when #type is nil.
+ * Cleaned up load path.
+ * Install with rake task.
+
+== 0.0.1 2005-02-21
+
+ * Hi.
