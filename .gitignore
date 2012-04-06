@@ -1,3 +1,4 @@
+/Gemfile.lock
 /ext/Makefile
 /ext/*.bundle
 /ext/*.o
