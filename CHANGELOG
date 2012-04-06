@@ -1,5 +1,6 @@
 == LATEST
 
+ * Friendlier changelog.
  * Added C::Preprocessor, which wraps Config::CONFIG['CPP']. Assumes
    POSIX-style -D and -I options.
  * IntLiteral suffixes are parsed correctly for things like 2e-2.
