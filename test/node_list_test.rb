@@ -394,7 +394,7 @@ module NodeListWalkTest
     check_iter(empty, [])
 
     # one
-    a = *one_els
+    a, = *one_els
     check_iter(one, [a])
 
     # two
@@ -1212,7 +1212,7 @@ module NodeListArrayQueryTests
     assert_same_list([], r)
 
     # one
-    a = *one_els
+    a, = *one_els
     r = one.to_a
     assert_same(::Array, r.class)
     assert_same_list([a], r)
@@ -1345,7 +1345,7 @@ module NodeListArrayQueryTests
     assert_same_list([nil], empty.values_at(-1))
 
     # one
-    a = *one_els
+    a, = *one_els
     assert_same_list([], one.values_at())
     assert_same_list([a], one.values_at(0))
     assert_same_list([a], one.values_at(-1))

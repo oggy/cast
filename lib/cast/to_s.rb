@@ -218,15 +218,15 @@ module C
   end
 
   # PrefixExpressions
-  [ [Cast       , lambda{"(#{self.type})"}, false],
-    [Address    , lambda{"&"             }, true ],
-    [Dereference, lambda{"*"             }, false],
-    [Positive   , lambda{"+"             }, true ],
-    [Negative   , lambda{"-"             }, true ],
-    [PreInc     , lambda{"++"            }, false],
-    [PreDec     , lambda{"--"            }, false],
-    [BitNot     , lambda{"~"             }, false],
-    [Not        , lambda{"!"             }, false]
+  [ [Cast       , proc{"(#{self.type})"}, false],
+    [Address    , proc{"&"             }, true ],
+    [Dereference, proc{"*"             }, false],
+    [Positive   , proc{"+"             }, true ],
+    [Negative   , proc{"-"             }, true ],
+    [PreInc     , proc{"++"            }, false],
+    [PreDec     , proc{"--"            }, false],
+    [BitNot     , proc{"~"             }, false],
+    [Not        , proc{"!"             }, false]
   ].each do |c, proc, space_needed|
     c.send(:define_method, :to_s) do | |
       if expr.to_s_precedence < self.to_s_precedence
@@ -239,11 +239,11 @@ module C
     end
   end
   # PostfixExpressions
-  [ [Arrow      , lambda{"->#{member}"}],
-    [Dot        , lambda{".#{member}" }],
-    [Index      , lambda{"[#{index}]" }],
-    [PostInc    , lambda{"++"         }],
-    [PostDec    , lambda{"--"         }]
+  [ [Arrow      , proc{"->#{member}"}],
+    [Dot        , proc{".#{member}" }],
+    [Index      , proc{"[#{index}]" }],
+    [PostInc    , proc{"++"         }],
+    [PostDec    , proc{"--"         }]
   ].each do |c, proc|
     c.send(:define_method, :to_s) do | |
       if expr.to_s_precedence < self.to_s_precedence
@@ -324,35 +324,35 @@ module C
   # DirectTypes
   int_longnesses   = ['short ', '', 'long ', 'long long ']
   float_longnesses = ['float', 'double', 'long double']
-  [ [Struct, lambda do
+  [ [Struct, proc do
         str = 'struct'
         name    and str << " #{name}"
         members and str << " {\n" << indent(members.join("\n")) << "\n}"
         str
       end],
-    [Union, lambda do
+    [Union, proc do
         str = 'union'
         name    and str << " #{name}"
         members and str << " {\n" << indent(members.join("\n")) << "\n}"
         str
       end],
-    [Enum, lambda do
+    [Enum, proc do
         str = 'enum'
         name    and str << " #{name}"
         members and str << " {\n" << indent(members.join(",\n")) << "\n}"
         str
       end],
-    [CustomType, lambda{name.dup    }],
-    [Void      , lambda{'void'      }],
-    [Int       , lambda do
+    [CustomType, proc{name.dup    }],
+    [Void      , proc{'void'      }],
+    [Int       , proc do
         longness_str = int_longnesses[longness+1].dup
         "#{unsigned? ? 'unsigned ' : ''}#{longness_str}int"
       end],
-    [Float     , lambda{float_longnesses[longness].dup}],
-    [Char      , lambda{"#{unsigned? ? 'unsigned ' : signed? ? 'signed ' : ''}char"}],
-    [Bool      , lambda{"_Bool"     }],
-    [Complex   , lambda{"_Complex #{float_longnesses[longness]}"}],
-    [Imaginary , lambda{"_Imaginary #{float_longnesses[longness]}"}]
+    [Float     , proc{float_longnesses[longness].dup}],
+    [Char      , proc{"#{unsigned? ? 'unsigned ' : signed? ? 'signed ' : ''}char"}],
+    [Bool      , proc{"_Bool"     }],
+    [Complex   , proc{"_Complex #{float_longnesses[longness]}"}],
+    [Imaginary , proc{"_Imaginary #{float_longnesses[longness]}"}]
   ].each do |c, x|
     c.send(:define_method, :to_s) do |*args|
       case args.length
