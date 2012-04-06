@@ -1,5 +1,6 @@
 == LATEST
 
+ * MIT License.
  * Friendlier changelog.
  * Added C::Preprocessor, which wraps Config::CONFIG['CPP']. Assumes
    POSIX-style -D and -I options.
