@@ -4,7 +4,7 @@
 #
 ######################################################################
 
-require 'test_helper'
+require 'test/test_helper'
 
 class MiscTests < Test::Unit::TestCase
 

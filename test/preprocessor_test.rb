@@ -4,7 +4,7 @@
 #
 ######################################################################
 
-require 'test_helper'
+require 'test/test_helper'
 
 # publicize the private methods so we can test them easily
 class C::Preprocessor

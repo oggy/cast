@@ -4,7 +4,7 @@
 #
 ######################################################################
 
-require 'test_helper'
+require 'test/test_helper'
 
 #
 # NodeListTest classes are abstract, inherited by classes which define

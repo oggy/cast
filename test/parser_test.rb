@@ -4,7 +4,7 @@
 #
 ######################################################################
 
-require 'test_helper'
+require 'test/test_helper'
 
 class ParserTest < Test::Unit::TestCase
   def check(s)

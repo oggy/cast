@@ -1,9 +1,12 @@
 #!/usr/bin/env ruby
 
-require 'cast'
+ROOT = File.expand_path('..', File.dirname(__FILE__))
+$:.unshift "#{ROOT}/lib"
+
 require 'test/unit'
 require 'stringio'
 require 'fileutils'
+require 'cast'
 
 # a dir to cd into for creating files and such
 TEST_DIR = "#{File.dirname(__FILE__)}/var"
