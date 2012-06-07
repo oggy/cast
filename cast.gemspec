@@ -6,6 +6,7 @@ Gem::Specification.new do |gem|
   gem.version = C::VERSION
   gem.authors = ["George Ogata"]
   gem.email = ["george.ogata@gmail.com"]
+  gem.license = 'MIT'
   gem.date = Time.now.strftime('%Y-%m-%d')
   gem.summary = "C parser and AST constructor."
   gem.homepage = 'http://github.com/oggy/cast'
