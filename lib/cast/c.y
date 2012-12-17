@@ -532,8 +532,10 @@ enumeration_constant
   : ID {result = val[0]}
 
 # Returns StringLiteral
+# plus ansi c string literal concatenation
 string_literal
-  : SCON {result = val[0].val; result.pos = val[0].pos}
+  : string_literal SCON {val[0].val += val[1].val.val; result = val[0]}
+  | SCON { result = val[0].val; result.pos = val[0].pos }
 
 ---- inner
   # A.1.9 -- Preprocessing numbers -- skip

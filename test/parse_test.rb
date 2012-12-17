@@ -1934,6 +1934,15 @@ EOS
     assert_raise(C::ParseError){C::StringLiteral.parse('return')}
   end
 
+  def test_string_literal_concatenation
+    check C::StringLiteral, <<EOS
+"hello" " " "world!"
+----
+StringLiteral
+    val: "hello world!"
+EOS
+  end
+
   def test_char_literal
     check C::CharLiteral, <<EOS
 'x'
