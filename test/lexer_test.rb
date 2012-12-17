@@ -6,7 +6,7 @@
 #
 ######################################################################
 
-require 'test/test_helper'
+require 'test_helper'
 
 class LexerTest < Test::Unit::TestCase
   def check(s)

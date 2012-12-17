@@ -4,7 +4,7 @@
 #
 ######################################################################
 
-require 'test/test_helper'
+require 'test_helper'
 
 class MatchTest < Test::Unit::TestCase
   def setup
