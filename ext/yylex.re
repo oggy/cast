@@ -74,9 +74,14 @@ static void error1(char *s, char *b, char *e) {
 /* `token' is assumed to be a two element array, which is filled in.
  */
 void yylex(VALUE self, cast_Parser *p) {
+  // self = parser
   char *cursor = p->cur;
   char *cp;
   VALUE value;
+  if(p->reenter == 0){
+    p->reenter = 1;
+    goto newline_start; // file starts at new line :)
+    }
  std:
   p->tok = cursor;
   /*!re2c
@@ -275,7 +280,7 @@ void yylex(VALUE self, cast_Parser *p) {
     "\n"
         {
             p->pos = cursor; ++p->lineno;
-            goto std;
+            goto newline_start;
         }
 
     any
@@ -284,6 +289,24 @@ void yylex(VALUE self, cast_Parser *p) {
             goto std;
         }
   */
+
+ newline_start: {
+  /*!re2c
+    [ \t\v\f]+  { goto newline_start; }
+    "#define" | "#if" | "#else" | "#endif" | "#include" {
+        rb_raise(cast_eParseError, "%ld: preprocessor directive found, expect input to be preprocessed\n", p->lineno);
+        goto std;
+    }
+    [#] (any\[\\\n])* [\n\000] {
+        //TODO: ++p->lineno on newlines
+        cp = p->tok + 1; //skip #
+        //TODO: some processing for this
+        //rb_funcall2(?, rb_intern("handle_directive"), 2, p->lineno, rb_str_new(cp + 1, cursor - cp - 2)));
+        goto std;
+    }
+    any                        { cursor--; goto std; }
+  */
+    }
 
  comment:
   /*!re2c

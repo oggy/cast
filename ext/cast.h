@@ -37,6 +37,7 @@ typedef struct {
   char *bot, *tok, *ptr, *cur, *pos, *lim, *top, *eof;
   long  lineno;      /* line number */
   VALUE token;       /* last token (2-element array) */
+  int   reenter;    /* flag for yylex to match file start position*/
 } cast_Parser;
 
 VALUE cast_Parser_alloc(VALUE klass);
