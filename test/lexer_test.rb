@@ -349,8 +349,7 @@ TranslationUnit
                 - Declarator
                     name: "a"
 EOS
-    assert_raise(C::ParseError){C::Parser.new.parse("#define a b\n")}
+    assert_raise(C::ParseError){C::Parser.new.parse("#define a b\nint a;")}
   end
-
 
 end

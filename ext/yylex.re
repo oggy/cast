@@ -291,20 +291,17 @@ void yylex(VALUE self, cast_Parser *p) {
   */
 
  newline_start: {
+    p->tok = cursor;
   /*!re2c
-    [ \t\v\f]+  { goto newline_start; }
-    "#define" | "#if" | "#else" | "#endif" | "#include" {
-        rb_raise(cast_eParseError, "%ld: preprocessor directive found, expect input to be preprocessed\n", p->lineno);
-        goto std;
-    }
-    [#] (any\[\\\n])* [\n\000] {
-        //TODO: ++p->lineno on newlines
+    "#" (any\[\000\n])* [\n\000] {
         cp = p->tok + 1; //skip #
-        //TODO: some processing for this
-        //rb_funcall2(?, rb_intern("handle_directive"), 2, p->lineno, rb_str_new(cp + 1, cursor - cp - 2)));
-        goto std;
+        rb_funcall(self, rb_intern("handle_preprocessor_directive"), 2, INT2FIX(p->lineno), rb_str_new(cp, cursor - cp - 1));
+        p->pos = cursor; ++p->lineno;
+        goto newline_start;
     }
-    any                        { cursor--; goto std; }
+    [ \t\v\f]+  { goto newline_start; }
+    "\n"        { p->pos = cursor; ++p->lineno; goto newline_start; }
+    any         { cursor--; goto std; }
   */
     }
 
