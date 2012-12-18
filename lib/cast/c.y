@@ -532,8 +532,10 @@ enumeration_constant
   : ID {result = val[0]}
 
 # Returns StringLiteral
+# plus ansi c string literal concatenation
 string_literal
-  : SCON {result = val[0].val; result.pos = val[0].pos}
+  : string_literal SCON {val[0].val += val[1].val.val; result = val[0]}
+  | SCON { result = val[0].val; result.pos = val[0].pos }
 
 ---- inner
   # A.1.9 -- Preprocessing numbers -- skip
@@ -885,6 +887,15 @@ restrict return short signed sizeof static struct switch typedef union
 
   def parse_error(pos, str)
     raise ParseError, "#{pos}: #{str}"
+  end
+
+  def handle_preprocessor_directive line, str
+    if line =~ /^(define|undef|if|else|endif)/
+      puts "FOUND!"
+      raise ParseError.new("preprocessor directive found, expect input to be preprocessed.")
+    else
+      puts "#{line}: #{str}"
+    end
   end
 
 ---- header

@@ -74,9 +74,14 @@ static void error1(char *s, char *b, char *e) {
 /* `token' is assumed to be a two element array, which is filled in.
  */
 void yylex(VALUE self, cast_Parser *p) {
+  // self = parser
   char *cursor = p->cur;
   char *cp;
   VALUE value;
+  if(p->reenter == 0){
+    p->reenter = 1;
+    goto newline_start; // file starts at new line :)
+    }
  std:
   p->tok = cursor;
   /*!re2c
@@ -275,7 +280,7 @@ void yylex(VALUE self, cast_Parser *p) {
     "\n"
         {
             p->pos = cursor; ++p->lineno;
-            goto std;
+            goto newline_start;
         }
 
     any
@@ -284,6 +289,21 @@ void yylex(VALUE self, cast_Parser *p) {
             goto std;
         }
   */
+
+ newline_start: {
+    p->tok = cursor;
+  /*!re2c
+    "#" (any\[\000\n])* [\n\000] {
+        cp = p->tok + 1; //skip #
+        rb_funcall(self, rb_intern("handle_preprocessor_directive"), 2, INT2FIX(p->lineno), rb_str_new(cp, cursor - cp - 1));
+        p->pos = cursor; ++p->lineno;
+        goto newline_start;
+    }
+    [ \t\v\f]+  { goto newline_start; }
+    "\n"        { p->pos = cursor; ++p->lineno; goto newline_start; }
+    any         { cursor--; goto std; }
+  */
+    }
 
  comment:
   /*!re2c

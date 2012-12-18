@@ -8,6 +8,7 @@ Gem::Specification.new do |gem|
   gem.email = ["george.ogata@gmail.com"]
   gem.license = 'MIT'
   gem.date = Time.now.strftime('%Y-%m-%d')
+  gem.description = "C parser and AST constructor."
   gem.summary = "C parser and AST constructor."
   gem.homepage = 'http://github.com/oggy/cast'
 

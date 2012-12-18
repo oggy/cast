@@ -6,7 +6,7 @@
 #
 ######################################################################
 
-require 'test/test_helper'
+require 'test_helper'
 
 class LexerTest < Test::Unit::TestCase
   def check(s)
@@ -320,4 +320,36 @@ TranslationUnit
 EOS
     assert_raise(C::ParseError){C::Parser.new.parse("void f() {xy'ab';}")}
   end
+
+  def test_directive_at_file_start
+    check <<EOS
+# 12 gcc stuff
+int a;
+----
+TranslationUnit
+    entities:
+        - Declaration
+            type: Int
+            declarators:
+                - Declarator
+                    name: "a"
+EOS
+  end
+
+  def test_directive
+    check <<EOS
+int a;
+# 12 gcc stuff
+----
+TranslationUnit
+    entities:
+        - Declaration
+            type: Int
+            declarators:
+                - Declarator
+                    name: "a"
+EOS
+    assert_raise(C::ParseError){C::Parser.new.parse("#define a b\nint a;")}
+  end
+
 end

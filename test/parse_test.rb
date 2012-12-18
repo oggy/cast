@@ -4,7 +4,7 @@
 #
 ######################################################################
 
-require 'test/test_helper'
+require 'test_helper'
 
 class MatchTest < Test::Unit::TestCase
   def setup
@@ -1932,6 +1932,15 @@ EOS
     assert_raise(C::ParseError){C::StringLiteral.parse('for (;;)')}
     assert_raise(C::ParseError){C::StringLiteral.parse('goto')}
     assert_raise(C::ParseError){C::StringLiteral.parse('return')}
+  end
+
+  def test_string_literal_concatenation
+    check C::StringLiteral, <<EOS
+"hello" " " "world!"
+----
+StringLiteral
+    val: "hello world!"
+EOS
   end
 
   def test_char_literal
