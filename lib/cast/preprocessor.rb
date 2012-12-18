@@ -31,18 +31,18 @@ module C
         filename = file.path
         file.puts text
       end
-      output = `#{full_command(filename)} 2>&1`
-      if $? == 0
-        return output
-      else
-        raise Error, output
-      end
+      return preprocess_file(filename);
     end
     def preprocess_file(file_name)
       file_name = File.expand_path(file_name)
       dir = File.dirname(file_name)
       FileUtils.cd(dir) do
-        return preprocess(File.read(file_name))
+        output = `#{full_command(file_name)} 2>&1`
+        if $? == 0
+          return output
+        else
+          raise Error, output
+        end
       end
     end
 
@@ -62,8 +62,12 @@ module C
       include_args = include_path.map do |path|
         "#{shellquote('-I'+path)}"
       end.join(' ')
-      macro_args   = macros.sort.map do |key, val|
-        shellquote("-D#{key}" + (val ? "=#{val}" : ''))
+      macro_args   = macros.map do |key, val|
+        if key == :@imacros
+          "-imacros" + shellquote(File.expand_path(val))
+        else
+          shellquote("-D#{key}#{"=#{val}" if val}")
+        end
       end.join(' ')
       filename = shellquote(filename)
       "#{Preprocessor.command} #{include_args} #{macro_args} #{filename}"

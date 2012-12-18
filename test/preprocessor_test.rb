@@ -37,8 +37,7 @@ class PreprocessorTest < Test::Unit::TestCase
   def test_full_command
     original_command = C::Preprocessor.command
     C::Preprocessor.command = 'COMMAND'
-    assert_equal("COMMAND -Idir1 '-Idir 2' -DI=5 '-DS=\"blah\"' " <<
-                   "'-DSWAP(a,b)=a ^= b ^= a ^= b' -DV 'a file.c'",
+    assert_equal("COMMAND -Idir1 '-Idir 2' -DV -DI=5 '-DS=\"blah\"' '-DSWAP(a,b)=a ^= b ^= a ^= b' 'a file.c'",
                  cpp.full_command('a file.c'))
   ensure
     C::Preprocessor.command = original_command
@@ -83,5 +82,14 @@ EOS
     assert_match(/int one = 1;/, output)
     assert_match(/int two = 2;/, output)
     assert_match(/int three = 3;/, output)
+  end
+
+  def test_preprocess_imacros
+    File.open(macro_file = "#{TEST_DIR}/macro.h", 'w'){|f|
+      f.puts "#define some_macro macro_result\n"
+    }
+    @cpp.macros[:@imacros] = macro_file
+    output = cpp.preprocess("some_macro")
+    assert_match(/macro_result/, output)
   end
 end
