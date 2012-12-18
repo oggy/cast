@@ -25,5 +25,7 @@ file 'lib/cast/c.tab.rb' => 'lib/cast/c.y' do |t|
 end
 
 task :ext => 'ext/yylex.c'
+desc "Prepares gem for execution (generates files and compiles extenstion)"
+task :compile => [:ext, 'lib/cast/c.tab.rb']
 task 'gem:build' => ['ext/yylex.c', 'lib/cast/c.tab.rb']
 CLEAN.include('ext/yylex.c', 'lib/cast/c.tab.rb')
