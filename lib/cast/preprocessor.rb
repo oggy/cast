@@ -31,7 +31,7 @@ module C
         filename = file.path
         file.puts text
       end
-      output = `#{full_command(filename)} 2>&1`
+      output = `#{full_command(filename)}`
       if $? == 0
         return output
       else
