@@ -84,4 +84,8 @@ EOS
     assert_match(/int two = 2;/, output)
     assert_match(/int three = 3;/, output)
   end
+  def test_proprocess_warning
+    output = cpp.preprocess("#warning warning me!")
+    assert output.gsub(/^#.*\n/,"").gsub(/[ \t\n]/,"").length == 0
+  end
 end
