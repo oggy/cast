@@ -33,6 +33,7 @@ class PreprocessorTest < Test::Unit::TestCase
     assert_equal('"\\\\"', cpp.shellquote("\\"))
     assert_equal("\"a'b\"", cpp.shellquote("a'b"))
     assert_equal("\"a\\\\\\$\\\"'\"", cpp.shellquote("a\\$\"'"))
+    assert_equal('"(a)"', cpp.shellquote('(a)'))
   end
   def test_full_command
     original_command = C::Preprocessor.command
