@@ -27,18 +27,19 @@ class PreprocessorTest < Test::Unit::TestCase
   end
   def test_shellquote
     assert_equal('a', cpp.shellquote('a'))
-    assert_equal("'a b'", cpp.shellquote('a b'))
-    assert_equal("'a$b'", cpp.shellquote('a$b'))
-    assert_equal("'a\"b'", cpp.shellquote("a\"b"))
-    assert_equal("'\\'", cpp.shellquote("\\"))
+    assert_equal('"a b"', cpp.shellquote('a b'))
+    assert_equal('"a\$b"', cpp.shellquote('a$b'))
+    assert_equal('"a\"b"', cpp.shellquote("a\"b"))
+    assert_equal('"\\\\"', cpp.shellquote("\\"))
     assert_equal("\"a'b\"", cpp.shellquote("a'b"))
     assert_equal("\"a\\\\\\$\\\"'\"", cpp.shellquote("a\\$\"'"))
+    assert_equal('"(a)"', cpp.shellquote('(a)'))
   end
   def test_full_command
     original_command = C::Preprocessor.command
     C::Preprocessor.command = 'COMMAND'
-    assert_equal("COMMAND -Idir1 '-Idir 2' -DI=5 '-DS=\"blah\"' " <<
-                   "'-DSWAP(a,b)=a ^= b ^= a ^= b' -DV 'a file.c'",
+    assert_equal('COMMAND -Idir1 "-Idir 2" -DI=5 "-DS=\"blah\"" ' <<
+                   '"-DSWAP(a,b)=a ^= b ^= a ^= b" -DV "a file.c"',
                  cpp.full_command('a file.c'))
   ensure
     C::Preprocessor.command = original_command

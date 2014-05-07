@@ -49,10 +49,8 @@ module C
     private  # -------------------------------------------------------
 
     def shellquote(arg)
-      if arg !~ /[\"\'\\$&<>|\s]/
+      if arg !~ /[\"\'\\$&<>|\s()]/
         return arg
-      elsif arg !~ /\'/
-        return "'#{arg}'"
       else
         arg.gsub!(/([\"\\$&<>|])/, '\\\\\\1')
         return "\"#{arg}\""
