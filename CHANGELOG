@@ -22,7 +22,7 @@
  * Printing (#to_s):
    * FunctionDef#no_prototype? is now honored.
    * ':' is now printed for labels.
-   * Consequetive unary operators no longer conflict with other
+   * Consecutive unary operators no longer conflict with other
      operators (e.g. "+ +" instead of "++").
    * Sizeof is printed with parentheses (not mandated by C99, but
      conventional).
