@@ -13,7 +13,7 @@ end
 class PreprocessorTest < Minitest::Test
   attr_accessor :cpp
   def setup
-    @cpp = C::Preprocessor.new
+    @cpp = C::Preprocessor.new(quiet: true)
     @cpp.include_path << 'dir1' << 'dir 2'
     @cpp.macros['V'] = nil
     @cpp.macros['I'] = 5
@@ -85,7 +85,7 @@ EOS
     assert_match(/int three = 3;/, output)
   end
   def test_proprocess_warning
-    output = cpp.preprocess("#warning warning me!")
-    assert output.gsub(/^#.*\n/,"").gsub(/[ \t\n]/,"").length == 0
+    output = cpp.preprocess("#warning warning!")
+    refute_match /warning!/, output
   end
 end

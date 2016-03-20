@@ -21,9 +21,10 @@ module C
 
     attr_accessor :pwd, :include_path, :macros
 
-    def initialize
+    def initialize(quiet: false)
       @include_path = []
       @macros = {}
+      @quiet = quiet
     end
     def preprocess(text)
       filename = nil
@@ -31,7 +32,7 @@ module C
         filename = file.path
         file.puts text
       end
-      output = `#{full_command(filename)}`
+      output = `#{full_command(filename)} #{'2> /dev/null' if @quiet}`
       if $? == 0
         return output
       else
