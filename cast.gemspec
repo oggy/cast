@@ -15,7 +15,4 @@ Gem::Specification.new do |gem|
   gem.executables   = `git ls-files -- bin/*`.split("\n").map{ |f| File.basename(f) }
   gem.files         = `git ls-files`.split("\n") + ['ext/yylex.c', 'lib/cast/c.tab.rb']
   gem.test_files    = `git ls-files -- test/*`.split("\n")
-
-  gem.add_development_dependency 'ritual', '~> 0.4.0'
-  gem.add_development_dependency 'racc', '~> 1.4.8'
 end
