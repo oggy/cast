@@ -1711,6 +1711,16 @@ class RenderTest < Minitest::Test
       |1
     EOS
   end
+  def test_int_literal_oct
+    check(C::IntLiteral, <<-EOS)
+      |010
+    EOS
+  end
+  def test_int_literal_hex
+    check(C::IntLiteral, <<-EOS)
+      |0x10
+    EOS
+  end
   def test_int_literal_suffix
     check(C::IntLiteral, <<-EOS)
       |1L

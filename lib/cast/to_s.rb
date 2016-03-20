@@ -527,7 +527,16 @@ module C
   end
   class IntLiteral
     def to_s
-      "#{val}#{suffix}"
+      case format
+      when :dec
+        "#{val.to_s}#{suffix}"
+      when :hex
+        "0x#{val.to_s(16)}#{suffix}"
+      when :oct
+        "0#{val.to_s(8)}#{suffix}"
+      else
+        raise "invalid C::IntLiteral format: #{format}"
+      end
     end
   end
   class FloatLiteral
