@@ -1,4 +1,5 @@
 require 'rbconfig'
+require 'shellwords'
 
 ######################################################################
 #
@@ -49,25 +50,10 @@ module C
 
     private  # -------------------------------------------------------
 
-    def shellquote(arg)
-      if arg !~ /[\"\'\\$&<>|\s]/
-        return arg
-      elsif arg !~ /\'/
-        return "'#{arg}'"
-      else
-        arg.gsub!(/([\"\\$&<>|])/, '\\\\\\1')
-        return "\"#{arg}\""
-      end
-    end
     def full_command(filename)
-      include_args = include_path.map do |path|
-        "#{shellquote('-I'+path)}"
-      end.join(' ')
-      macro_args   = macros.sort.map do |key, val|
-        shellquote("-D#{key}" + (val ? "=#{val}" : ''))
-      end.join(' ')
-      filename = shellquote(filename)
-      "#{Preprocessor.command} #{include_args} #{macro_args} #{filename}"
+      include_args = include_path.map { |path| "-I#{path}" }
+      macro_args = macros.sort.map { |key, val| "-D#{key}" + (val ? "=#{val}" : '') }
+      [*Preprocessor.command.shellsplit, *include_args, *macro_args, filename].shelljoin
     end
   end
 end
