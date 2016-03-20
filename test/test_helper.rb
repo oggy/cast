@@ -6,6 +6,7 @@ $:.unshift "#{ROOT}/lib"
 require 'minitest'
 require 'minitest/autorun'
 require 'minitest/focus'
+require 'pry'
 require 'stringio'
 require 'fileutils'
 require 'cast'
