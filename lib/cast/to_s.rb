@@ -527,20 +527,12 @@ module C
   end
   class IntLiteral
     def to_s
-      if suffix != nil:
-        val.to_s + suffix
-      else
-        val.to_s
-      end
+      "#{val}#{suffix}"
     end
   end
   class FloatLiteral
     def to_s
-      if suffix != nil:
-        val.to_s + suffix
-      else
-        val.to_s
-      end
+      "#{val}#{suffix}"
     end
   end
   class Variable

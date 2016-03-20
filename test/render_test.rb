@@ -629,7 +629,7 @@ class RenderTest < Minitest::Test
   # ------------------------------------------------------------------
   #                             PlainLabel
   # ------------------------------------------------------------------
-  
+
   def test_plain_label
     check(C::PlainLabel, <<-EOS)
       |one:
@@ -659,7 +659,7 @@ class RenderTest < Minitest::Test
   # ------------------------------------------------------------------
   #                               Comma
   # ------------------------------------------------------------------
-  
+
   def test_comma_two_expressions
     check(C::Comma, <<-EOS)
       |1, 2
@@ -843,7 +843,7 @@ class RenderTest < Minitest::Test
   # ------------------------------------------------------------------
   #                                Cast
   # ------------------------------------------------------------------
-  
+
   def test_cast
     check(C::Cast, <<-EOS)
       |(int)a
@@ -1711,6 +1711,11 @@ class RenderTest < Minitest::Test
       |1
     EOS
   end
+  def test_int_literal_suffix
+    check(C::IntLiteral, <<-EOS)
+      |1L
+    EOS
+  end
   # TODO: handle big ints -- this test fails
   def xtest_int_literal_big
     check(C::IntLiteral, <<-EOS)
@@ -1727,6 +1732,11 @@ class RenderTest < Minitest::Test
   def test_float_literal
     check(C::FloatLiteral, <<-EOS)
       |1.0
+    EOS
+  end
+  def test_float_literal_suffix
+    check(C::FloatLiteral, <<-EOS)
+      |1.0f
     EOS
   end
   def test_float_literal_precise
