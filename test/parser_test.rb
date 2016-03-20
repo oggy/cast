@@ -6,7 +6,7 @@
 
 require 'test_helper'
 
-class ParserTest < Test::Unit::TestCase
+class ParserTest < Minitest::Test
   def check(s)
     check_ast(s){|inp| @parser.parse(inp)}
   end
@@ -95,8 +95,8 @@ TranslationUnit
                 - Declarator
                     name: "i"
 EOS
-    assert_raise(C::ParseError){C::Parser.new.parse("")}
-    assert_raise(C::ParseError){C::Parser.new.parse(";")}
+    assert_raises(C::ParseError){C::Parser.new.parse("")}
+    assert_raises(C::ParseError){C::Parser.new.parse(";")}
   end
 
   def test_external_declaration
@@ -151,31 +151,31 @@ TranslationUnit
             name: "main"
 EOS
     # non-function type
-    assert_raise(C::ParseError){C::Parser.new.parse("int f {}")}
+    assert_raises(C::ParseError){C::Parser.new.parse("int f {}")}
 
     # both prototype and declist
-    assert_raise(C::ParseError){C::Parser.new.parse("void f(int argc, int argv) int argc, argv; {}")}
-    assert_raise(C::ParseError){C::Parser.new.parse("void f(int argc, argv) int argv; {}")}
+    assert_raises(C::ParseError){C::Parser.new.parse("void f(int argc, int argv) int argc, argv; {}")}
+    assert_raises(C::ParseError){C::Parser.new.parse("void f(int argc, argv) int argv; {}")}
 
     # bad param name
-    assert_raise(C::ParseError){C::Parser.new.parse("void f(argc, argv) int argx, argc; {}")}
-    assert_raise(C::ParseError){C::Parser.new.parse("void f(argc, argv) int argx, argc, argv; {}")}
+    assert_raises(C::ParseError){C::Parser.new.parse("void f(argc, argv) int argx, argc; {}")}
+    assert_raises(C::ParseError){C::Parser.new.parse("void f(argc, argv) int argx, argc, argv; {}")}
 
     # type missing
-    assert_raise(C::ParseError){C::Parser.new.parse("void f(argc, argv) int argc; {}")}
+    assert_raises(C::ParseError){C::Parser.new.parse("void f(argc, argv) int argc; {}")}
 
     # bad storage
-    assert_raise(C::ParseError){C::Parser.new.parse("typedef void f(argc, argv) int argc; {}")}
-    assert_raise(C::ParseError){C::Parser.new.parse("auto void f(argc, argv) int argc; {}")}
-    assert_raise(C::ParseError){C::Parser.new.parse("register void f(argc, argv) int argc; {}")}
+    assert_raises(C::ParseError){C::Parser.new.parse("typedef void f(argc, argv) int argc; {}")}
+    assert_raises(C::ParseError){C::Parser.new.parse("auto void f(argc, argv) int argc; {}")}
+    assert_raises(C::ParseError){C::Parser.new.parse("register void f(argc, argv) int argc; {}")}
 
     # duplicate storages
-    assert_raise(C::ParseError){C::Parser.new.parse("static  auto     int i;")}
-    assert_raise(C::ParseError){C::Parser.new.parse("static  extern   int i;")}
-    assert_raise(C::ParseError){C::Parser.new.parse("typedef register int i;")}
+    assert_raises(C::ParseError){C::Parser.new.parse("static  auto     int i;")}
+    assert_raises(C::ParseError){C::Parser.new.parse("static  extern   int i;")}
+    assert_raises(C::ParseError){C::Parser.new.parse("typedef register int i;")}
 
     # `inline' can be repeated
-    assert_nothing_raised{C::Parser.new.parse("inline inline int i() {}")}
+    C::Parser.new.parse("inline inline int i() {}")  # no error
   end
 
   def test_declaration_list
@@ -846,12 +846,12 @@ TranslationUnit
                     name: "j"
 EOS
     # duplicate storages
-    assert_raise(C::ParseError){C::Parser.new.parse("static  auto     int     ;")}
-    assert_raise(C::ParseError){C::Parser.new.parse("static  extern   int i   ;")}
-    assert_raise(C::ParseError){C::Parser.new.parse("typedef register int i, j;")}
+    assert_raises(C::ParseError){C::Parser.new.parse("static  auto     int     ;")}
+    assert_raises(C::ParseError){C::Parser.new.parse("static  extern   int i   ;")}
+    assert_raises(C::ParseError){C::Parser.new.parse("typedef register int i, j;")}
 
     # `inline' can be repeated
-    assert_nothing_raised{C::Parser.new.parse("inline inline int f();")}
+    C::Parser.new.parse("inline inline int f();")  # no error
   end
 
   def test_declaration_specifiers
@@ -1163,15 +1163,15 @@ TranslationUnit
                 name: "I"
 EOS
     # some illegal combos
-    assert_raise(C::ParseError){C::Parser.new.parse("int float;")}
-    assert_raise(C::ParseError){C::Parser.new.parse("struct s {} int;")}
-    assert_raise(C::ParseError){C::Parser.new.parse("_Complex;")}
-    assert_raise(C::ParseError){C::Parser.new.parse("_Complex _Imaginary float;")}
-    assert_raise(C::ParseError){C::Parser.new.parse("short long;")}
-    assert_raise(C::ParseError){C::Parser.new.parse("signed unsigned char;")}
-    assert_raise(C::ParseError){C::Parser.new.parse("int int;")}
-    assert_raise(C::ParseError){C::Parser.new.parse("long char;")}
-    assert_raise(C::ParseError){C::Parser.new.parse("long long long;")}
+    assert_raises(C::ParseError){C::Parser.new.parse("int float;")}
+    assert_raises(C::ParseError){C::Parser.new.parse("struct s {} int;")}
+    assert_raises(C::ParseError){C::Parser.new.parse("_Complex;")}
+    assert_raises(C::ParseError){C::Parser.new.parse("_Complex _Imaginary float;")}
+    assert_raises(C::ParseError){C::Parser.new.parse("short long;")}
+    assert_raises(C::ParseError){C::Parser.new.parse("signed unsigned char;")}
+    assert_raises(C::ParseError){C::Parser.new.parse("int int;")}
+    assert_raises(C::ParseError){C::Parser.new.parse("long char;")}
+    assert_raises(C::ParseError){C::Parser.new.parse("long long long;")}
   end
 
   def test_struct_or_union_specifier
@@ -1313,7 +1313,7 @@ TranslationUnit
                             expr: Int (const)
 EOS
     # quals can be repeated
-    assert_nothing_raised{C::Parser.new.parse("void f() {sizeof(const const int);}")}
+    C::Parser.new.parse("void f() {sizeof(const const int);}")  # no error
   end
 
   def test_struct_declarator_list
@@ -2087,7 +2087,7 @@ void f() {
   ({;});
 }
 EOS
-    assert_raise(C::ParseError){@parser.parse(src)}
+    assert_raises(C::ParseError){@parser.parse(src)}
 
     @parser.enable_block_expressions
     check <<EOS

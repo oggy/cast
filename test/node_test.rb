@@ -38,7 +38,7 @@ class V < C::Node
   initializer :a
 end
 
-class NodeInitializeTest < Test::Unit::TestCase
+class NodeInitializeTest < Minitest::Test
 
   # ------------------------------------------------------------------
   #                             initialize
@@ -94,7 +94,7 @@ class NodeInitializeTest < Test::Unit::TestCase
   end
 end
 
-class NodeEqualTest < Test::Unit::TestCase
+class NodeEqualTest < Minitest::Test
   def str
     "(struct s){.a = 1, [2] = {3, 4}, .b [5] = 6, 7}"
   end
@@ -108,7 +108,7 @@ class NodeEqualTest < Test::Unit::TestCase
     five  = C::IntLiteral.new(5)
     six   = C::IntLiteral.new(6)
     seven = C::IntLiteral.new(7)
-    
+
     mi0 = C::MemberInit.new(Chain[ma], one)
     mi10 = C::MemberInit.new(nil, three)
     mi11 = C::MemberInit.new(nil, four)
@@ -134,42 +134,42 @@ class NodeEqualTest < Test::Unit::TestCase
     # change any one field and it should be not_equal
     n = node
     n.type = nil
-    assert_not_equal(node, n)
+    refute_equal(node, n)
     assert(!node.eql?(n))
 
     n = node
     n.member_inits[0].member[0] = C::Member.new('c')
-    assert_not_equal(node, n)
+    refute_equal(node, n)
     assert(!node.eql?(n))
     copy = node.dup
 
     n = node
     n.member_inits[2].member[1] = C::IntLiteral.new(8)
-    assert_not_equal(node, n)
+    refute_equal(node, n)
     assert(!node.eql?(n))
 
     # add a member's init and it should be not_equal
     n = node
     n.member_inits[3].init = C::IntLiteral.new(9)
-    assert_not_equal(node, n)
+    refute_equal(node, n)
     assert(!node.eql?(n))
 
     # change a member's init and it should be not_equal
     n = node
     n.member_inits[0].init = C::IntLiteral.new(10)
-    assert_not_equal(node, n)
+    refute_equal(node, n)
     assert(!node.eql?(n))
 
     # add a member specifier and it should be not_equal
     n = node
     n.member_inits[3].member = Chain[C::Member.new('d')]
-    assert_not_equal(node, n)
+    refute_equal(node, n)
     assert(!node.eql?(n))
 
     # pop a member and it should be not_equal
     n = node
     n.member_inits.pop
-    assert_not_equal(node, n)
+    refute_equal(node, n)
     assert(!node.eql?(n))
 
     # assign a field a copy of what's there and it should still be
@@ -205,7 +205,7 @@ class NodeEqualTest < Test::Unit::TestCase
   end
 end
 
-class NodeCopyTest < Test::Unit::TestCase
+class NodeCopyTest < Minitest::Test
   def setup
     # (struct s){.a = 1, [2] = {3, 4}, .b [5] = 6, 7}
 
@@ -273,12 +273,12 @@ class NodeCopyTest < Test::Unit::TestCase
       assert_same(value, dres)
       assert_same(value, eres)
     end
-    assert_raise(NoMethodError){dres.new_method}
+    assert_raises(NoMethodError){dres.new_method}
     case value.object_id
     when @c.object_id, @c_mis1_i_mis0.object_id
       assert_same(100, eres.new_method)
     else
-      assert_raise(NoMethodError){eres.new_method}
+      assert_raises(NoMethodError){eres.new_method}
     end
   end
 
@@ -331,7 +331,7 @@ class NodeCopyTest < Test::Unit::TestCase
   end
 end
 
-class NodeWalkTest < Test::Unit::TestCase
+class NodeWalkTest < Minitest::Test
   #
   # Collect and return the args yielded to `node.send(method)' as an
   # Array, each element of which is an array of args yielded.
@@ -800,8 +800,8 @@ class NodeWalkTest < Test::Unit::TestCase
 
     # no parent
     i = C::Int.new
-    assert_raise(C::Node::NoParent){i.next}
-    assert_raise(C::Node::NoParent){i.prev}
+    assert_raises(C::Node::NoParent){i.next}
+    assert_raises(C::Node::NoParent){i.prev}
   end
 
   def test_list_next_prev
@@ -818,19 +818,19 @@ class NodeWalkTest < Test::Unit::TestCase
     i1 = C::IntLiteral.new(1)
     i2 = C::IntLiteral.new(2)
     a = C::Add.new(i1, i2)
-    assert_raise(C::Node::BadParent){i1.list_next}
-    assert_raise(C::Node::BadParent){i2.list_next}
-    assert_raise(C::Node::BadParent){i1.list_prev}
-    assert_raise(C::Node::BadParent){i2.list_prev}
+    assert_raises(C::Node::BadParent){i1.list_next}
+    assert_raises(C::Node::BadParent){i2.list_next}
+    assert_raises(C::Node::BadParent){i1.list_prev}
+    assert_raises(C::Node::BadParent){i2.list_prev}
 
     # no parent
     i = C::Int.new
-    assert_raise(C::Node::NoParent){i.list_next}
-    assert_raise(C::Node::NoParent){i.list_prev}
+    assert_raises(C::Node::NoParent){i.list_next}
+    assert_raises(C::Node::NoParent){i.list_prev}
   end
 end
 
-class NodeTreeTest < Test::Unit::TestCase
+class NodeTreeTest < Minitest::Test
   def setup
     # @c = "(int){[1] = 10,
     #             .x = 20,
@@ -953,10 +953,10 @@ class NodeTreeTest < Test::Unit::TestCase
     assert_tree(mi)
     assert_same_list([mi1, mi2, mis[1], mis[2]], c.member_inits)
 
-    assert_raise(C::Node::NoParent){mi.replace_with(nil)}
+    assert_raises(C::Node::NoParent){mi.replace_with(nil)}
     i1 = C::Int.new
     i2 = C::Int.new
-    assert_raise(ArgumentError){c.type.replace_with(i1, i2)}
+    assert_raises(ArgumentError){c.type.replace_with(i1, i2)}
   end
 
   def test_node_swap_with
@@ -1015,9 +1015,9 @@ class NodeTreeTest < Test::Unit::TestCase
 
   def test_node_insert_next_detached
     x1, x2 = 2.of{X.new}
-    assert_raise(C::Node::NoParent){x1.insert_next}
+    assert_raises(C::Node::NoParent){x1.insert_next}
     assert_nil(x1.parent)
-    assert_raise(C::Node::NoParent){x1.insert_next(x2)}
+    assert_raises(C::Node::NoParent){x1.insert_next(x2)}
     assert_nil(x1.parent)
     assert_nil(x2.parent)
   end
@@ -1025,9 +1025,9 @@ class NodeTreeTest < Test::Unit::TestCase
     parent = X.new
     x1, x2 = 2.of{X.new}
     parent.a = x1
-    assert_raise(C::Node::BadParent){x1.insert_next}
+    assert_raises(C::Node::BadParent){x1.insert_next}
     assert_same(parent, x1.parent)
-    assert_raise(C::Node::BadParent){x1.insert_next(x2)}
+    assert_raises(C::Node::BadParent){x1.insert_next(x2)}
     assert_same(parent, x1.parent)
     assert_nil(x2.parent)
   end
@@ -1046,9 +1046,9 @@ class NodeTreeTest < Test::Unit::TestCase
 
   def test_node_insert_prev_detached
     a1, a2 = 2.of{X.new}
-    assert_raise(C::Node::NoParent){a1.insert_prev}
+    assert_raises(C::Node::NoParent){a1.insert_prev}
     assert_nil(a1.parent)
-    assert_raise(C::Node::NoParent){a1.insert_prev(a2)}
+    assert_raises(C::Node::NoParent){a1.insert_prev(a2)}
     assert_nil(a1.parent)
     assert_nil(a2.parent)
   end
@@ -1056,9 +1056,9 @@ class NodeTreeTest < Test::Unit::TestCase
     parent = X.new
     x1, x2 = 2.of{X.new}
     parent.a = x1
-    assert_raise(C::Node::BadParent){x1.insert_prev}
+    assert_raises(C::Node::BadParent){x1.insert_prev}
     assert_same(parent, x1.parent)
-    assert_raise(C::Node::BadParent){x1.insert_prev(x2)}
+    assert_raises(C::Node::BadParent){x1.insert_prev(x2)}
     assert_same(parent, x1.parent)
     assert_nil(x2.parent)
   end
@@ -1083,15 +1083,15 @@ class NodeTreeTest < Test::Unit::TestCase
     # node not a child
     x1, x2 = 2.of{X.new}
     parent = X.new(x1)
-    assert_raise(ArgumentError){parent.node_after(x2)}
-    assert_raise(ArgumentError){parent.node_before(x2)}
+    assert_raises(ArgumentError){parent.node_after(x2)}
+    assert_raises(ArgumentError){parent.node_before(x2)}
 
     x1, x2 = 2.of{X.new}
     parent = Z.new(nil, x1, nil, x2, nil)
-    assert_raise(ArgumentError){parent.node_after(x1)}
-    assert_raise(ArgumentError){parent.node_after(x2)}
-    assert_raise(ArgumentError){parent.node_before(x1)}
-    assert_raise(ArgumentError){parent.node_before(x2)}
+    assert_raises(ArgumentError){parent.node_after(x1)}
+    assert_raises(ArgumentError){parent.node_after(x2)}
+    assert_raises(ArgumentError){parent.node_before(x1)}
+    assert_raises(ArgumentError){parent.node_before(x2)}
 
     # one child
     x = X.new
@@ -1127,8 +1127,8 @@ class NodeTreeTest < Test::Unit::TestCase
     # node not a child
     x1, x2, x3 = 3.of{X.new}
     parent = Z.new(x1, x2)
-    assert_raise(ArgumentError){parent.remove_node(x2)}
-    assert_raise(ArgumentError){parent.remove_node(x3)}
+    assert_raises(ArgumentError){parent.remove_node(x2)}
+    assert_raises(ArgumentError){parent.remove_node(x3)}
 
     # one child
     x = X.new
@@ -1151,8 +1151,8 @@ class NodeTreeTest < Test::Unit::TestCase
     # node not a child
     x1, x2, x3, x4 = 3.of{X.new}
     parent = Z.new(x1, x2)
-    assert_raise(ArgumentError){parent.replace_node(x2, x4)}
-    assert_raise(ArgumentError){parent.replace_node(x3, x4)}
+    assert_raises(ArgumentError){parent.replace_node(x2, x4)}
+    assert_raises(ArgumentError){parent.replace_node(x3, x4)}
 
     # no newnode
     x = X.new
@@ -1165,7 +1165,7 @@ class NodeTreeTest < Test::Unit::TestCase
     # >1 newnode
     x1, x2, x3 = 3.of{X.new}
     parent = X.new(x1)
-    assert_raise(ArgumentError){parent.replace_node(x1, x2, x3)}
+    assert_raises(ArgumentError){parent.replace_node(x1, x2, x3)}
 
     # one child
     x1, x2 = 2.of{X.new}

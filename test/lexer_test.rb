@@ -8,7 +8,7 @@
 
 require 'test_helper'
 
-class LexerTest < Test::Unit::TestCase
+class LexerTest < Minitest::Test
   def check(s)
     check_ast(s){|inp| C::Parser.new.parse(inp)}
   end
@@ -136,10 +136,10 @@ TranslationUnit
                                     val: 4660
                                     suffix: "ULL"
 EOS
-    assert_raise(C::ParseError){C::Parser.new.parse('void f() {12lll;}')}
-    assert_raise(C::ParseError){C::Parser.new.parse('void f() {12ulL;}')}
-    assert_raise(C::ParseError){C::Parser.new.parse('void f() {12lul;}')}
-    assert_raise(C::ParseError){C::Parser.new.parse('void f() {123_4;}')}
+    assert_raises(C::ParseError){C::Parser.new.parse('void f() {12lll;}')}
+    assert_raises(C::ParseError){C::Parser.new.parse('void f() {12ulL;}')}
+    assert_raises(C::ParseError){C::Parser.new.parse('void f() {12lul;}')}
+    assert_raises(C::ParseError){C::Parser.new.parse('void f() {123_4;}')}
   end
   def test_float_literal
     check <<EOS
@@ -210,7 +210,7 @@ TranslationUnit
                                     format: hex
                                     val: 0.6708984375
 EOS
-    assert_raise(C::ParseError){C::Parser.new.parse('void f() {0x123.4pa;}')}
+    assert_raises(C::ParseError){C::Parser.new.parse('void f() {0x123.4pa;}')}
   end
   def test_string_literal
     check <<EOS
@@ -269,7 +269,7 @@ TranslationUnit
                                     prefix: "L"
                                     val: "a\\nb"
 EOS
-    assert_raise(C::ParseError){C::Parser.new.parse('void f() {xy"ab";}')}
+    assert_raises(C::ParseError){C::Parser.new.parse('void f() {xy"ab";}')}
   end
   def test_char_literal
     check <<EOS
@@ -318,6 +318,6 @@ TranslationUnit
                                     prefix: "L"
                                     val: "\\n"
 EOS
-    assert_raise(C::ParseError){C::Parser.new.parse("void f() {xy'ab';}")}
+    assert_raises(C::ParseError){C::Parser.new.parse("void f() {xy'ab';}")}
   end
 end

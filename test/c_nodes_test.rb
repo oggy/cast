@@ -6,7 +6,7 @@
 
 require 'test_helper'
 
-class MiscTests < Test::Unit::TestCase
+class MiscTests < Minitest::Test
 
   # ------------------------------------------------------------------
   #                    Declarator#declaration type
@@ -164,7 +164,7 @@ EOS
 
     t = C::Int.new
     x = C::Void.new
-    assert_raise(NoMethodError){t.direct_type = x}
+    assert_raises(NoMethodError){t.direct_type = x}
   end
 
   # ------------------------------------------------------------------

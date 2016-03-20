@@ -1,3 +1,7 @@
+== LATEST
+
+ * Fix popping & shifting from an empty NodeList.
+
 == 0.2.1 2012-12-19
 
  * Parse adjacent string literals correctly.

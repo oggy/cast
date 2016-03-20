@@ -10,7 +10,7 @@ require 'test_helper'
 class C::Preprocessor
   public :shellquote, :full_command
 end
-class PreprocessorTest < Test::Unit::TestCase
+class PreprocessorTest < Minitest::Test
   attr_accessor :cpp
   def setup
     @cpp = C::Preprocessor.new

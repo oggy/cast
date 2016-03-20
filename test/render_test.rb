@@ -6,7 +6,7 @@
 
 require 'test_helper'
 
-class RenderTest < Test::Unit::TestCase
+class RenderTest < Minitest::Test
   def setup
     @parser = C::Parser.new
     @parser.type_names << 'T'

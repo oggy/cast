@@ -238,7 +238,7 @@ module C
     def node_after(node)
       node.parent.equal? self or
         raise ArgumentError, "node is not a child"
-      @array[index = node.instance_variable_get(:@parent_index)+1]
+      @array[node.instance_variable_get(:@parent_index) + 1]
     end
 
     def node_before(node)
@@ -248,7 +248,7 @@ module C
       if index.zero?
         return nil
       else
-        return @array[index-1]
+        return @array[index - 1]
       end
     end
 
@@ -256,7 +256,7 @@ module C
       node.parent.equal? self or
         raise ArgumentError, "node is not a child"
       index = node.instance_variable_get(:@parent_index)
-      index.instance_variable_set(:@parent_index, nil)
+      node.instance_variable_set(:@parent_index, nil)
       removed_(@array[index])
       @array.delete_at(index)
       adjust_indices_(index)
@@ -435,8 +435,8 @@ module C
     end
     def pop(*args)
       if args.empty?
-        ret = @array.pop
-        removed_(ret)
+        ret = @array.pop and
+          removed_(ret)
         return ret
       else
         args.length == 1 or
@@ -450,8 +450,8 @@ module C
     end
     def shift(*args)
       if args.empty?
-        ret = @array.shift
-        removed_ ret
+        ret = @array.shift and
+          removed_ ret
       else
         args.length == 1 or
           raise ArgumentError, "wrong number of arguments (#{args.length} for 0..1)"
@@ -460,7 +460,7 @@ module C
         ret = @array.slice!(0, arg)
         removed_(*ret)
       end
-      adjust_indices_(0)
+      adjust_indices_(0) unless ret.nil?
       return ret
     end
     def insert(i, *newnodes)
@@ -786,7 +786,7 @@ module C
         else
           b.instance_variable_set(:@prev, last)
         end
-      
+
         # connect `nodes'
         if nodes.length == 1
           node = nodes[0]

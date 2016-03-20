@@ -243,7 +243,7 @@ module NodeListEqualTest
     assert(a.eql?(b))
     assert(a.hash == b.hash)
   end
-  def assert_not_eq(a, b)
+  def refute_eq(a, b)
     assert(!(a == b))
     assert(!a.eql?(b))
   end
@@ -256,12 +256,12 @@ module NodeListEqualTest
     assert_eq(two_by_four, two_by_four)
     assert_eq(big, big)
 
-    assert_not_eq(empty, one)
-    assert_not_eq(one, empty)
-    assert_not_eq(one, two)
-    assert_not_eq(two, one)
-    assert_not_eq(two, three)
-    assert_not_eq(three, two)
+    refute_eq(empty, one)
+    refute_eq(one, empty)
+    refute_eq(one, two)
+    refute_eq(two, one)
+    refute_eq(two, three)
+    refute_eq(three, two)
 
     # []
     empty2 = _List[]
@@ -453,12 +453,12 @@ module NodeListChildManagementTests
   include NodeListTest
   def check_not_child(list, node)
     n = C::Int.new
-    assert_raise(ArgumentError, list.node_before(node))
-    assert_raise(ArgumentError, list.node_after(node))
-    assert_raise(ArgumentError, list.remove_node(node))
-    assert_raise(ArgumentError, list.insert_after(node, n))
-    assert_raise(ArgumentError, list.insert_before(node, n))
-    assert_raise(ArgumentError, list.replace_node(node, n))
+    assert_raises(ArgumentError, list.node_before(node))
+    assert_raises(ArgumentError, list.node_after(node))
+    assert_raises(ArgumentError, list.remove_node(node))
+    assert_raises(ArgumentError, list.insert_after(node, n))
+    assert_raises(ArgumentError, list.insert_before(node, n))
+    assert_raises(ArgumentError, list.replace_node(node, n))
   end
 
   def check_list(list, *nodes)
@@ -1151,7 +1151,7 @@ module NodeListArrayQueryTests
     assert_same_list([a1, a2, a3], a.first(4))
 
     # negative array size
-    assert_raise(ArgumentError){a.first(-1)}
+    assert_raises(ArgumentError){a.first(-1)}
   end
 
   def test_last
@@ -1188,7 +1188,7 @@ module NodeListArrayQueryTests
     assert_same_list([a1, a2, a3], a.last(4))
 
     # negative array size
-    assert_raise(ArgumentError){a.last(-1)}
+    assert_raises(ArgumentError){a.last(-1)}
   end
 
   # ------------------------------------------------------------------
@@ -1792,7 +1792,7 @@ module NodeListModifierTests
     # too many args
     a, b = 2.of{C::Int.new}
     list = _List[a, b]
-    assert_raise(ArgumentError){list.pop(1, 2)}
+    assert_raises(ArgumentError){list.pop(1, 2)}
     assert_same_list([a, b], list)
     assert_same(list, a.parent)
     assert_same(list, b.parent)
@@ -1929,7 +1929,7 @@ module NodeListModifierTests
     # too many args
     a, b = 2.of{C::Int.new}
     list = _List[a, b]
-    assert_raise(ArgumentError){list.shift(1, 2)}
+    assert_raises(ArgumentError){list.shift(1, 2)}
     assert_same_list([a, b], list)
     assert_same(list, a.parent)
     assert_same(list, b.parent)
@@ -2462,7 +2462,7 @@ NodeListTest.submodules.each do |test_module|
   %w[NodeArray NodeChain].each do |list_class|
     test_class = test_module.name.sub(/^NodeList/, list_class)
     eval "
-      class #{test_class} < Test::Unit::TestCase
+      class #{test_class} < Minitest::Test
         def _List
           C::#{list_class}
         end

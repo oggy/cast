@@ -3,7 +3,8 @@
 ROOT = File.expand_path('..', File.dirname(__FILE__))
 $:.unshift "#{ROOT}/lib"
 
-require 'test/unit'
+require 'minitest'
+require 'minitest/autorun'
 require 'stringio'
 require 'fileutils'
 require 'cast'
@@ -36,7 +37,7 @@ class Integer
   end
 end
 
-module Test::Unit::Assertions
+module Minitest::Assertions
   INDENT = '    '
   #
   # Assert that the given string is parsed as expected.  The given
@@ -71,7 +72,7 @@ module Test::Unit::Assertions
 
     # compare
     msg = "Debug strings unequal:\n#{juxtapose('Expected', exp, 'Output', out)}"
-    assert_block(msg){out == exp}
+    assert(out == exp, msg)
   end
   #
   # Return a string of `s1' and `s2' side by side with a dividing line
@@ -108,7 +109,7 @@ module Test::Unit::Assertions
   #
   def assert_error(klass, re)
     ex = nil
-    assert_raise(klass) do
+    assert_raises(klass) do
       begin
         yield
       rescue Exception => ex
@@ -183,7 +184,7 @@ module Test::Unit::Assertions
   # copy).
   #
   def assert_copy(exp, out)
-    assert_not_same exp, out
+    refute_same exp, out
     assert_equal exp, out
   end
   #
