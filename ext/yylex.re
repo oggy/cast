@@ -3,6 +3,7 @@
  *
  * Based on c.re in the exmaples distributed with re2c.
  */
+#include <stdio.h>
 #include <string.h>
 #include "cast.h"
 
@@ -31,6 +32,7 @@ set_func(IntLiteral, suffix);
 new_func(FloatLiteral);
 set_func(FloatLiteral, format);
 set_func(FloatLiteral, val);
+set_func(FloatLiteral, exponent);
 set_func(FloatLiteral, suffix);
 
 new_func(CharLiteral);
@@ -75,7 +77,7 @@ static void error1(char *s, char *b, char *e) {
  */
 void yylex(VALUE self, cast_Parser *p) {
   char *cursor = p->cur;
-  char *cp;
+  char *cp, *ep;
   VALUE value;
  std:
   p->tok = cursor;
@@ -177,15 +179,29 @@ void yylex(VALUE self, cast_Parser *p) {
         cast_FloatLiteral_set_format(value, ID2SYM(rb_intern("dec")));
         cast_FloatLiteral_set_val(value, rb_float_new(strtod(p->tok, (char **)&cp)));
         if (cp < cursor)
-            cast_FloatLiteral_set_suffix(value, rb_str_new(cp, cursor - cp));
+          cast_FloatLiteral_set_suffix(value, rb_str_new(cp, cursor - cp));
+
+        ep = (char *)memchr(p->tok, 'e', cp - p->tok);
+        if (!ep)
+          ep = (char *)memchr(p->tok, 'E', cp - p->tok);
+        if (ep)
+          cast_FloatLiteral_set_exponent(value, LONG2NUM(strtod(ep + 1, NULL)));
+
         RETVALUE(cast_sym_FCON);
     }
-    ( "0" [Xx] (H+ P | H* "." H+ P? | H+ "." H* P?) ) FS? {
+    ( "0" [Xx] (H+ P | H* "." H+ P | H+ "." H* P) ) FS? {
         value = cast_new_FloatLiteral_at(p->lineno);
         cast_FloatLiteral_set_format(value, ID2SYM(rb_intern("hex")));
         cast_FloatLiteral_set_val(value, rb_float_new(strtod(p->tok, (char **)&cp)));
         if (cp < cursor)
             cast_FloatLiteral_set_suffix(value, rb_str_new(cp, cursor - cp));
+
+        ep = (char *)memchr(p->tok, 'p', cp - p->tok);
+        if (!ep)
+          ep = (char *)memchr(p->tok, 'P', cp - p->tok);
+        if (ep)
+          cast_FloatLiteral_set_exponent(value, LONG2NUM(strtod(ep + 1, NULL)));
+
         RETVALUE(cast_sym_FCON);
     }
 

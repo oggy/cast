@@ -724,6 +724,7 @@ module C
   class FloatLiteral
     field :format, :dec
     field :val
+    field :exponent
     field :suffix
     initializer :val
   end

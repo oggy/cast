@@ -166,49 +166,61 @@ TranslationUnit
                             exprs:
                                 - FloatLiteral
                                     val: 1230000.0
+                                    exponent: 4
                                 - FloatLiteral
                                     val: 0.0123
+                                    exponent: -4
                     - ExpressionStatement
                         expr: Comma
                             exprs:
                                 - FloatLiteral
                                     val: 1234000000000.0
+                                    exponent: 10
                                 - FloatLiteral
                                     val: 1.23e-05
+                                    exponent: -4
                     - ExpressionStatement
                         expr: Comma
                             exprs:
                                 - FloatLiteral
                                     val: 12340000.0
+                                    exponent: 5
                                 - FloatLiteral
                                     val: 1.23e-08
+                                    exponent: -10
                     - ExpressionStatement
                         expr: Comma
                             exprs:
                                 - FloatLiteral
                                     format: hex
                                     val: 684.0
+                                    exponent: 2
                                 - FloatLiteral
                                     format: hex
                                     val: 2.68359375
+                                    exponent: -10
                     - ExpressionStatement
                         expr: Comma
                             exprs:
                                 - FloatLiteral
                                     format: hex
                                     val: 21990.5
+                                    exponent: 3
                                 - FloatLiteral
                                     format: hex
                                     val: 1.341796875
+                                    exponent: -11
                     - ExpressionStatement
                         expr: Comma
                             exprs:
                                 - FloatLiteral
                                     format: hex
                                     val: 43981.0
+                                    exponent: 4
                                 - FloatLiteral
                                     format: hex
                                     val: 0.6708984375
+                                    exponent: -12
 EOS
     assert_raises(C::ParseError){C::Parser.new.parse('void f() {0x123.4pa;}')}
   end

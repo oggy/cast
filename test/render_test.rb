@@ -1744,9 +1744,19 @@ class RenderTest < Minitest::Test
       |1.0
     EOS
   end
+  def test_float_literal_exponent
+    check(C::FloatLiteral, <<-EOS)
+      |1.23e45
+    EOS
+  end
   def test_float_literal_suffix
     check(C::FloatLiteral, <<-EOS)
       |1.0f
+    EOS
+  end
+  def test_float_literal_hex_exponent
+    check(C::FloatLiteral, <<-EOS)
+      |0x12.abp3
     EOS
   end
   def test_float_literal_precise

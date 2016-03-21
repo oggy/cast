@@ -541,7 +541,34 @@ module C
   end
   class FloatLiteral
     def to_s
-      "#{val}#{suffix}"
+      case format
+      when :dec
+        if exponent
+          "#{val / 10**exponent}e#{exponent}#{suffix}"
+        else
+          "#{val}#{suffix}"
+        end
+      when :hex
+        "0x#{float_hex(val / 2**exponent)}p#{exponent || 0}#{suffix}"
+      else
+        raise "invalid C::FloatLiteral format: #{format}"
+      end
+    end
+
+    private
+
+    HEX_DIGITS = %w[0 1 2 3 4 5 6 7 8 9 a b c d e f]
+
+    def float_hex(value)
+      int, frac = value.divmod(1)
+      string = "#{int.to_s(16)}."
+      # 64-bit floats have 53 bits of significand ~ 14 hex digits.
+      14.times do
+        break if frac < 1e-17
+        int, frac = (frac * 16).divmod(1)
+        string << HEX_DIGITS[int]
+      end
+      string
     end
   end
   class Variable
