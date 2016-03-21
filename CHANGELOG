@@ -1,4 +1,4 @@
-== LATEST
+== 0.3.0 2016-03-21
 
  * Fix popping & shifting from an empty NodeList.
  * Add FloatLiteral#exponent and require exponent for hex floats.
