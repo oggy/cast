@@ -40,158 +40,114 @@ Or in irb:
 
 `C.parse` returns a tree of `Node` objects. Here's the class hierarchy:
 
-<div class="node_classes">
-  <style scoped="scoped">
-    div.node_classes .node_class_abstract {
-      font-weight: bold;
-    }
-    div.node_classes .column {
-      line-height: 120%;
-      float: left;
-      color: #222;
-    }
-    div.node_classes .spacer {
-      display: float;
-      clear: both;
-    }
-  </style>
-  <ul class="column">
-    <li class="node_class"><span class="node_class_abstract">Node</span><ul>
-      <li class="node_class"><span class="node_class_concrete">TranslationUnit</span></li>
-      <li class="node_class"><span class="node_class_concrete">Comment</span></li>
-      <li class="node_class"><span class="node_class_concrete">Declaration</span></li>
-      <li class="node_class"><span class="node_class_concrete">Declarator</span></li>
-      <li class="node_class"><span class="node_class_concrete">FunctionDef</span></li>
-      <li class="node_class"><span class="node_class_concrete">Parameter</span></li>
-      <li class="node_class"><span class="node_class_concrete">Enumerator</span></li>
-      <li class="node_class"><span class="node_class_concrete">MemberInit</span></li>
-      <li class="node_class"><span class="node_class_concrete">Member</span></li>
-      <li class="node_class"><span class="node_class_abstract">Statement</span><ul>
-        <li class="node_class"><span class="node_class_concrete">Block</span></li>
-        <li class="node_class"><span class="node_class_concrete">If</span></li>
-        <li class="node_class"><span class="node_class_concrete">Switch</span></li>
-        <li class="node_class"><span class="node_class_concrete">While</span></li>
-        <li class="node_class"><span class="node_class_concrete">For</span></li>
-        <li class="node_class"><span class="node_class_concrete">Goto</span></li>
-        <li class="node_class"><span class="node_class_concrete">Continue</span></li>
-        <li class="node_class"><span class="node_class_concrete">Break</span></li>
-        <li class="node_class"><span class="node_class_concrete">Return</span></li>
-        <li class="node_class"><span class="node_class_concrete">ExpressionStatement</span></li>
-      </ul></li>
-      <li class="node_class"><span class="node_class_abstract">Label</span><ul>
-        <li class="node_class"><span class="node_class_concrete">PlainLabel</span></li>
-        <li class="node_class"><span class="node_class_concrete">Default</span></li>
-        <li class="node_class"><span class="node_class_concrete">Case</span></li>
-      </ul></li>
-      <li class="node_class"><span class="node_class_abstract">Type</span><ul>
-        <li class="node_class"><span class="node_class_abstract">IndirectType</span><ul>
-          <li class="node_class"><span class="node_class_concrete">Pointer</span></li>
-          <li class="node_class"><span class="node_class_concrete">Array</span></li>
-          <li class="node_class"><span class="node_class_concrete">Function</span></li>
-        </ul></li>
-        <li class="node_class"><span class="node_class_abstract">DirectType</span><ul>
-          <li class="node_class"><span class="node_class_concrete">Struct</span></li>
-          <li class="node_class"><span class="node_class_concrete">Union</span></li>
-          <li class="node_class"><span class="node_class_concrete">Enum</span></li>
-          <li class="node_class"><span class="node_class_concrete">CustomType</span></li>
-          <li class="node_class"><span class="node_class_abstract">PrimitiveType</span><ul>
-            <li class="node_class"><span class="node_class_concrete">Void</span></li>
-            <li class="node_class"><span class="node_class_concrete">Int</span></li>
-            <li class="node_class"><span class="node_class_concrete">Float</span></li>
-            <li class="node_class"><span class="node_class_concrete">Char</span></li>
-            <li class="node_class"><span class="node_class_concrete">Bool</span></li>
-            <li class="node_class"><span class="node_class_concrete">Complex</span></li>
-            <li class="node_class"><span class="node_class_concrete">Imaginary</span></li>
-          </ul></li>
-        </ul></li>
-      </ul></li>
-    </ul></li>
-  </ul>
-  <ul class="column">
-    <li class="node_class"><span class="node_class_abstract">Node</span><ul>
-      <li class="node_class"><span class="node_class_abstract">Expression</span><ul>
-        <li class="node_class"><span class="node_class_concrete">Comma</span></li>
-        <li class="node_class"><span class="node_class_concrete">Conditional</span></li>
-        <li class="node_class"><span class="node_class_concrete">Variable</span></li>
-        <li class="node_class"><span class="node_class_abstract">UnaryExpression</span><ul>
-          <li class="node_class"><span class="node_class_abstract">PostfixExpression</span><ul>
-            <li class="node_class"><span class="node_class_concrete">Index</span></li>
-            <li class="node_class"><span class="node_class_concrete">Call</span></li>
-            <li class="node_class"><span class="node_class_concrete">Dot</span></li>
-            <li class="node_class"><span class="node_class_concrete">Arrow</span></li>
-            <li class="node_class"><span class="node_class_concrete">PostInc</span></li>
-            <li class="node_class"><span class="node_class_concrete">PostDec</span></li>
-          </ul></li>
-          <li class="node_class"><span class="node_class_abstract">PrefixExpression</span><ul>
-            <li class="node_class"><span class="node_class_concrete">Cast</span></li>
-            <li class="node_class"><span class="node_class_concrete">Address</span></li>
-            <li class="node_class"><span class="node_class_concrete">Dereference</span></li>
-            <li class="node_class"><span class="node_class_concrete">Sizeof</span></li>
-            <li class="node_class"><span class="node_class_concrete">Plus</span></li>
-            <li class="node_class"><span class="node_class_concrete">Minus</span></li>
-            <li class="node_class"><span class="node_class_concrete">PreInc</span></li>
-            <li class="node_class"><span class="node_class_concrete">PreDec</span></li>
-            <li class="node_class"><span class="node_class_concrete">BitNot</span></li>
-            <li class="node_class"><span class="node_class_concrete">Not</span></li>
-          </ul></li>
-        </ul></li>
-        <li class="node_class"><span class="node_class_abstract">BinaryExpression</span><ul>
-          <li class="node_class"><span class="node_class_concrete">Add</span></li>
-          <li class="node_class"><span class="node_class_concrete">Subtract</span></li>
-          <li class="node_class"><span class="node_class_concrete">Multiply</span></li>
-          <li class="node_class"><span class="node_class_concrete">Divide</span></li>
-          <li class="node_class"><span class="node_class_concrete">Mod</span></li>
-          <li class="node_class"><span class="node_class_concrete">Equal</span></li>
-          <li class="node_class"><span class="node_class_concrete">NotEqual</span></li>
-          <li class="node_class"><span class="node_class_concrete">Less</span></li>
-          <li class="node_class"><span class="node_class_concrete">More</span></li>
-          <li class="node_class"><span class="node_class_concrete">LessOrEqual</span></li>
-          <li class="node_class"><span class="node_class_concrete">MoreOrEqual</span></li>
-          <li class="node_class"><span class="node_class_concrete">BitAnd</span></li>
-          <li class="node_class"><span class="node_class_concrete">BitOr</span></li>
-          <li class="node_class"><span class="node_class_concrete">BitXor</span></li>
-          <li class="node_class"><span class="node_class_concrete">ShiftLeft</span></li>
-          <li class="node_class"><span class="node_class_concrete">ShiftRight</span></li>
-          <li class="node_class"><span class="node_class_concrete">And</span></li>
-          <li class="node_class"><span class="node_class_concrete">Or</span></li>
-        </ul></li>
-      </ul></li>
-    </ul></li>
-  </ul>
-  <ul class="column">
-    <li class="node_class"><span class="node_class_abstract">Node</span><ul>
-      <li class="node_class"><span class="node_class_abstract">Expression</span><ul>
-        <li class="node_class"><span class="node_class_abstract">AssignmentExpression</span><ul>
-          <li class="node_class"><span class="node_class_concrete">Assign</span></li>
-          <li class="node_class"><span class="node_class_concrete">MultiplyAssign</span></li>
-          <li class="node_class"><span class="node_class_concrete">DivideAssign</span></li>
-          <li class="node_class"><span class="node_class_concrete">ModAssign</span></li>
-          <li class="node_class"><span class="node_class_concrete">AddAssign</span></li>
-          <li class="node_class"><span class="node_class_concrete">SubtractAssign</span></li>
-          <li class="node_class"><span class="node_class_concrete">ShiftLeftAssign</span></li>
-          <li class="node_class"><span class="node_class_concrete">ShiftRightAssign</span></li>
-          <li class="node_class"><span class="node_class_concrete">BitAndAssign</span></li>
-          <li class="node_class"><span class="node_class_concrete">BitXorAssign</span></li>
-          <li class="node_class"><span class="node_class_concrete">BitOrAssign</span></li>
-        </ul></li>
-        <li class="node_class"><span class="node_class_abstract">Literal</span><ul>
-          <li class="node_class"><span class="node_class_concrete">StringLiteral</span></li>
-          <li class="node_class"><span class="node_class_concrete">CharLiteral</span></li>
-          <li class="node_class"><span class="node_class_concrete">CompoundLiteral</span></li>
-          <li class="node_class"><span class="node_class_concrete">IntLiteral</span></li>
-          <li class="node_class"><span class="node_class_concrete">FloatLiteral</span></li>
-        </ul></li>
-      </ul></li>
-      <li class="node_class"><span class="node_class_abstract">NodeList</span><ul>
-        <li class="node_class"><span class="node_class_concrete">NodeArray</span></li>
-        <li class="node_class"><span class="node_class_concrete">NodeChain</span></li>
-      </ul></li>
-    </ul></li>
-  </ul>
-  <div class="spacer"></div>
-</div>
+* **Node**
+  * TranslationUnit
+  * Comment
+  * Declaration
+  * Declarator
+  * FunctionDef
+  * Parameter
+  * Enumerator
+  * MemberInit
+  * Member
+  * **Statement**
+    * Block
+    * If
+    * Switch
+    * While
+    * For
+    * Goto
+    * Continue
+    * Break
+    * Return
+    * ExpressionStatement
+  * **Label**
+    * PlainLabel
+    * Default
+    * Case
+  * **Type**
+    * **IndirectType**
+      * Pointer
+      * Array
+      * Function
+    * **DirectType**
+      * Struct
+      * Union
+      * Enum
+      * CustomType
+      * **PrimitiveType**
+        * Void
+        * Int
+        * Float
+        * Char
+        * Bool
+        * Complex
+        * Imaginary
+  * **Expression**
+    * Comma
+    * Conditional
+    * Variable
+    * **UnaryExpression**
+      * **PostfixExpression**
+        * Index
+        * Call
+        * Dot
+        * Arrow
+        * PostInc
+        * PostDec
+      * **PrefixExpression**
+        * Cast
+        * Address
+        * Dereference
+        * Sizeof
+        * Plus
+        * Minus
+        * PreInc
+        * PreDec
+        * BitNot
+        * Not
+    * **BinaryExpression**
+      * Add
+      * Subtract
+      * Multiply
+      * Divide
+      * Mod
+      * Equal
+      * NotEqual
+      * Less
+      * More
+      * LessOrEqual
+      * MoreOrEqual
+      * BitAnd
+      * BitOr
+      * BitXor
+      * ShiftLeft
+      * ShiftRight
+      * And
+      * Or
+    * **AssignmentExpression**
+      * Assign
+      * MultiplyAssign
+      * DivideAssign
+      * ModAssign
+      * AddAssign
+      * SubtractAssign
+      * ShiftLeftAssign
+      * ShiftRightAssign
+      * BitAndAssign
+      * BitXorAssign
+      * BitOrAssign
+    * **Literal**
+      * StringLiteral
+      * CharLiteral
+      * CompoundLiteral
+      * IntLiteral
+      * FloatLiteral
+  * **NodeList**
+    * NodeArray
+    * NodeChain
 
-The <span class="node_class_abstract">highlighted</span> ones are abstract.
+The **bold** ones are abstract.
 
 The last 2 (`NodeList`s) represent lists of `Node`s. They quack like
 standard ruby `Arrays`. `NodeChain` is a doubly linked list;
