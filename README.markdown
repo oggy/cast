@@ -291,7 +291,7 @@ Other notes about the table:
     table.node_desc tr.first_field table td {
       border: none;
     }
-    
+
     table.node_desc td {
       padding: 3px;
       vertical-align: top;
@@ -363,7 +363,7 @@ Other notes about the table:
       <pre>
     Declaration
         type: Int
-        declarators: 
+        declarators:
             - Declarator
                 name: "i"
             - Declarator
@@ -1372,18 +1372,18 @@ int main(int argc, char **argv) {
       <pre>CompoundLiteral
     type: Struct
         name: "S"
-    member_inits: 
+    member_inits:
         - MemberInit
             init: IntLiteral
                 val: 1
         - MemberInit
-            member: 
+            member:
                 - Member
                     name: "x"
             init: IntLiteral
                 val: 2
         - MemberInit
-            member: 
+            member:
                 - Member
                     name: "y"
                 - IntLiteral
@@ -1401,11 +1401,11 @@ int main(int argc, char **argv) {
   </tr>
 
   <tr class="first_field">
-    <td class="nd_class" rowspan="2"><tt>IntLiteral</tt></td>
-    <td class="nd_field"><tt>val</tt></td>
-    <td class="nd_values"><tt>Integer</tt></td>
-    <td class="nd_default"></td>
-    <td class="nd_comments" rowspan="2">
+    <td class="nd_class" rowspan="3"><tt>IntLiteral</tt></td>
+    <td class="nd_field"><tt>format</tt></td>
+    <td class="nd_values"><tt>:dec</tt>, <tt>:hex</tt>, <tt>:oct</tt></td>
+    <td class="nd_default"><tt>:dec</tt></td>
+    <td class="nd_comments" rowspan="3">
       <p>Also:</p>
       <ul>
         <li><tt>#dec?</tt> -- return true iff <tt>format == :dec</tt></li>
@@ -1415,18 +1415,38 @@ int main(int argc, char **argv) {
     </td>
   </tr>
   <tr>
-    <td class="nd_field"><tt>format</tt></td>
-    <td class="nd_values"><tt>:dec</tt>, <tt>:hex</tt>, <tt>:oct</tt></td>
-    <td class="nd_default"><tt>:dec</tt></td>
+    <td class="nd_field"><tt>val</tt></td>
+    <td class="nd_values"><tt>Integer</tt></td>
+    <td class="nd_default"></td>
+  </tr>
+  <tr>
+    <td class="nd_field"><tt>suffix</tt></td>
+    <td class="nd_values"><tt>String</tt></td>
+    <td class="nd_default"></td>
   </tr>
 
   <tr class="first_field">
-    <td class="nd_class" rowspan="1"><tt>FloatLiteral</tt></td>
+    <td class="nd_class" rowspan="4"><tt>FloatLiteral</tt></td>
+    <td class="nd_field"><tt>format</tt></td>
+    <td class="nd_values"><tt>:dec</tt>, <tt>:hex</tt></td>
+    <td class="nd_default"><tt>:dec</tt></td>
+    <td class="nd_comments" rowspan="4">
+    </td>
+  </tr>
+  <tr>
     <td class="nd_field"><tt>val</tt></td>
     <td class="nd_values"><tt>Float</tt></td>
     <td class="nd_default"></td>
-    <td class="nd_comments" rowspan="1">
-    </td>
+  </tr>
+  <tr>
+    <td class="nd_field"><tt>exponent</tt></td>
+    <td class="nd_values"><tt>Integer</tt></td>
+    <td class="nd_default"></td>
+  </tr>
+  <tr>
+    <td class="nd_field"><tt>suffix</tt></td>
+    <td class="nd_values"><tt>String</tt></td>
+    <td class="nd_default"></td>
   </tr>
 
   <tr class="first_field">
