@@ -1298,7 +1298,7 @@ module NodeListArrayQueryTests
     assert_equal(0, list.index(a))
     assert_equal(1, list.index(l1))
     assert_equal(1, list.index(_List[C::Int.new(2)]))
-    assert_equal(nil, list.index([b]))
+    assert_nil(list.index([b]))
     assert_nil(list.index([a]))
     assert_nil(list.index(C::Int.new))
     assert_nil(list.index(nil))

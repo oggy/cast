@@ -194,7 +194,7 @@ EOS
 
     c.wide = false
     assert(!c.wide?)
-    assert_equal(nil, c.prefix)
+    assert_nil(c.prefix)
   end
   def test_string_literal_wide
     s = C::StringLiteral.new('abc', 'L')
@@ -219,6 +219,6 @@ EOS
 
     s.wide = false
     assert(!s.wide?)
-    assert_equal(nil, s.prefix)
+    assert_nil(s.prefix)
   end
 end
