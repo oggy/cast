@@ -3,6 +3,8 @@
 /ext/Makefile
 /ext/*.bundle
 /ext/*.o
+/ext/*.so
 /ext/yylex.c
+/lib/cast/cast.so
 /lib/cast/c.tab.rb
 /lib/cast/cast.bundle
