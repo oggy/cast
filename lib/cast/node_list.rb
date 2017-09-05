@@ -148,14 +148,6 @@ module C
   end
 
   class NodeArray
-    def assert_invariants(testcase)
-      super
-      testcase.assert_same(::Array, @array)
-      @array.each_with_index do |node, i|
-        assert_same(i, node.instance_variable_get(:@parent_index))
-      end
-    end
-
     def initialize
       super
       @array = []
@@ -177,31 +169,6 @@ module C
   end
 
   class NodeChain
-    def assert_invariants(testcase)
-      super
-      assert_same(@length.zero?, @first.nil?)
-      assert_same(@length.zero?, @last.nil?)
-      unless @length.zero?
-        assert_same(@first, self[0])
-        assert_same(@last, self[@length-1])
-        (0...@length.times).each do |i|
-          nodeprev = self[i].instance_variable_get(:@prev)
-          nodenext = self[i].instance_variable_get(:@next)
-          if i == 0
-            assert_nil(nodeprev)
-          else
-            assert_same(self[i-1], nodeprev)
-          end
-
-          if i == @length-1
-            assert_nil(nodenext)
-          else
-            assert_same(self[i+1], nodenext)
-          end
-        end
-      end
-    end
-
     def initialize
       super
       @first = nil
