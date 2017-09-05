@@ -189,10 +189,4 @@ module Minitest::Assertions
     refute_same exp, out
     assert_equal exp, out
   end
-  #
-  # Assert the invariants of `node'.
-  #
-  def assert_invariants(node)
-    node.assert_invariants(self)
-  end
 end
