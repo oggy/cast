@@ -132,9 +132,12 @@ void yylex(VALUE self, cast_Parser *p) {
     "while"      { RET(cast_sym_WHILE); }
     "inline"     { RET(cast_sym_INLINE); }
     "restrict"   { RET(cast_sym_RESTRICT); }
+
     "_Bool"      { RET(cast_sym_BOOL); }
     "_Complex"   { RET(cast_sym_COMPLEX); }
     "_Imaginary" { RET(cast_sym_IMAGINARY); }
+
+    "__extension__" { RET(cast_sym_EXTENSION); } /* GCC extension */
 
     L (L|D)* {
         value = rb_str_new(p->tok, cursor - p->tok);

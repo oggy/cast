@@ -118,6 +118,66 @@ TranslationUnit
 EOS
   end
 
+  def test_external_declaration_with_extension_kw
+    check <<EOS
+__extension__ typedef int blah;
+----
+TranslationUnit
+     entities:
+         - Declaration
+             storage: typedef
+             type: Int
+             declarators:
+                 - Declarator
+                     name: "blah"
+EOS
+  end
+
+def test_struct_member_declaration_with_extension_kw
+  check <<EOS
+struct { __extension__ int; __extension__ int i; int j; } blah;
+----
+TranslationUnit
+     entities:
+         - Declaration
+             type: Struct
+                 members:
+                     - Declaration
+                         type: Int
+                     - Declaration
+                         type: Int
+                         declarators:
+                             - Declarator
+                                 name: "i"
+                     - Declaration
+                         type: Int
+                         declarators:
+                             - Declarator
+                                 name: "j"
+             declarators:
+                 - Declarator
+                     name: "blah"
+EOS
+end
+
+def test_unary_extension_kw
+  check <<EOS
+void f() { __extension__ 0; }
+----
+TranslationUnit
+    entities:
+        - FunctionDef
+            type: Function
+                type: Void
+            name: "f"
+            def: Block
+                stmts:
+                    - ExpressionStatement
+                        expr: IntLiteral
+                            val: 0
+EOS
+end
+
   def test_function_def
     check <<EOS
 int main(int, char **) {}
