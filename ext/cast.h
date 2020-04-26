@@ -84,6 +84,7 @@ extern VALUE cast_sym_RESTRICT;
 extern VALUE cast_sym_BOOL;
 extern VALUE cast_sym_COMPLEX;
 extern VALUE cast_sym_IMAGINARY;
+extern VALUE cast_sym_EXTENSION; /* GCC extension: __extension__ */
 
 extern VALUE cast_sym_FCON;
 extern VALUE cast_sym_ICON;
