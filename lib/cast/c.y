@@ -12,8 +12,11 @@ translation_unit
 
 # Returns Declaration|FunctionDef
 external_declaration
-  : function_definition {result = val[0]}
-  | declaration         {result = val[0]}
+  : function_definition            {result = val[0]}
+  | declaration                    {result = val[0]}
+  # GCC EXTENSION: __extension__ can go before any external declaration
+  # this has no effect aside from suppressing certain warnings
+  | EXTENSION external_declaration {result = val[1]}
 
 # Returns FunctionDef
 function_definition
@@ -172,7 +175,9 @@ struct_declaration_list
 
 # Returns Declaration
 struct_declaration
-  : specifier_qualifier_list struct_declarator_list SEMICOLON {result = make_declaration(val[0][0], val[0][1], val[1])}
+  : specifier_qualifier_list struct_declarator_list SEMICOLON           {result = make_declaration(val[0][0], val[0][1], val[1])}
+  # GCC EXTENSION: __extension__ can go before any struct_declaration
+  | EXTENSION specifier_qualifier_list struct_declarator_list SEMICOLON {result = make_declaration(val[1][0], val[1][1], val[2])}
 
 # Returns {Pos, [Symbol]}
 specifier_qualifier_list
@@ -381,6 +386,8 @@ unary_expression
   | unary_operator cast_expression {result = val[0][0].new_at(val[0][1], val[1])}
   | SIZEOF unary_expression        {result = Sizeof.new_at(val[0].pos, val[1])}
   | SIZEOF LPAREN type_name RPAREN {result = Sizeof.new_at(val[0].pos, val[2])}
+  # GCC extension: __extension__
+  | EXTENSION cast_expression      {result = val[1]}
 
 # Returns [Class, Pos]
 unary_operator

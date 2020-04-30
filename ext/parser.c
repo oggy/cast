@@ -45,6 +45,7 @@ VALUE cast_sym_RESTRICT;
 VALUE cast_sym_BOOL;
 VALUE cast_sym_COMPLEX;
 VALUE cast_sym_IMAGINARY;
+VALUE cast_sym_EXTENSION; /* GCC extension: __extension__ */
 
 VALUE cast_sym_FCON;
 VALUE cast_sym_ICON;
@@ -229,6 +230,7 @@ void cast_init_parser(void) {
   cast_sym_BOOL        = ID2SYM(rb_intern("BOOL"));
   cast_sym_COMPLEX     = ID2SYM(rb_intern("COMPLEX"));
   cast_sym_IMAGINARY   = ID2SYM(rb_intern("IMAGINARY"));
+  cast_sym_EXTENSION   = ID2SYM(rb_intern("EXTENSION")); /* GCC extension: __extension__ */
 
   cast_sym_FCON        = ID2SYM(rb_intern("FCON"));
   cast_sym_ICON        = ID2SYM(rb_intern("ICON"));
