@@ -173,6 +173,7 @@ struct_declaration_list
 # Returns Declaration
 struct_declaration
   : specifier_qualifier_list struct_declarator_list SEMICOLON {result = make_declaration(val[0][0], val[0][1], val[1])}
+  | specifier_qualifier_list                        SEMICOLON {result = make_declaration(val[0][0], val[0][1], NodeArray[])}
 
 # Returns {Pos, [Symbol]}
 specifier_qualifier_list
