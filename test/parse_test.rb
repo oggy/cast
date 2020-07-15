@@ -1761,10 +1761,12 @@ Struct
     name: "s"
 EOS
     check C::Struct, <<EOS
-const struct {int i, j : 4;}
+const struct {float; int i, j : 4;}
 ----
 Struct (const)
     members:
+        - Declaration
+            type: Float
         - Declaration
             type: Int
             declarators:
