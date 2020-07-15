@@ -1,3 +1,7 @@
+== LATEST
+
+ * Support struct/union member declarations with no declarators. [Brice Videau]
+
 == 0.3.0 2016-03-21
 
  * Fix popping & shifting from an empty NodeList.
