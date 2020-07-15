@@ -10,20 +10,6 @@ module C
   #
   class Node
     #
-    # Called by the test suite to ensure all invariants are true.
-    #
-    def assert_invariants(testcase)
-      fields.each do |field|
-        if val = send(field.reader)
-          assert_same(self, node.parent, "field.reader is #{field.reader}")
-          if field.child?
-            assert_same(field, val.instance_variable_get(:@parent_field), "field.reader is #{field.reader}")
-          end
-        end
-      end
-    end
-
-    #
     # Like self.new, but the first argument is taken as the position
     # of the Node.
     #
