@@ -29,11 +29,13 @@ module C
     end
     def preprocess(text)
       filename = nil
-      Tempfile.open(['cast-preprocessor-input.', '.c'], File.expand_path(pwd || '.')) do |file|
+      output = nil
+      Tempfile.open(['cast-preprocessor-input.', '.c']) do |file|
         filename = file.path
         file.puts text
+	file.flush
+        output = `#{full_command(filename)} #{'2> /dev/null' if @quiet}`
       end
-      output = `#{full_command(filename)} #{'2> /dev/null' if @quiet}`
       if $? == 0
         return output
       else
