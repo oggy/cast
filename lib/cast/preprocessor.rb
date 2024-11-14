@@ -28,12 +28,14 @@ module C
       @quiet = quiet
     end
     def preprocess(text)
-      filename = nil
+      # Tempfile will delete file after garbage collection, which can happen
+      # after the below block if the object is not saved.
+      f = nil
       Tempfile.open(['cast-preprocessor-input.', '.c'], File.expand_path(pwd || '.')) do |file|
-        filename = file.path
+        f = file
         file.puts text
       end
-      output = `#{full_command(filename)} #{'2> /dev/null' if @quiet}`
+      output = `#{full_command(f.path)} #{'2> /dev/null' if @quiet}`
       if $? == 0
         return output
       else
