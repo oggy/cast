@@ -1,3 +1,4 @@
+require "racc/parser" # used in cast and parser extensions
 require "cast/cast"
 require "cast/tempfile"
 require "cast/preprocessor"
