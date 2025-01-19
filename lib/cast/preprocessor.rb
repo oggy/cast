@@ -33,7 +33,7 @@ module C
       Tempfile.open(['cast-preprocessor-input.', '.c']) do |file|
         filename = file.path
         file.puts text
-	file.flush
+        file.flush
         output = `#{full_command(filename)} #{'2> /dev/null' if @quiet}`
       end
       if $? == 0
