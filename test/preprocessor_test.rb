@@ -14,7 +14,7 @@ class PreprocessorTest < Minitest::Test
   attr_accessor :cpp
   def setup
     @cpp = C::Preprocessor.new(quiet: true)
-    @cpp.include_path << 'dir1' << 'dir 2'
+    @cpp.include_path << TEST_DIR << 'dir 2'
     @cpp.macros['V'] = nil
     @cpp.macros['I'] = 5
     @cpp.macros['S'] = '"blah"'
@@ -30,7 +30,7 @@ class PreprocessorTest < Minitest::Test
     C::Preprocessor.command = 'COMMAND'
     assert_equal([
       'COMMAND',
-      '-Idir1', '-Idir 2',
+      "-I#{TEST_DIR}", '-Idir 2',
       '-DI=5', '-DS="blah"', '-DSWAP(a,b)=a ^= b ^= a ^= b', '-DV',
       'a file.c',
     ], cpp.full_command('a file.c').shellsplit)
