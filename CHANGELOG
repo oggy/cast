@@ -1,3 +1,11 @@
+== LATEST
+
+ * Add support for GCC's __extension__ keyword. [Alex Dowad]
+ * Preprocessor creates temp file in system temp directory, not same directory
+   as source file. [Patrick Plenefisch]
+ * Fix potential preprocessing error due to race condition. [Brice Videau]
+ * Remove #assert_invariants methods. [Anatoly Chernov]
+
 == 0.3.1 2020-07-15
 
  * Support struct/union member declarations with no declarators. [Brice Videau]
